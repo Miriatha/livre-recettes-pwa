@@ -228,6 +228,15 @@ button:focus-visible {
   cursor: pointer;
 }
 
+.champ-recherche {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.champ-recherche input {
+  width: min(100%, 32rem);
+}
+
 .filtre-favoris input {
   min-height: auto;
 }
@@ -368,6 +377,10 @@ button:focus-visible {
   }
 
   button {
+    width: 100%;
+  }
+
+  .champ-recherche input {
     width: 100%;
   }
 }

@@ -8,6 +8,7 @@
   const zoneRecettes = document.getElementById("liste-recettes");
   const filtreCategorie = document.getElementById("filtre-categorie");
   const filtreFavoris = document.getElementById("filtre-favoris");
+  const champRecherche = document.getElementById("recherche-recettes");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const listeIngredients = document.getElementById("liste-ingredients");
@@ -29,6 +30,7 @@
     ["#liste-recettes", zoneRecettes],
     ["#filtre-categorie", filtreCategorie],
     ["#filtre-favoris", filtreFavoris],
+    ["#recherche-recettes", champRecherche],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#liste-ingredients", listeIngredients],
@@ -82,6 +84,7 @@
 
   function afficherRecettes() {
     zoneRecettes.textContent = "";
+    const recherche = normaliserRecherche(champRecherche.value);
 
     if (recettes.length === 0) {
       const messageVide = document.createElement("p");
@@ -101,12 +104,20 @@
       );
     }
 
+    if (recherche) {
+      recettesAffichees = recettesAffichees.filter((recette) =>
+        recetteCorrespondRecherche(recette, recherche)
+      );
+    }
+
     if (recettesAffichees.length === 0) {
       const messageVide = document.createElement("p");
       messageVide.className = "aucune-recette";
-      messageVide.textContent = filtreFavoris.checked
-        ? "Aucune recette favorite ne correspond aux filtres sélectionnés."
-        : "Aucune recette ne correspond à cette catégorie.";
+      messageVide.textContent = recherche
+        ? "Aucune recette ne correspond à votre recherche et aux filtres sélectionnés."
+        : filtreFavoris.checked
+          ? "Aucune recette favorite ne correspond aux filtres sélectionnés."
+          : "Aucune recette ne correspond à cette catégorie.";
       zoneRecettes.append(messageVide);
       return;
     }
@@ -277,6 +288,32 @@
 
   function obtenirTexteRecette(texte) {
     return typeof texte === "string" ? texte : "";
+  }
+
+  function normaliserRecherche(texte) {
+    if (typeof texte !== "string") {
+      return "";
+    }
+
+    return texte
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("fr");
+  }
+
+  function recetteCorrespondRecherche(recette, recherche) {
+    if (!recherche) {
+      return true;
+    }
+
+    if (normaliserRecherche(recette.nom).includes(recherche)) {
+      return true;
+    }
+
+    return obtenirIngredientsValides(recette).some((ingredient) =>
+      normaliserRecherche(ingredient.nom).includes(recherche)
+    );
   }
 
   function convertirNombreEntier(valeur, minimum) {
@@ -836,6 +873,10 @@
   });
 
   filtreFavoris.addEventListener("change", () => {
+    afficherRecettes();
+  });
+
+  champRecherche.addEventListener("input", () => {
     afficherRecettes();
   });
 

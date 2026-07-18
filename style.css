@@ -1,0 +1,63 @@
+:root {
+  color: #2f332d;
+  background: #f7f1e3;
+  font-family: Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.carte {
+  width: min(100%, 34rem);
+  padding: 2rem;
+  background: #fffdf7;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(47, 51, 45, 0.15);
+}
+
+h1 {
+  margin-top: 0;
+}
+
+button {
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #8fa58a;
+  color: #172016;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  background: #789173;
+}
+
+#resultat-test {
+  margin-bottom: 0;
+  font-weight: bold;
+}
+
+@media (max-width: 30rem) {
+  body {
+    padding: 1rem;
+  }
+
+  .carte {
+    padding: 1.5rem;
+  }
+
+  button {
+    width: 100%;
+  }
+}

@@ -215,6 +215,12 @@ button:focus-visible {
   gap: 0.75rem;
 }
 
+.filtre-categorie {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
 .carte-recette {
   padding: 1rem;
   background: #eee5d4;

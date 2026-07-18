@@ -14,8 +14,7 @@
     return;
   }
 
-  const recettes = [];
-  let prochainIdentifiant = 1;
+  const cleStockage = "livreRecettes.recettes";
 
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
@@ -47,6 +46,81 @@
     });
   }
 
+  function recetteEstValide(recette) {
+    return (
+      recette &&
+      typeof recette === "object" &&
+      typeof recette.id === "string" &&
+      typeof recette.nom === "string" &&
+      recette.nom.trim() !== "" &&
+      typeof recette.categorie === "string" &&
+      recette.categorie.trim() !== ""
+    );
+  }
+
+  function chargerRecettes() {
+    let donneesEnregistrees;
+
+    try {
+      donneesEnregistrees = localStorage.getItem(cleStockage);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : les recettes enregistrées sont illisibles. La liste démarre vide."
+      );
+      return [];
+    }
+
+    if (donneesEnregistrees === null) {
+      console.warn(
+        "Application de recettes : aucune recette enregistrée n’a été trouvée. La liste démarre vide."
+      );
+      return [];
+    }
+
+    let donneesAnalysees;
+
+    try {
+      donneesAnalysees = JSON.parse(donneesEnregistrees);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : les recettes enregistrées sont invalides. La liste démarre vide."
+      );
+      return [];
+    }
+
+    if (!Array.isArray(donneesAnalysees)) {
+      console.warn(
+        "Application de recettes : les recettes enregistrées ne forment pas une liste. La liste démarre vide."
+      );
+      return [];
+    }
+
+    const recettesValides = donneesAnalysees.filter(recetteEstValide);
+
+    if (recettesValides.length !== donneesAnalysees.length) {
+      console.warn(
+        "Application de recettes : certaines recettes enregistrées sont invalides et ne sont pas affichées."
+      );
+    }
+
+    return recettesValides;
+  }
+
+  function enregistrerRecettes() {
+    try {
+      localStorage.setItem(cleStockage, JSON.stringify(recettes));
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : les recettes n’ont pas pu être sauvegardées localement."
+      );
+    }
+  }
+
+  const recettes = chargerRecettes();
+  let prochainIdentifiant = 1;
+
+  afficherRecettes();
+
   formulaire.addEventListener("submit", (evenement) => {
     evenement.preventDefault();
 
@@ -69,6 +143,7 @@
 
     prochainIdentifiant += 1;
     recettes.push(recette);
+    enregistrerRecettes();
     afficherRecettes();
     afficherMessage("La recette a été ajoutée.", "succes");
 

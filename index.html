@@ -34,6 +34,63 @@
             </select>
           </div>
 
+          <fieldset class="informations-pratiques">
+            <legend>Informations pratiques</legend>
+            <div class="grille-informations-pratiques">
+              <div class="champ-formulaire">
+                <label for="temps-preparation">Temps de préparation</label>
+                <div class="champ-avec-unite">
+                  <input
+                    id="temps-preparation"
+                    name="temps-preparation"
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                  >
+                  <span>minutes</span>
+                </div>
+              </div>
+
+              <div class="champ-formulaire">
+                <label for="temps-cuisson">Temps de cuisson</label>
+                <div class="champ-avec-unite">
+                  <input
+                    id="temps-cuisson"
+                    name="temps-cuisson"
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                  >
+                  <span>minutes</span>
+                </div>
+              </div>
+
+              <div class="champ-formulaire">
+                <label for="portions">Nombre de portions</label>
+                <input
+                  id="portions"
+                  name="portions"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+                >
+              </div>
+
+              <div class="champ-formulaire">
+                <label for="difficulte">Difficulté</label>
+                <select id="difficulte" name="difficulte" required>
+                  <option value="">Choisir une difficulté</option>
+                  <option value="Facile">Facile</option>
+                  <option value="Moyenne">Moyenne</option>
+                  <option value="Difficile">Difficile</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
           <fieldset class="ingredients">
             <legend>Ingrédients</legend>
             <div id="liste-ingredients" class="liste-ingredients"></div>

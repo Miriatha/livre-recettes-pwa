@@ -56,6 +56,37 @@ form {
   gap: 0.4rem;
 }
 
+.informations-pratiques {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.5rem;
+  background: #faf6ed;
+}
+
+.informations-pratiques legend {
+  padding: 0 0.35rem;
+  color: #51654e;
+  font-weight: bold;
+}
+
+.grille-informations-pratiques {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.champ-avec-unite {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.champ-avec-unite input {
+  min-width: 0;
+  flex: 1;
+}
+
 .ingredients {
   margin: 0;
   padding: 1rem;
@@ -196,6 +227,13 @@ button:focus-visible {
   white-space: pre-wrap;
 }
 
+.informations-pratiques-recette {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
 .actions-formulaire,
 .actions-recette {
   display: flex;
@@ -253,6 +291,10 @@ button:focus-visible {
   }
 
   .ligne-ingredient {
+    grid-template-columns: 1fr;
+  }
+
+  .grille-informations-pratiques {
     grid-template-columns: 1fr;
   }
 

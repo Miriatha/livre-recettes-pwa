@@ -12,6 +12,10 @@
   const boutonAjouterIngredient = document.getElementById("ajouter-ingredient");
   const champPreparation = document.getElementById("instructions-preparation");
   const champCuisson = document.getElementById("instructions-cuisson");
+  const champTempsPreparation = document.getElementById("temps-preparation");
+  const champTempsCuisson = document.getElementById("temps-cuisson");
+  const champPortions = document.getElementById("portions");
+  const menuDifficulte = document.getElementById("difficulte");
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -24,7 +28,11 @@
     ["#liste-ingredients", listeIngredients],
     ["#ajouter-ingredient", boutonAjouterIngredient],
     ["#instructions-preparation", champPreparation],
-    ["#instructions-cuisson", champCuisson]
+    ["#instructions-cuisson", champCuisson],
+    ["#temps-preparation", champTempsPreparation],
+    ["#temps-cuisson", champTempsCuisson],
+    ["#portions", champPortions],
+    ["#difficulte", menuDifficulte]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -40,6 +48,7 @@
   }
 
   const cleStockage = "livreRecettes.recettes";
+  const difficultes = ["Facile", "Moyenne", "Difficile"];
   const unitesIngredient = [
     "mg",
     "g",
@@ -88,6 +97,7 @@
       const ingredients = obtenirIngredientsValides(recette);
       const preparation = obtenirTexteRecette(recette.preparation);
       const cuisson = obtenirTexteRecette(recette.cuisson);
+      const informationsPratiques = obtenirInformationsPratiques(recette);
 
       actions.className = "actions-recette";
       boutonModifier.type = "button";
@@ -125,6 +135,23 @@
         });
 
         carte.append(titreIngredients, liste);
+      }
+
+      if (informationsPratiques.length > 0) {
+        const titreInformations = document.createElement("h4");
+        const listeInformations = document.createElement("ul");
+
+        titreInformations.className = "titre-instructions-recette";
+        titreInformations.textContent = "Informations pratiques";
+        listeInformations.className = "informations-pratiques-recette";
+
+        informationsPratiques.forEach((information) => {
+          const element = document.createElement("li");
+          element.textContent = information;
+          listeInformations.append(element);
+        });
+
+        carte.append(titreInformations, listeInformations);
       }
 
       if (preparation) {
@@ -178,6 +205,83 @@
 
   function obtenirTexteRecette(texte) {
     return typeof texte === "string" ? texte : "";
+  }
+
+  function convertirNombreEntier(valeur, minimum) {
+    if (
+      valeur === null ||
+      valeur === undefined ||
+      (typeof valeur === "string" && valeur.trim() === "")
+    ) {
+      return null;
+    }
+
+    const nombre = Number(valeur);
+
+    return Number.isInteger(nombre) && nombre >= minimum ? nombre : null;
+  }
+
+  function obtenirDifficulte(difficulte) {
+    return difficultes.includes(difficulte) ? difficulte : "";
+  }
+
+  function obtenirInformationsPratiques(recette) {
+    const tempsPreparation = convertirNombreEntier(recette.tempsPreparation, 0);
+    const tempsCuisson = convertirNombreEntier(recette.tempsCuisson, 0);
+    const portions = convertirNombreEntier(recette.portions, 1);
+    const difficulte = obtenirDifficulte(recette.difficulte);
+    const informations = [];
+
+    if (tempsPreparation !== null) {
+      informations.push(`Préparation : ${tempsPreparation} min`);
+    }
+
+    if (tempsCuisson !== null) {
+      informations.push(
+        tempsCuisson === 0 ? "Cuisson : Sans cuisson" : `Cuisson : ${tempsCuisson} min`
+      );
+    }
+
+    if (portions !== null) {
+      informations.push(`Portions : ${portions}`);
+    }
+
+    if (difficulte) {
+      informations.push(`Difficulté : ${difficulte}`);
+    }
+
+    return informations;
+  }
+
+  function lireInformationsPratiques() {
+    const tempsPreparation = convertirNombreEntier(champTempsPreparation.value, 0);
+    const tempsCuisson = convertirNombreEntier(champTempsCuisson.value, 0);
+    const portions = convertirNombreEntier(champPortions.value, 1);
+    const difficulte = obtenirDifficulte(menuDifficulte.value);
+
+    if (tempsPreparation === null) {
+      return { estValide: false, message: "Le temps de préparation doit être un entier positif ou nul." };
+    }
+
+    if (tempsCuisson === null) {
+      return { estValide: false, message: "Le temps de cuisson doit être un entier positif ou nul." };
+    }
+
+    if (portions === null) {
+      return { estValide: false, message: "Le nombre de portions doit être un entier supérieur ou égal à 1." };
+    }
+
+    if (!difficulte) {
+      return { estValide: false, message: "Veuillez choisir une difficulté." };
+    }
+
+    return {
+      estValide: true,
+      tempsPreparation,
+      tempsCuisson,
+      portions,
+      difficulte
+    };
   }
 
   function creerLigneIngredient(ingredient) {
@@ -383,7 +487,11 @@
         ...recette,
         ingredients: obtenirIngredientsValides(recette),
         preparation: obtenirTexteRecette(recette.preparation),
-        cuisson: obtenirTexteRecette(recette.cuisson)
+        cuisson: obtenirTexteRecette(recette.cuisson),
+        tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0),
+        tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0),
+        portions: convertirNombreEntier(recette.portions, 1),
+        difficulte: obtenirDifficulte(recette.difficulte)
       }));
 
     if (recettesValides.length !== donneesAnalysees.length) {
@@ -412,6 +520,10 @@
     reinitialiserLignesIngredient();
     champPreparation.value = "";
     champCuisson.value = "";
+    champTempsPreparation.value = "";
+    champTempsCuisson.value = "";
+    champPortions.value = "";
+    menuDifficulte.value = "";
     boutonPrincipal.textContent = "Ajouter la recette";
     boutonAnnuler.hidden = true;
   }
@@ -443,6 +555,10 @@
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
     champPreparation.value = obtenirTexteRecette(recette.preparation);
     champCuisson.value = obtenirTexteRecette(recette.cuisson);
+    champTempsPreparation.value = convertirNombreEntier(recette.tempsPreparation, 0) ?? "";
+    champTempsCuisson.value = convertirNombreEntier(recette.tempsCuisson, 0) ?? "";
+    champPortions.value = convertirNombreEntier(recette.portions, 1) ?? "";
+    menuDifficulte.value = obtenirDifficulte(recette.difficulte);
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     champNom.focus();
@@ -505,6 +621,7 @@
     const categorie = menuCategorie.value;
     const preparation = champPreparation.value.trim();
     const cuisson = champCuisson.value.trim();
+    const resultatInformations = lireInformationsPratiques();
 
     if (!nom || !categorie) {
       afficherMessage(
@@ -519,6 +636,11 @@
         "Veuillez indiquer les instructions de préparation.",
         "erreur"
       );
+      return;
+    }
+
+    if (!resultatInformations.estValide) {
+      afficherMessage(resultatInformations.message, "erreur");
       return;
     }
 
@@ -547,6 +669,10 @@
       recette.ingredients = resultatIngredient.ingredients;
       recette.preparation = preparation;
       recette.cuisson = cuisson;
+      recette.tempsPreparation = resultatInformations.tempsPreparation;
+      recette.tempsCuisson = resultatInformations.tempsCuisson;
+      recette.portions = resultatInformations.portions;
+      recette.difficulte = resultatInformations.difficulte;
       enregistrerRecettes();
       afficherRecettes();
       revenirAuModeAjout();
@@ -561,7 +687,11 @@
       categorie,
       ingredients: resultatIngredient.ingredients,
       preparation,
-      cuisson
+      cuisson,
+      tempsPreparation: resultatInformations.tempsPreparation,
+      tempsCuisson: resultatInformations.tempsCuisson,
+      portions: resultatInformations.portions,
+      difficulte: resultatInformations.difficulte
     };
 
     prochainIdentifiant += 1;
@@ -593,4 +723,15 @@
       );
     }
   });
+
+  [champTempsPreparation, champTempsCuisson, champPortions, menuDifficulte].forEach(
+    (champ) => {
+      champ.addEventListener("invalid", () => {
+        afficherMessage(
+          "Veuillez vérifier les informations pratiques demandées.",
+          "erreur"
+        );
+      });
+    }
+  );
 })();

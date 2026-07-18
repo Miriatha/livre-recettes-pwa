@@ -221,6 +221,17 @@ button:focus-visible {
   margin-bottom: 1rem;
 }
 
+.filtre-favoris {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.filtre-favoris input {
+  min-height: auto;
+}
+
 .carte-recette {
   padding: 1rem;
   background: #eee5d4;

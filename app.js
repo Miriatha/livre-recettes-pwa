@@ -7,6 +7,7 @@
   const zoneMessage = document.getElementById("message-formulaire");
   const zoneRecettes = document.getElementById("liste-recettes");
   const filtreCategorie = document.getElementById("filtre-categorie");
+  const filtreFavoris = document.getElementById("filtre-favoris");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const listeIngredients = document.getElementById("liste-ingredients");
@@ -27,6 +28,7 @@
     ["#message-formulaire", zoneMessage],
     ["#liste-recettes", zoneRecettes],
     ["#filtre-categorie", filtreCategorie],
+    ["#filtre-favoris", filtreFavoris],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#liste-ingredients", listeIngredients],
@@ -89,14 +91,22 @@
       return;
     }
 
-    const recettesAffichees = filtreCategorie.value
+    let recettesAffichees = filtreCategorie.value
       ? recettes.filter((recette) => recette.categorie === filtreCategorie.value)
       : recettes;
+
+    if (filtreFavoris.checked) {
+      recettesAffichees = recettesAffichees.filter(
+        (recette) => recette.favori === true
+      );
+    }
 
     if (recettesAffichees.length === 0) {
       const messageVide = document.createElement("p");
       messageVide.className = "aucune-recette";
-      messageVide.textContent = "Aucune recette ne correspond à cette catégorie.";
+      messageVide.textContent = filtreFavoris.checked
+        ? "Aucune recette favorite ne correspond aux filtres sélectionnés."
+        : "Aucune recette ne correspond à cette catégorie.";
       zoneRecettes.append(messageVide);
       return;
     }
@@ -822,6 +832,10 @@
   });
 
   filtreCategorie.addEventListener("change", () => {
+    afficherRecettes();
+  });
+
+  filtreFavoris.addEventListener("change", () => {
     afficherRecettes();
   });
 

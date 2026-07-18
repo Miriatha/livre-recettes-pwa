@@ -222,9 +222,25 @@ button:focus-visible {
   border-radius: 0.4rem;
 }
 
+.carte-recette.favorite {
+  border-left-color: #a9b89d;
+  background: #f4efe1;
+}
+
 .carte-recette h3 {
   margin: 0;
   font-size: 1.1rem;
+}
+
+.indication-favorite {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  background: #dfe8d8;
+  color: #40563b;
+  font-size: 0.8rem;
+  font-weight: normal;
 }
 
 .carte-recette p,
@@ -275,6 +291,16 @@ button:focus-visible {
 .bouton-modifier {
   background: #a9b89d;
   color: #243222;
+}
+
+.bouton-favori {
+  background: #d5e0c9;
+  color: #344731;
+}
+
+.bouton-favori:hover,
+.bouton-favori:focus-visible {
+  background: #bdceb0;
 }
 
 .bouton-modifier:hover,

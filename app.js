@@ -92,10 +92,13 @@
       const nom = document.createElement("h3");
       const categorie = document.createElement("p");
       const actions = document.createElement("div");
+      const boutonFavori = document.createElement("button");
       const boutonModifier = document.createElement("button");
       const boutonSuppression = document.createElement("button");
 
-      carte.className = "carte-recette";
+      const estFavorite = recette.favori === true;
+
+      carte.className = estFavorite ? "carte-recette favorite" : "carte-recette";
       nom.textContent = recette.nom;
       categorie.textContent = `Catégorie : ${recette.categorie}`;
       const ingredients = obtenirIngredientsValides(recette);
@@ -106,6 +109,12 @@
       const informationsPratiques = obtenirInformationsPratiques(recette);
 
       actions.className = "actions-recette";
+      boutonFavori.type = "button";
+      boutonFavori.className = "bouton-favori";
+      boutonFavori.dataset.recetteId = recette.id;
+      boutonFavori.textContent = estFavorite
+        ? "Retirer des favoris"
+        : "Ajouter aux favoris";
       boutonModifier.type = "button";
       boutonModifier.className = "bouton-modifier";
       boutonModifier.dataset.recetteId = recette.id;
@@ -115,6 +124,17 @@
       boutonSuppression.dataset.recetteId = recette.id;
       boutonSuppression.textContent = "Supprimer";
 
+      if (estFavorite) {
+        const indicationFavorite = document.createElement("span");
+        indicationFavorite.className = "indication-favorite";
+        indicationFavorite.textContent = "Favorite";
+        nom.append(" ", indicationFavorite);
+      }
+
+      boutonFavori.addEventListener("click", () => {
+        basculerFavori(boutonFavori.dataset.recetteId);
+      });
+
       boutonModifier.addEventListener("click", () => {
         commencerModification(boutonModifier.dataset.recetteId);
       });
@@ -123,7 +143,7 @@
         supprimerRecette(boutonSuppression.dataset.recetteId);
       });
 
-      actions.append(boutonModifier, boutonSuppression);
+      actions.append(boutonFavori, boutonModifier, boutonSuppression);
       carte.append(nom, categorie);
 
       if (ingredients.length > 0) {
@@ -518,6 +538,7 @@
         cuisson: obtenirTexteRecette(recette.cuisson),
         notes: obtenirTexteRecette(recette.notes),
         conseils: obtenirTexteRecette(recette.conseils),
+        favori: recette.favori === true,
         tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0),
         tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0),
         portions: convertirNombreEntier(recette.portions, 1),
@@ -541,6 +562,36 @@
         "Application de recettes : les recettes n’ont pas pu être sauvegardées localement."
       );
     }
+  }
+
+  function basculerFavori(idRecette) {
+    if (typeof idRecette !== "string" || idRecette.trim() === "") {
+      console.error(
+        "Application de recettes : l’identifiant de la recette favorite est invalide."
+      );
+      return;
+    }
+
+    const recette = recettes.find((recetteActuelle) => {
+      return recetteActuelle.id === idRecette;
+    });
+
+    if (!recette) {
+      console.error(
+        "Application de recettes : aucune recette ne correspond à cet identifiant."
+      );
+      return;
+    }
+
+    recette.favori = recette.favori !== true;
+    enregistrerRecettes();
+    afficherRecettes();
+    afficherMessage(
+      recette.favori
+        ? "Recette ajoutée aux favoris."
+        : "Recette retirée des favoris.",
+      "succes"
+    );
   }
 
   function revenirAuModeAjout() {
@@ -728,6 +779,7 @@
       cuisson,
       notes,
       conseils,
+      favori: false,
       tempsPreparation: resultatInformations.tempsPreparation,
       tempsCuisson: resultatInformations.tempsCuisson,
       portions: resultatInformations.portions,

@@ -132,8 +132,33 @@ button:focus-visible {
   margin: 0.45rem 0 0;
 }
 
-.bouton-suppression {
+.actions-formulaire,
+.actions-recette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.actions-formulaire button,
+.actions-recette button {
+  flex: 1 1 10rem;
+}
+
+.actions-recette {
   margin-top: 0.85rem;
+}
+
+.bouton-modifier {
+  background: #a9b89d;
+  color: #243222;
+}
+
+.bouton-modifier:hover,
+.bouton-modifier:focus-visible {
+  background: #91a686;
+}
+
+.bouton-suppression {
   background: #c9957b;
   color: #3e2a20;
 }
@@ -141,6 +166,16 @@ button:focus-visible {
 .bouton-suppression:hover,
 .bouton-suppression:focus-visible {
   background: #b87e63;
+}
+
+.bouton-annuler {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-annuler:hover,
+.bouton-annuler:focus-visible {
+  background: #d2bfa1;
 }
 
 @media (max-width: 30rem) {

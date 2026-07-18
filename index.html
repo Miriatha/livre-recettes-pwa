@@ -34,7 +34,17 @@
             </select>
           </div>
 
-          <button type="submit">Ajouter la recette</button>
+          <div class="actions-formulaire">
+            <button id="bouton-enregistrer" type="submit">Ajouter la recette</button>
+            <button
+              id="bouton-annuler-modification"
+              class="bouton-annuler"
+              type="button"
+              hidden
+            >
+              Annuler la modification
+            </button>
+          </div>
         </form>
 
         <p id="message-formulaire" class="message" aria-live="polite"></p>

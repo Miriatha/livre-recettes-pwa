@@ -1,6 +1,6 @@
 :root {
-  color: #2f332d;
-  background: #f7f1e3;
+  color: #384237;
+  background: #f5efe2;
   font-family: Arial, sans-serif;
 }
 
@@ -11,30 +11,76 @@
 body {
   min-height: 100vh;
   margin: 0;
-  display: grid;
-  place-items: center;
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
 }
 
-.carte {
-  width: min(100%, 34rem);
-  padding: 2rem;
+.conteneur {
+  width: min(100%, 48rem);
+  margin: 0 auto;
+}
+
+.entete,
+.section {
+  padding: 1.5rem;
   background: #fffdf7;
+  border: 1px solid #dfd3bb;
   border-radius: 0.75rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(47, 51, 45, 0.15);
+  box-shadow: 0 0.35rem 1rem rgba(56, 66, 55, 0.1);
+}
+
+.section {
+  margin-top: 1.25rem;
+}
+
+h1,
+h2 {
+  margin-top: 0;
+  color: #51654e;
 }
 
 h1 {
-  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.entete p {
+  margin-bottom: 0;
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+.champ-formulaire {
+  display: grid;
+  gap: 0.4rem;
+}
+
+label {
+  font-weight: bold;
+}
+
+input,
+select,
+button {
+  min-height: 2.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+
+input,
+select {
+  border: 1px solid #b9ad96;
+  background: #fffdf7;
+  color: inherit;
 }
 
 button {
-  padding: 0.75rem 1rem;
   border: 0;
-  border-radius: 0.4rem;
   background: #8fa58a;
-  color: #172016;
-  font: inherit;
+  color: #1f2b1d;
+  font-weight: bold;
   cursor: pointer;
 }
 
@@ -43,9 +89,47 @@ button:focus-visible {
   background: #789173;
 }
 
-#resultat-test {
-  margin-bottom: 0;
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 3px solid #d5b77b;
+  outline-offset: 2px;
+}
+
+.message {
+  min-height: 1.5rem;
+  margin: 1rem 0 0;
   font-weight: bold;
+}
+
+.message.erreur {
+  color: #9a3d32;
+}
+
+.message.succes {
+  color: #486943;
+}
+
+.liste-recettes {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.carte-recette {
+  padding: 1rem;
+  background: #eee5d4;
+  border-left: 0.35rem solid #8fa58a;
+  border-radius: 0.4rem;
+}
+
+.carte-recette h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.carte-recette p,
+.aucune-recette {
+  margin: 0.45rem 0 0;
 }
 
 @media (max-width: 30rem) {
@@ -53,8 +137,9 @@ button:focus-visible {
     padding: 1rem;
   }
 
-  .carte {
-    padding: 1.5rem;
+  .entete,
+  .section {
+    padding: 1.25rem;
   }
 
   button {

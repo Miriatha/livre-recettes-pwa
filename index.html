@@ -8,11 +8,44 @@
     <script src="app.js" defer></script>
   </head>
   <body>
-    <main class="carte">
-      <h1>Mon livre de recettes</h1>
-      <p>La base de l’application est en cours de vérification.</p>
-      <button id="bouton-test" type="button">Tester JavaScript</button>
-      <p id="resultat-test">JavaScript non testé</p>
+    <main class="conteneur">
+      <header class="entete">
+        <h1>Mon livre de recettes</h1>
+        <p>Ajoutez vos recettes pour les retrouver pendant votre visite.</p>
+      </header>
+
+      <section class="section" aria-labelledby="titre-ajout">
+        <h2 id="titre-ajout">Ajouter une recette</h2>
+
+        <form id="formulaire-recette">
+          <div class="champ-formulaire">
+            <label for="nom-recette">Nom de la recette</label>
+            <input id="nom-recette" name="nom" type="text" required>
+          </div>
+
+          <div class="champ-formulaire">
+            <label for="categorie-recette">Catégorie</label>
+            <select id="categorie-recette" name="categorie" required>
+              <option value="">Choisir une catégorie</option>
+              <option value="Entrée">Entrée</option>
+              <option value="Plat">Plat</option>
+              <option value="Dessert">Dessert</option>
+              <option value="Encas">Encas</option>
+            </select>
+          </div>
+
+          <button type="submit">Ajouter la recette</button>
+        </form>
+
+        <p id="message-formulaire" class="message" aria-live="polite"></p>
+      </section>
+
+      <section class="section" aria-labelledby="titre-recettes">
+        <h2 id="titre-recettes">Mes recettes</h2>
+        <div id="liste-recettes" class="liste-recettes">
+          <p class="aucune-recette">Aucune recette n’est encore enregistrée.</p>
+        </div>
+      </section>
     </main>
   </body>
 </html>

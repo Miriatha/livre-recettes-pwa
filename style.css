@@ -101,6 +101,22 @@ form {
   font-weight: bold;
 }
 
+.notes-conseils {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.5rem;
+  background: #f3ecdc;
+}
+
+.notes-conseils legend {
+  padding: 0 0.35rem;
+  color: #51654e;
+  font-weight: bold;
+}
+
 .liste-ingredients {
   display: grid;
   gap: 0.75rem;
@@ -225,6 +241,12 @@ button:focus-visible {
 .instructions-recette {
   margin: 0.4rem 0 0;
   white-space: pre-wrap;
+}
+
+.notes-conseils-recette {
+  padding: 0.75rem;
+  border-left: 0.25rem solid #a9b89d;
+  background: #f7f1e5;
 }
 
 .informations-pratiques-recette {

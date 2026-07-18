@@ -16,6 +16,8 @@
   const champTempsCuisson = document.getElementById("temps-cuisson");
   const champPortions = document.getElementById("portions");
   const menuDifficulte = document.getElementById("difficulte");
+  const champNotes = document.getElementById("notes");
+  const champConseils = document.getElementById("conseils");
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -32,7 +34,9 @@
     ["#temps-preparation", champTempsPreparation],
     ["#temps-cuisson", champTempsCuisson],
     ["#portions", champPortions],
-    ["#difficulte", menuDifficulte]
+    ["#difficulte", menuDifficulte],
+    ["#notes", champNotes],
+    ["#conseils", champConseils]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -97,6 +101,8 @@
       const ingredients = obtenirIngredientsValides(recette);
       const preparation = obtenirTexteRecette(recette.preparation);
       const cuisson = obtenirTexteRecette(recette.cuisson);
+      const notes = obtenirTexteRecette(recette.notes);
+      const conseils = obtenirTexteRecette(recette.conseils);
       const informationsPratiques = obtenirInformationsPratiques(recette);
 
       actions.className = "actions-recette";
@@ -174,6 +180,28 @@
         texteCuisson.className = "instructions-recette";
         texteCuisson.textContent = cuisson;
         carte.append(titreCuisson, texteCuisson);
+      }
+
+      if (notes) {
+        const titreNotes = document.createElement("h4");
+        const texteNotes = document.createElement("p");
+
+        titreNotes.className = "titre-instructions-recette";
+        titreNotes.textContent = "Notes personnelles";
+        texteNotes.className = "instructions-recette notes-conseils-recette";
+        texteNotes.textContent = notes;
+        carte.append(titreNotes, texteNotes);
+      }
+
+      if (conseils) {
+        const titreConseils = document.createElement("h4");
+        const texteConseils = document.createElement("p");
+
+        titreConseils.className = "titre-instructions-recette";
+        titreConseils.textContent = "Conseils et astuces";
+        texteConseils.className = "instructions-recette notes-conseils-recette";
+        texteConseils.textContent = conseils;
+        carte.append(titreConseils, texteConseils);
       }
 
       carte.append(actions);
@@ -488,6 +516,8 @@
         ingredients: obtenirIngredientsValides(recette),
         preparation: obtenirTexteRecette(recette.preparation),
         cuisson: obtenirTexteRecette(recette.cuisson),
+        notes: obtenirTexteRecette(recette.notes),
+        conseils: obtenirTexteRecette(recette.conseils),
         tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0),
         tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0),
         portions: convertirNombreEntier(recette.portions, 1),
@@ -520,6 +550,8 @@
     reinitialiserLignesIngredient();
     champPreparation.value = "";
     champCuisson.value = "";
+    champNotes.value = "";
+    champConseils.value = "";
     champTempsPreparation.value = "";
     champTempsCuisson.value = "";
     champPortions.value = "";
@@ -555,6 +587,8 @@
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
     champPreparation.value = obtenirTexteRecette(recette.preparation);
     champCuisson.value = obtenirTexteRecette(recette.cuisson);
+    champNotes.value = obtenirTexteRecette(recette.notes);
+    champConseils.value = obtenirTexteRecette(recette.conseils);
     champTempsPreparation.value = convertirNombreEntier(recette.tempsPreparation, 0) ?? "";
     champTempsCuisson.value = convertirNombreEntier(recette.tempsCuisson, 0) ?? "";
     champPortions.value = convertirNombreEntier(recette.portions, 1) ?? "";
@@ -621,6 +655,8 @@
     const categorie = menuCategorie.value;
     const preparation = champPreparation.value.trim();
     const cuisson = champCuisson.value.trim();
+    const notes = champNotes.value.trim();
+    const conseils = champConseils.value.trim();
     const resultatInformations = lireInformationsPratiques();
 
     if (!nom || !categorie) {
@@ -669,6 +705,8 @@
       recette.ingredients = resultatIngredient.ingredients;
       recette.preparation = preparation;
       recette.cuisson = cuisson;
+      recette.notes = notes;
+      recette.conseils = conseils;
       recette.tempsPreparation = resultatInformations.tempsPreparation;
       recette.tempsCuisson = resultatInformations.tempsCuisson;
       recette.portions = resultatInformations.portions;
@@ -688,6 +726,8 @@
       ingredients: resultatIngredient.ingredients,
       preparation,
       cuisson,
+      notes,
+      conseils,
       tempsPreparation: resultatInformations.tempsPreparation,
       tempsCuisson: resultatInformations.tempsCuisson,
       portions: resultatInformations.portions,

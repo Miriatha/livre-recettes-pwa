@@ -56,6 +56,26 @@ form {
   gap: 0.4rem;
 }
 
+.premier-ingredient {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.5rem;
+  background: #faf6ed;
+}
+
+.premier-ingredient legend {
+  padding: 0 0.35rem;
+  color: #51654e;
+  font-weight: bold;
+}
+
+.champs-ingredient {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(6rem, 1fr) minmax(8rem, 1fr);
+  gap: 0.75rem;
+}
+
 label {
   font-weight: bold;
 }
@@ -186,6 +206,10 @@ button:focus-visible {
   .entete,
   .section {
     padding: 1.25rem;
+  }
+
+  .champs-ingredient {
+    grid-template-columns: 1fr;
   }
 
   button {

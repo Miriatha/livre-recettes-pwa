@@ -8,6 +8,9 @@
   const zoneRecettes = document.getElementById("liste-recettes");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
+  const champIngredientNom = document.getElementById("ingredient-nom");
+  const champIngredientQuantite = document.getElementById("ingredient-quantite");
+  const menuIngredientUnite = document.getElementById("ingredient-unite");
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -16,7 +19,10 @@
     ["#message-formulaire", zoneMessage],
     ["#liste-recettes", zoneRecettes],
     ["#bouton-enregistrer", boutonPrincipal],
-    ["#bouton-annuler-modification", boutonAnnuler]
+    ["#bouton-annuler-modification", boutonAnnuler],
+    ["#ingredient-nom", champIngredientNom],
+    ["#ingredient-quantite", champIngredientQuantite],
+    ["#ingredient-unite", menuIngredientUnite]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -53,6 +59,7 @@
       const carte = document.createElement("article");
       const nom = document.createElement("h3");
       const categorie = document.createElement("p");
+      const ingredient = document.createElement("p");
       const actions = document.createElement("div");
       const boutonModifier = document.createElement("button");
       const boutonSuppression = document.createElement("button");
@@ -60,6 +67,13 @@
       carte.className = "carte-recette";
       nom.textContent = recette.nom;
       categorie.textContent = `Catégorie : ${recette.categorie}`;
+      const premierIngredient = obtenirPremierIngredient(recette);
+
+      if (premierIngredient) {
+        ingredient.className = "ingredient-recette";
+        ingredient.textContent = `${premierIngredient.quantite} ${premierIngredient.unite} ${premierIngredient.nom}`;
+      }
+
       actions.className = "actions-recette";
       boutonModifier.type = "button";
       boutonModifier.className = "bouton-modifier";
@@ -79,9 +93,90 @@
       });
 
       actions.append(boutonModifier, boutonSuppression);
-      carte.append(nom, categorie, actions);
+      carte.append(nom, categorie);
+
+      if (premierIngredient) {
+        carte.append(ingredient);
+      }
+
+      carte.append(actions);
       zoneRecettes.append(carte);
     });
+  }
+
+  function ingredientEstValide(ingredient) {
+    return (
+      ingredient &&
+      typeof ingredient === "object" &&
+      typeof ingredient.nom === "string" &&
+      ingredient.nom.trim() !== "" &&
+      typeof ingredient.quantite === "number" &&
+      Number.isFinite(ingredient.quantite) &&
+      ingredient.quantite > 0 &&
+      typeof ingredient.unite === "string" &&
+      ingredient.unite.trim() !== ""
+    );
+  }
+
+  function obtenirPremierIngredient(recette) {
+    if (!Array.isArray(recette.ingredients)) {
+      return null;
+    }
+
+    const premierIngredient = recette.ingredients[0];
+
+    return ingredientEstValide(premierIngredient) ? premierIngredient : null;
+  }
+
+  function lirePremierIngredient() {
+    const nom = champIngredientNom.value.trim();
+    const quantiteTexte = champIngredientQuantite.value.trim();
+    const unite = menuIngredientUnite.value;
+
+    if (!nom && !quantiteTexte && !unite) {
+      return { estValide: true, ingredients: [] };
+    }
+
+    if (!nom || !quantiteTexte || !unite) {
+      return {
+        estValide: false,
+        message:
+          "Veuillez compléter le nom, la quantité et l’unité de l’ingrédient."
+      };
+    }
+
+    const quantite = Number(quantiteTexte);
+
+    if (!Number.isFinite(quantite) || quantite <= 0) {
+      return {
+        estValide: false,
+        message: "La quantité de l’ingrédient doit être un nombre supérieur à zéro."
+      };
+    }
+
+    return {
+      estValide: true,
+      ingredients: [{ nom, quantite, unite }]
+    };
+  }
+
+  function viderChampsIngredient() {
+    champIngredientNom.value = "";
+    champIngredientQuantite.value = "";
+    menuIngredientUnite.value = "";
+  }
+
+  function remplirChampsIngredient(recette) {
+    const premierIngredient = obtenirPremierIngredient(recette);
+
+    if (!premierIngredient) {
+      viderChampsIngredient();
+      return;
+    }
+
+    champIngredientNom.value = premierIngredient.nom;
+    champIngredientQuantite.value = premierIngredient.quantite;
+    menuIngredientUnite.value = premierIngredient.unite;
   }
 
   function recetteEstValide(recette) {
@@ -133,7 +228,12 @@
       return [];
     }
 
-    const recettesValides = donneesAnalysees.filter(recetteEstValide);
+    const recettesValides = donneesAnalysees
+      .filter(recetteEstValide)
+      .map((recette) => ({
+        ...recette,
+        ingredients: Array.isArray(recette.ingredients) ? recette.ingredients : []
+      }));
 
     if (recettesValides.length !== donneesAnalysees.length) {
       console.warn(
@@ -158,6 +258,7 @@
     idRecetteEnModification = null;
     champNom.value = "";
     menuCategorie.value = "";
+    viderChampsIngredient();
     boutonPrincipal.textContent = "Ajouter la recette";
     boutonAnnuler.hidden = true;
   }
@@ -186,6 +287,7 @@
     idRecetteEnModification = recette.id;
     champNom.value = recette.nom;
     menuCategorie.value = recette.categorie;
+    remplirChampsIngredient(recette);
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     champNom.focus();
@@ -253,6 +355,13 @@
       return;
     }
 
+    const resultatIngredient = lirePremierIngredient();
+
+    if (!resultatIngredient.estValide) {
+      afficherMessage(resultatIngredient.message, "erreur");
+      return;
+    }
+
     if (idRecetteEnModification !== null) {
       const recette = recettes.find((recetteActuelle) => {
         return recetteActuelle.id === idRecetteEnModification;
@@ -268,6 +377,7 @@
 
       recette.nom = nom;
       recette.categorie = categorie;
+      recette.ingredients = resultatIngredient.ingredients;
       enregistrerRecettes();
       afficherRecettes();
       revenirAuModeAjout();
@@ -279,7 +389,8 @@
     const recette = {
       id: `recette-${Date.now()}-${prochainIdentifiant}`,
       nom,
-      categorie
+      categorie,
+      ingredients: resultatIngredient.ingredients
     };
 
     prochainIdentifiant += 1;

@@ -132,6 +132,17 @@ button:focus-visible {
   margin: 0.45rem 0 0;
 }
 
+.bouton-suppression {
+  margin-top: 0.85rem;
+  background: #c9957b;
+  color: #3e2a20;
+}
+
+.bouton-suppression:hover,
+.bouton-suppression:focus-visible {
+  background: #b87e63;
+}
+
 @media (max-width: 30rem) {
   body {
     padding: 1rem;

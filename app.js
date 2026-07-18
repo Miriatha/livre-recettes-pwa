@@ -36,12 +36,21 @@
       const carte = document.createElement("article");
       const nom = document.createElement("h3");
       const categorie = document.createElement("p");
+      const boutonSuppression = document.createElement("button");
 
       carte.className = "carte-recette";
       nom.textContent = recette.nom;
       categorie.textContent = `Catégorie : ${recette.categorie}`;
+      boutonSuppression.type = "button";
+      boutonSuppression.className = "bouton-suppression";
+      boutonSuppression.dataset.recetteId = recette.id;
+      boutonSuppression.textContent = "Supprimer";
 
-      carte.append(nom, categorie);
+      boutonSuppression.addEventListener("click", () => {
+        supprimerRecette(boutonSuppression.dataset.recetteId);
+      });
+
+      carte.append(nom, categorie, boutonSuppression);
       zoneRecettes.append(carte);
     });
   }
@@ -114,6 +123,40 @@
         "Application de recettes : les recettes n’ont pas pu être sauvegardées localement."
       );
     }
+  }
+
+  function supprimerRecette(idRecette) {
+    if (typeof idRecette !== "string" || idRecette.trim() === "") {
+      console.error(
+        "Application de recettes : l’identifiant de la recette à supprimer est invalide."
+      );
+      return;
+    }
+
+    const indexRecette = recettes.findIndex(
+      (recette) => recette.id === idRecette
+    );
+
+    if (indexRecette === -1) {
+      console.error(
+        "Application de recettes : aucune recette ne correspond à cet identifiant."
+      );
+      return;
+    }
+
+    const recette = recettes[indexRecette];
+    const confirmation = window.confirm(
+      `Supprimer la recette « ${recette.nom} » ?`
+    );
+
+    if (!confirmation) {
+      return;
+    }
+
+    recettes.splice(indexRecette, 1);
+    enregistrerRecettes();
+    afficherRecettes();
+    afficherMessage("Recette supprimée avec succès.", "succes");
   }
 
   const recettes = chargerRecettes();

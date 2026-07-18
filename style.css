@@ -114,10 +114,18 @@ button {
 }
 
 input,
-select {
+select,
+textarea {
   border: 1px solid #b9ad96;
   background: #fffdf7;
   color: inherit;
+}
+
+textarea {
+  width: 100%;
+  min-height: 8rem;
+  padding: 0.65rem 0.75rem;
+  resize: vertical;
 }
 
 button {
@@ -135,6 +143,7 @@ button:focus-visible {
 
 input:focus-visible,
 select:focus-visible,
+textarea:focus-visible,
 button:focus-visible {
   outline: 3px solid #d5b77b;
   outline-offset: 2px;
@@ -174,6 +183,17 @@ button:focus-visible {
 .carte-recette p,
 .aucune-recette {
   margin: 0.45rem 0 0;
+}
+
+.titre-instructions-recette {
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  color: #51654e;
+}
+
+.instructions-recette {
+  margin: 0.4rem 0 0;
+  white-space: pre-wrap;
 }
 
 .actions-formulaire,

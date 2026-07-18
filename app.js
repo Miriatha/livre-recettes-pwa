@@ -10,6 +10,8 @@
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const listeIngredients = document.getElementById("liste-ingredients");
   const boutonAjouterIngredient = document.getElementById("ajouter-ingredient");
+  const champPreparation = document.getElementById("instructions-preparation");
+  const champCuisson = document.getElementById("instructions-cuisson");
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -20,7 +22,9 @@
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#liste-ingredients", listeIngredients],
-    ["#ajouter-ingredient", boutonAjouterIngredient]
+    ["#ajouter-ingredient", boutonAjouterIngredient],
+    ["#instructions-preparation", champPreparation],
+    ["#instructions-cuisson", champCuisson]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -82,6 +86,8 @@
       nom.textContent = recette.nom;
       categorie.textContent = `Catégorie : ${recette.categorie}`;
       const ingredients = obtenirIngredientsValides(recette);
+      const preparation = obtenirTexteRecette(recette.preparation);
+      const cuisson = obtenirTexteRecette(recette.cuisson);
 
       actions.className = "actions-recette";
       boutonModifier.type = "button";
@@ -121,6 +127,28 @@
         carte.append(titreIngredients, liste);
       }
 
+      if (preparation) {
+        const titrePreparation = document.createElement("h4");
+        const textePreparation = document.createElement("p");
+
+        titrePreparation.className = "titre-instructions-recette";
+        titrePreparation.textContent = "Préparation";
+        textePreparation.className = "instructions-recette";
+        textePreparation.textContent = preparation;
+        carte.append(titrePreparation, textePreparation);
+      }
+
+      if (cuisson) {
+        const titreCuisson = document.createElement("h4");
+        const texteCuisson = document.createElement("p");
+
+        titreCuisson.className = "titre-instructions-recette";
+        titreCuisson.textContent = "Cuisson";
+        texteCuisson.className = "instructions-recette";
+        texteCuisson.textContent = cuisson;
+        carte.append(titreCuisson, texteCuisson);
+      }
+
       carte.append(actions);
       zoneRecettes.append(carte);
     });
@@ -146,6 +174,10 @@
     }
 
     return recette.ingredients.filter(ingredientEstValide);
+  }
+
+  function obtenirTexteRecette(texte) {
+    return typeof texte === "string" ? texte : "";
   }
 
   function creerLigneIngredient(ingredient) {
@@ -349,7 +381,9 @@
       .filter(recetteEstValide)
       .map((recette) => ({
         ...recette,
-        ingredients: obtenirIngredientsValides(recette)
+        ingredients: obtenirIngredientsValides(recette),
+        preparation: obtenirTexteRecette(recette.preparation),
+        cuisson: obtenirTexteRecette(recette.cuisson)
       }));
 
     if (recettesValides.length !== donneesAnalysees.length) {
@@ -376,6 +410,8 @@
     champNom.value = "";
     menuCategorie.value = "";
     reinitialiserLignesIngredient();
+    champPreparation.value = "";
+    champCuisson.value = "";
     boutonPrincipal.textContent = "Ajouter la recette";
     boutonAnnuler.hidden = true;
   }
@@ -405,6 +441,8 @@
     champNom.value = recette.nom;
     menuCategorie.value = recette.categorie;
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
+    champPreparation.value = obtenirTexteRecette(recette.preparation);
+    champCuisson.value = obtenirTexteRecette(recette.cuisson);
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     champNom.focus();
@@ -465,10 +503,20 @@
 
     const nom = champNom.value.trim();
     const categorie = menuCategorie.value;
+    const preparation = champPreparation.value.trim();
+    const cuisson = champCuisson.value.trim();
 
     if (!nom || !categorie) {
       afficherMessage(
         "Veuillez indiquer le nom de la recette et choisir une catégorie.",
+        "erreur"
+      );
+      return;
+    }
+
+    if (!preparation) {
+      afficherMessage(
+        "Veuillez indiquer les instructions de préparation.",
         "erreur"
       );
       return;
@@ -497,6 +545,8 @@
       recette.nom = nom;
       recette.categorie = categorie;
       recette.ingredients = resultatIngredient.ingredients;
+      recette.preparation = preparation;
+      recette.cuisson = cuisson;
       enregistrerRecettes();
       afficherRecettes();
       revenirAuModeAjout();
@@ -509,7 +559,9 @@
       id: `recette-${Date.now()}-${prochainIdentifiant}`,
       nom,
       categorie,
-      ingredients: resultatIngredient.ingredients
+      ingredients: resultatIngredient.ingredients,
+      preparation,
+      cuisson
     };
 
     prochainIdentifiant += 1;
@@ -531,5 +583,14 @@
   boutonAjouterIngredient.addEventListener("click", () => {
     const ligne = ajouterLigneIngredient();
     ligne.querySelector(".ingredient-nom").focus();
+  });
+
+  champPreparation.addEventListener("invalid", () => {
+    if (!champPreparation.value.trim()) {
+      afficherMessage(
+        "Veuillez indiquer les instructions de préparation.",
+        "erreur"
+      );
+    }
   });
 })();

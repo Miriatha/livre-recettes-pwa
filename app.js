@@ -8,9 +8,8 @@
   const zoneRecettes = document.getElementById("liste-recettes");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
-  const champIngredientNom = document.getElementById("ingredient-nom");
-  const champIngredientQuantite = document.getElementById("ingredient-quantite");
-  const menuIngredientUnite = document.getElementById("ingredient-unite");
+  const listeIngredients = document.getElementById("liste-ingredients");
+  const boutonAjouterIngredient = document.getElementById("ajouter-ingredient");
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -20,9 +19,8 @@
     ["#liste-recettes", zoneRecettes],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
-    ["#ingredient-nom", champIngredientNom],
-    ["#ingredient-quantite", champIngredientQuantite],
-    ["#ingredient-unite", menuIngredientUnite]
+    ["#liste-ingredients", listeIngredients],
+    ["#ajouter-ingredient", boutonAjouterIngredient]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -38,6 +36,23 @@
   }
 
   const cleStockage = "livreRecettes.recettes";
+  const unitesIngredient = [
+    "mg",
+    "g",
+    "kg",
+    "ml",
+    "cl",
+    "l",
+    "pièce",
+    "tranche",
+    "gousse",
+    "cuillère à café",
+    "cuillère à soupe",
+    "pincée",
+    "boîte",
+    "pot",
+    "sachet"
+  ];
 
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
@@ -59,7 +74,6 @@
       const carte = document.createElement("article");
       const nom = document.createElement("h3");
       const categorie = document.createElement("p");
-      const ingredient = document.createElement("p");
       const actions = document.createElement("div");
       const boutonModifier = document.createElement("button");
       const boutonSuppression = document.createElement("button");
@@ -67,12 +81,7 @@
       carte.className = "carte-recette";
       nom.textContent = recette.nom;
       categorie.textContent = `Catégorie : ${recette.categorie}`;
-      const premierIngredient = obtenirPremierIngredient(recette);
-
-      if (premierIngredient) {
-        ingredient.className = "ingredient-recette";
-        ingredient.textContent = `${premierIngredient.quantite} ${premierIngredient.unite} ${premierIngredient.nom}`;
-      }
+      const ingredients = obtenirIngredientsValides(recette);
 
       actions.className = "actions-recette";
       boutonModifier.type = "button";
@@ -95,8 +104,21 @@
       actions.append(boutonModifier, boutonSuppression);
       carte.append(nom, categorie);
 
-      if (premierIngredient) {
-        carte.append(ingredient);
+      if (ingredients.length > 0) {
+        const titreIngredients = document.createElement("h4");
+        const liste = document.createElement("ul");
+
+        titreIngredients.className = "titre-ingredients-recette";
+        titreIngredients.textContent = "Ingrédients";
+        liste.className = "ingredients-recette";
+
+        ingredients.forEach((ingredient) => {
+          const element = document.createElement("li");
+          element.textContent = `${ingredient.quantite} ${ingredient.unite} ${ingredient.nom}`;
+          liste.append(element);
+        });
+
+        carte.append(titreIngredients, liste);
       }
 
       carte.append(actions);
@@ -118,65 +140,160 @@
     );
   }
 
-  function obtenirPremierIngredient(recette) {
+  function obtenirIngredientsValides(recette) {
     if (!Array.isArray(recette.ingredients)) {
-      return null;
+      return [];
     }
 
-    const premierIngredient = recette.ingredients[0];
-
-    return ingredientEstValide(premierIngredient) ? premierIngredient : null;
+    return recette.ingredients.filter(ingredientEstValide);
   }
 
-  function lirePremierIngredient() {
-    const nom = champIngredientNom.value.trim();
-    const quantiteTexte = champIngredientQuantite.value.trim();
-    const unite = menuIngredientUnite.value;
+  function creerLigneIngredient(ingredient) {
+    const identifiant = prochainIdentifiantIngredient;
+    const ligne = document.createElement("div");
+    const groupeNom = document.createElement("div");
+    const groupeQuantite = document.createElement("div");
+    const groupeUnite = document.createElement("div");
+    const labelNom = document.createElement("label");
+    const labelQuantite = document.createElement("label");
+    const labelUnite = document.createElement("label");
+    const champNomIngredient = document.createElement("input");
+    const champQuantiteIngredient = document.createElement("input");
+    const menuUniteIngredient = document.createElement("select");
+    const boutonSupprimerIngredient = document.createElement("button");
+    const optionVide = document.createElement("option");
 
-    if (!nom && !quantiteTexte && !unite) {
-      return { estValide: true, ingredients: [] };
+    prochainIdentifiantIngredient += 1;
+    ligne.className = "ligne-ingredient";
+    groupeNom.className = "champ-formulaire";
+    groupeQuantite.className = "champ-formulaire";
+    groupeUnite.className = "champ-formulaire";
+
+    labelNom.htmlFor = `ingredient-nom-${identifiant}`;
+    labelNom.textContent = "Nom de l’ingrédient";
+    champNomIngredient.id = labelNom.htmlFor;
+    champNomIngredient.type = "text";
+    champNomIngredient.className = "ingredient-nom";
+
+    labelQuantite.htmlFor = `ingredient-quantite-${identifiant}`;
+    labelQuantite.textContent = "Quantité";
+    champQuantiteIngredient.id = labelQuantite.htmlFor;
+    champQuantiteIngredient.type = "number";
+    champQuantiteIngredient.min = "0";
+    champQuantiteIngredient.step = "any";
+    champQuantiteIngredient.className = "ingredient-quantite";
+
+    labelUnite.htmlFor = `ingredient-unite-${identifiant}`;
+    labelUnite.textContent = "Unité";
+    menuUniteIngredient.id = labelUnite.htmlFor;
+    menuUniteIngredient.className = "ingredient-unite";
+    optionVide.value = "";
+    optionVide.textContent = "Choisir une unité";
+    menuUniteIngredient.append(optionVide);
+
+    unitesIngredient.forEach((unite) => {
+      const option = document.createElement("option");
+      option.value = unite;
+      option.textContent = unite;
+      menuUniteIngredient.append(option);
+    });
+
+    boutonSupprimerIngredient.type = "button";
+    boutonSupprimerIngredient.className = "bouton-supprimer-ingredient";
+    boutonSupprimerIngredient.textContent = "Supprimer cet ingrédient";
+    boutonSupprimerIngredient.addEventListener("click", () => {
+      supprimerLigneIngredient(ligne);
+    });
+
+    if (ingredientEstValide(ingredient)) {
+      champNomIngredient.value = ingredient.nom;
+      champQuantiteIngredient.value = ingredient.quantite;
+      menuUniteIngredient.value = ingredient.unite;
     }
 
-    if (!nom || !quantiteTexte || !unite) {
-      return {
-        estValide: false,
-        message:
-          "Veuillez compléter le nom, la quantité et l’unité de l’ingrédient."
-      };
-    }
+    groupeNom.append(labelNom, champNomIngredient);
+    groupeQuantite.append(labelQuantite, champQuantiteIngredient);
+    groupeUnite.append(labelUnite, menuUniteIngredient);
+    ligne.append(
+      groupeNom,
+      groupeQuantite,
+      groupeUnite,
+      boutonSupprimerIngredient
+    );
 
-    const quantite = Number(quantiteTexte);
-
-    if (!Number.isFinite(quantite) || quantite <= 0) {
-      return {
-        estValide: false,
-        message: "La quantité de l’ingrédient doit être un nombre supérieur à zéro."
-      };
-    }
-
-    return {
-      estValide: true,
-      ingredients: [{ nom, quantite, unite }]
-    };
+    return ligne;
   }
 
-  function viderChampsIngredient() {
-    champIngredientNom.value = "";
-    champIngredientQuantite.value = "";
-    menuIngredientUnite.value = "";
+  function ajouterLigneIngredient(ingredient) {
+    const ligne = creerLigneIngredient(ingredient);
+    listeIngredients.append(ligne);
+    return ligne;
   }
 
-  function remplirChampsIngredient(recette) {
-    const premierIngredient = obtenirPremierIngredient(recette);
-
-    if (!premierIngredient) {
-      viderChampsIngredient();
+  function supprimerLigneIngredient(ligne) {
+    if (listeIngredients.children.length > 1) {
+      ligne.remove();
       return;
     }
 
-    champIngredientNom.value = premierIngredient.nom;
-    champIngredientQuantite.value = premierIngredient.quantite;
-    menuIngredientUnite.value = premierIngredient.unite;
+    ligne.querySelector(".ingredient-nom").value = "";
+    ligne.querySelector(".ingredient-quantite").value = "";
+    ligne.querySelector(".ingredient-unite").value = "";
+  }
+
+  function reinitialiserLignesIngredient(ingredients) {
+    listeIngredients.textContent = "";
+    const ingredientsValides = Array.isArray(ingredients)
+      ? ingredients.filter(ingredientEstValide)
+      : [];
+
+    if (ingredientsValides.length === 0) {
+      ajouterLigneIngredient();
+      return;
+    }
+
+    ingredientsValides.forEach((ingredient) => {
+      ajouterLigneIngredient(ingredient);
+    });
+  }
+
+  function lireIngredients() {
+    const ingredients = [];
+    const lignes = listeIngredients.querySelectorAll(".ligne-ingredient");
+
+    for (const ligne of lignes) {
+      const nom = ligne.querySelector(".ingredient-nom").value.trim();
+      const quantiteTexte = ligne
+        .querySelector(".ingredient-quantite")
+        .value.trim();
+      const unite = ligne.querySelector(".ingredient-unite").value;
+
+      if (!nom && !quantiteTexte && !unite) {
+        continue;
+      }
+
+      if (!nom || !quantiteTexte || !unite) {
+        return {
+          estValide: false,
+          message:
+            "Veuillez compléter ou vider entièrement chaque ligne d’ingrédient."
+        };
+      }
+
+      const quantite = Number(quantiteTexte);
+
+      if (!Number.isFinite(quantite) || quantite <= 0) {
+        return {
+          estValide: false,
+          message:
+            "Chaque quantité doit être un nombre supérieur à zéro."
+        };
+      }
+
+      ingredients.push({ nom, quantite, unite });
+    }
+
+    return { estValide: true, ingredients };
   }
 
   function recetteEstValide(recette) {
@@ -232,7 +349,7 @@
       .filter(recetteEstValide)
       .map((recette) => ({
         ...recette,
-        ingredients: Array.isArray(recette.ingredients) ? recette.ingredients : []
+        ingredients: obtenirIngredientsValides(recette)
       }));
 
     if (recettesValides.length !== donneesAnalysees.length) {
@@ -258,7 +375,7 @@
     idRecetteEnModification = null;
     champNom.value = "";
     menuCategorie.value = "";
-    viderChampsIngredient();
+    reinitialiserLignesIngredient();
     boutonPrincipal.textContent = "Ajouter la recette";
     boutonAnnuler.hidden = true;
   }
@@ -287,7 +404,7 @@
     idRecetteEnModification = recette.id;
     champNom.value = recette.nom;
     menuCategorie.value = recette.categorie;
-    remplirChampsIngredient(recette);
+    reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     champNom.focus();
@@ -338,7 +455,9 @@
   const recettes = chargerRecettes();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
+  let prochainIdentifiantIngredient = 1;
 
+  reinitialiserLignesIngredient();
   afficherRecettes();
 
   formulaire.addEventListener("submit", (evenement) => {
@@ -355,7 +474,7 @@
       return;
     }
 
-    const resultatIngredient = lirePremierIngredient();
+    const resultatIngredient = lireIngredients();
 
     if (!resultatIngredient.estValide) {
       afficherMessage(resultatIngredient.message, "erreur");
@@ -407,5 +526,10 @@
     revenirAuModeAjout();
     afficherMessage("Modification annulée.", "succes");
     champNom.focus();
+  });
+
+  boutonAjouterIngredient.addEventListener("click", () => {
+    const ligne = ajouterLigneIngredient();
+    ligne.querySelector(".ingredient-nom").focus();
   });
 })();

@@ -34,47 +34,16 @@
             </select>
           </div>
 
-          <fieldset class="premier-ingredient">
-            <legend>Premier ingrédient</legend>
-            <div class="champs-ingredient">
-              <div class="champ-formulaire">
-                <label for="ingredient-nom">Nom de l’ingrédient</label>
-                <input id="ingredient-nom" name="ingredient-nom" type="text">
-              </div>
-
-              <div class="champ-formulaire">
-                <label for="ingredient-quantite">Quantité</label>
-                <input
-                  id="ingredient-quantite"
-                  name="ingredient-quantite"
-                  type="number"
-                  min="0"
-                  step="any"
-                >
-              </div>
-
-              <div class="champ-formulaire">
-                <label for="ingredient-unite">Unité</label>
-                <select id="ingredient-unite" name="ingredient-unite">
-                  <option value="">Choisir une unité</option>
-                  <option value="mg">mg</option>
-                  <option value="g">g</option>
-                  <option value="kg">kg</option>
-                  <option value="ml">ml</option>
-                  <option value="cl">cl</option>
-                  <option value="l">l</option>
-                  <option value="pièce">pièce</option>
-                  <option value="tranche">tranche</option>
-                  <option value="gousse">gousse</option>
-                  <option value="cuillère à café">cuillère à café</option>
-                  <option value="cuillère à soupe">cuillère à soupe</option>
-                  <option value="pincée">pincée</option>
-                  <option value="boîte">boîte</option>
-                  <option value="pot">pot</option>
-                  <option value="sachet">sachet</option>
-                </select>
-              </div>
-            </div>
+          <fieldset class="ingredients">
+            <legend>Ingrédients</legend>
+            <div id="liste-ingredients" class="liste-ingredients"></div>
+            <button
+              id="ajouter-ingredient"
+              class="bouton-ajouter-ingredient"
+              type="button"
+            >
+              Ajouter un ingrédient
+            </button>
           </fieldset>
 
           <div class="actions-formulaire">

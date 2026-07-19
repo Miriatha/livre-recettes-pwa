@@ -91,6 +91,24 @@
     "pot",
     "sachet"
   ];
+  const conversionsUnites = {
+    masse: {
+      reference: "g",
+      facteurs: {
+        mg: 0.001,
+        g: 1,
+        kg: 1000
+      }
+    },
+    volume: {
+      reference: "ml",
+      facteurs: {
+        ml: 1,
+        cl: 10,
+        l: 1000
+      }
+    }
+  };
 
   let recettes = [];
   const recettesSelectionnees = new Set();
@@ -392,33 +410,112 @@
   }
 
   // Liste de courses
+  function obtenirConversionUnite(unite) {
+    for (const [famille, conversion] of Object.entries(conversionsUnites)) {
+      if (Object.prototype.hasOwnProperty.call(conversion.facteurs, unite)) {
+        return { famille, conversion };
+      }
+    }
+
+    return null;
+  }
+
+  function arrondirQuantite(quantite) {
+    return Number(quantite.toFixed(12));
+  }
+
+  function estProcheDeMultiple(quantite, multiple) {
+    const multipleLePlusProche = Math.round(quantite / multiple) * multiple;
+    const tolerance = 1e-9 * Math.max(1, Math.abs(quantite));
+
+    return Math.abs(quantite - multipleLePlusProche) <= tolerance;
+  }
+
+  function choisirUniteAffichage(famille, quantiteReference) {
+    const quantite = arrondirQuantite(quantiteReference);
+
+    if (famille === "masse") {
+      if (quantite >= 1000) {
+        return { quantite: quantite / 1000, unite: "kg" };
+      }
+
+      if (quantite >= 1) {
+        return { quantite, unite: "g" };
+      }
+
+      return { quantite: quantite * 1000, unite: "mg" };
+    }
+
+    if (famille === "volume") {
+      if (quantite >= 1000) {
+        return { quantite: quantite / 1000, unite: "l" };
+      }
+
+      if (estProcheDeMultiple(quantite, 10)) {
+        return { quantite: quantite / 10, unite: "cl" };
+      }
+
+      return { quantite, unite: "ml" };
+    }
+
+    return { quantite, unite: "" };
+  }
+
   function regrouperIngredientsPourCourses(recettesPourCourses) {
     const groupesIngredients = new Map();
 
     recettesPourCourses.forEach((recette) => {
       obtenirIngredientsValides(recette).forEach((ingredient) => {
         const nomNormalise = normaliserNomIngredient(ingredient.nom);
-        const cleGroupe = JSON.stringify([nomNormalise, ingredient.unite]);
+        const conversionUnite = obtenirConversionUnite(ingredient.unite);
+        const famille = conversionUnite ? conversionUnite.famille : null;
+        const cleUnite = famille
+          ? `famille:${famille}`
+          : `unite:${ingredient.unite}`;
+        const cleGroupe = JSON.stringify([nomNormalise, cleUnite]);
         const groupeExistant = groupesIngredients.get(cleGroupe);
+        const quantiteReference = conversionUnite
+          ? ingredient.quantite * conversionUnite.conversion.facteurs[ingredient.unite]
+          : ingredient.quantite;
 
         if (groupeExistant) {
-          groupeExistant.quantite += ingredient.quantite;
+          groupeExistant.quantiteReference += quantiteReference;
           return;
         }
 
         groupesIngredients.set(cleGroupe, {
           nom: ingredient.nom.trim(),
           unite: ingredient.unite,
-          quantite: ingredient.quantite
+          famille,
+          quantiteReference
         });
       });
     });
 
-    return Array.from(groupesIngredients.values());
+    return Array.from(groupesIngredients.values()).map((groupe) => {
+      if (!groupe.famille) {
+        return {
+          nom: groupe.nom,
+          unite: groupe.unite,
+          quantite: groupe.quantiteReference
+        };
+      }
+
+      const affichage = choisirUniteAffichage(
+        groupe.famille,
+        groupe.quantiteReference
+      );
+
+      return {
+        nom: groupe.nom,
+        unite: affichage.unite,
+        quantite: affichage.quantite
+      };
+    });
   }
 
   function formaterQuantitePourListe(quantite) {
-    const quantiteArrondie = Number(quantite.toFixed(12));
+    const quantiteArrondie = arrondirQuantite(quantite);
 
     return quantiteArrondie.toLocaleString("fr-FR", {
       maximumFractionDigits: 12,

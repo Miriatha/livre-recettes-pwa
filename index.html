@@ -249,6 +249,33 @@
 
       <section id="vue-plus" class="section vue" aria-labelledby="titre-plus" hidden>
         <h2 id="titre-plus" tabindex="-1">Plus</h2>
+        <section id="section-catalogue-ingredients" class="section-catalogue-ingredients" aria-labelledby="titre-catalogue-ingredients">
+          <h3 id="titre-catalogue-ingredients">Catalogue d’ingrédients</h3>
+          <p>Les catégories du catalogue organisent automatiquement votre liste de courses.</p>
+          <p id="compteur-catalogue-ingredients" class="compteur-catalogue-ingredients" aria-live="polite"></p>
+          <form id="formulaire-ajout-catalogue" class="formulaire-catalogue">
+            <div class="champ-formulaire">
+              <label for="nouvel-ingredient-catalogue">Nouvel ingrédient</label>
+              <input id="nouvel-ingredient-catalogue" type="text">
+            </div>
+            <div class="champ-formulaire">
+              <label for="categorie-nouvel-ingredient-catalogue">Catégorie</label>
+              <select id="categorie-nouvel-ingredient-catalogue"></select>
+            </div>
+            <button id="ajouter-ingredient-catalogue" type="submit">Ajouter au catalogue</button>
+          </form>
+          <div class="outils-catalogue">
+            <div class="champ-formulaire">
+              <label for="recherche-catalogue-ingredients">Rechercher</label>
+              <input id="recherche-catalogue-ingredients" type="search" placeholder="Rechercher un ingrédient…">
+            </div>
+            <div class="champ-formulaire">
+              <label for="filtre-categorie-catalogue">Filtrer par catégorie</label>
+              <select id="filtre-categorie-catalogue"></select>
+            </div>
+          </div>
+          <div id="liste-catalogue-ingredients" class="liste-catalogue-ingredients" aria-live="polite"></div>
+        </section>
         <h3 id="titre-historique">Historique des recettes cuisinées</h3>
         <form id="formulaire-historique" class="formulaire-historique" hidden>
           <p id="historique-recette-nom" class="historique-recette-nom"></p>

@@ -32,6 +32,15 @@
   const champHistoriqueNotes = document.getElementById("historique-notes");
   const boutonAnnulerHistorique = document.getElementById("annuler-historique");
   const zoneListeHistorique = document.getElementById("liste-historique");
+  const sectionCatalogueIngredients = document.getElementById("section-catalogue-ingredients");
+  const compteurCatalogueIngredients = document.getElementById("compteur-catalogue-ingredients");
+  const formulaireAjoutCatalogue = document.getElementById("formulaire-ajout-catalogue");
+  const champNouvelIngredientCatalogue = document.getElementById("nouvel-ingredient-catalogue");
+  const menuCategorieNouvelIngredientCatalogue = document.getElementById("categorie-nouvel-ingredient-catalogue");
+  const boutonAjouterIngredientCatalogue = document.getElementById("ajouter-ingredient-catalogue");
+  const champRechercheCatalogueIngredients = document.getElementById("recherche-catalogue-ingredients");
+  const filtreCategorieCatalogue = document.getElementById("filtre-categorie-catalogue");
+  const zoneListeCatalogueIngredients = document.getElementById("liste-catalogue-ingredients");
   const zoneImpression = document.getElementById("zone-impression");
   const ficheRecetteDialogue = document.getElementById(
     "fiche-recette-dialogue"
@@ -146,6 +155,15 @@
     ["#historique-notes", champHistoriqueNotes],
     ["#annuler-historique", boutonAnnulerHistorique],
     ["#liste-historique", zoneListeHistorique],
+    ["#section-catalogue-ingredients", sectionCatalogueIngredients],
+    ["#compteur-catalogue-ingredients", compteurCatalogueIngredients],
+    ["#formulaire-ajout-catalogue", formulaireAjoutCatalogue],
+    ["#nouvel-ingredient-catalogue", champNouvelIngredientCatalogue],
+    ["#categorie-nouvel-ingredient-catalogue", menuCategorieNouvelIngredientCatalogue],
+    ["#ajouter-ingredient-catalogue", boutonAjouterIngredientCatalogue],
+    ["#recherche-catalogue-ingredients", champRechercheCatalogueIngredients],
+    ["#filtre-categorie-catalogue", filtreCategorieCatalogue],
+    ["#liste-catalogue-ingredients", zoneListeCatalogueIngredients],
     ["#zone-impression", zoneImpression],
     ["#fiche-recette-dialogue", ficheRecetteDialogue],
     ["#fiche-recette-panneau", ficheRecettePanneau],
@@ -345,6 +363,44 @@
   const cleStockageBrouillon = "livreRecettes.brouillon";
   const cleStockageMenuSemaine = "livreRecettes.menuSemaine";
   const cleStockageHistorique = "livreRecettes.historique";
+  const cleStockageCatalogueIngredients =
+    "livreRecettes.catalogueIngredients";
+  const categoriesIngredients = Object.freeze([
+    { id: "fruits-legumes", libelle: "Fruits et légumes" },
+    { id: "viandes-charcuteries", libelle: "Viandes et charcuteries" },
+    { id: "poissons-fruits-de-mer", libelle: "Poissons et fruits de mer" },
+    { id: "produits-laitiers-oeufs", libelle: "Produits laitiers et œufs" },
+    { id: "feculents-cereales-legumineuses", libelle: "Féculents, céréales et légumineuses" },
+    { id: "boulangerie", libelle: "Boulangerie" },
+    { id: "epicerie-salee", libelle: "Épicerie salée" },
+    { id: "epicerie-sucree", libelle: "Épicerie sucrée" },
+    { id: "condiments-huiles-epices", libelle: "Condiments, huiles et épices" },
+    { id: "surgeles", libelle: "Surgelés" },
+    { id: "boissons", libelle: "Boissons" },
+    { id: "autres", libelle: "Autres" },
+    { id: "a-classer", libelle: "À classer" }
+  ]);
+  const catalogueInitialParCategorie = Object.freeze({
+    "fruits-legumes": "Abricot|Ail|Ananas|Artichaut|Asperge|Aubergine|Avocat|Banane|Betterave|Brocoli|Carotte|Céleri branche|Céleri-rave|Champignon de Paris|Chou blanc|Chou de Bruxelles|Chou-fleur|Chou kale|Chou rouge|Chou vert|Citron|Citron vert|Clémentine|Concombre|Courge butternut|Courgette|Échalote|Endive|Épinards frais|Fenouil|Fraise|Framboise|Haricot vert frais|Kiwi|Laitue|Mâche|Mangue|Melon|Myrtille|Navet|Nectarine|Oignon|Oignon rouge|Orange|Pamplemousse|Patate douce|Pêche|Petit pois frais|Poire|Poireau|Poivron jaune|Poivron rouge|Poivron vert|Pomme|Pomme de terre|Potimarron|Radis|Raisin|Roquette|Salade verte|Tomate|Tomate cerise",
+    "viandes-charcuteries": "Agneau|Bacon|Bavette de bœuf|Blanc de poulet|Bœuf haché|Canard|Chair à saucisse|Chipolata|Côte de porc|Cuisse de canard|Cuisse de poulet|Dinde|Escalope de dinde|Escalope de poulet|Filet de bœuf|Filet mignon de porc|Foie de volaille|Jambon blanc|Jambon cru|Joue de bœuf|Lard fumé|Lardons|Magret de canard|Merguez|Palette de porc|Paupiette de veau|Porc haché|Poulet|Rôti de bœuf|Rôti de porc|Saucisse de Toulouse|Saucisson sec|Steak haché|Travers de porc|Veau|Viande hachée",
+    "poissons-fruits-de-mer": "Anchois|Cabillaud|Calamar|Colin|Crabe|Crevette|Daurade|Filet de merlu|Gambas|Haddock|Hareng|Homard|Lieu noir|Lotte|Maquereau|Moule|Noix de Saint-Jacques|Palourde|Pavé de saumon|Poulpe|Saumon|Saumon fumé|Sardine|Sole|Surimi|Thon frais|Truite",
+    "produits-laitiers-oeufs": "Beurre demi-sel|Beurre doux|Blanc d'œuf|Bleu d'Auvergne|Brie|Bûche de chèvre|Camembert|Cheddar|Chèvre frais|Comté|Cottage cheese|Coulommiers|Crème épaisse|Crème fraîche|Crème liquide|Emmental|Feta|Fromage blanc|Gruyère|Jaune d'œuf|Lait demi-écrémé|Lait écrémé|Lait entier|Lait fermenté|Lait ribot|Mascarpone|Mozzarella|Œuf|Parmesan|Petit-suisse|Raclette|Reblochon|Ricotta|Roquefort|Saint-Nectaire|Skyr|Yaourt nature",
+    "feculents-cereales-legumineuses": "Avoine|Boulgour|Couscous|Farine complète|Farine de blé|Farine de maïs|Farine de riz|Fécule de pomme de terre|Flageolet|Flocons d'avoine|Gnocchi|Haricot blanc|Haricot noir|Haricot rouge|Lasagnes|Lentille corail|Lentille verte|Maïzena|Nouilles|Nouilles de riz|Pâtes|Penne|Pois cassé|Pois chiche|Polenta|Quinoa|Riz arborio|Riz basmati|Riz complet|Riz long|Riz rond|Semoule fine|Spaghetti|Tagliatelles|Vermicelles",
+    boulangerie: "Baguette|Biscotte|Brioche|Croissant|Galette de sarrasin|Pain au chocolat|Pain burger|Pain complet|Pain de campagne|Pain de mie|Pain hot-dog|Pain pita|Pâte à pizza|Pâte brisée|Pâte feuilletée|Pâte filo|Pâte sablée|Tortilla de blé",
+    "epicerie-salee": "Artichaut en conserve|Champignon en conserve|Chapelure|Cœur de palmier|Coulis de tomate|Crème de coco|Feuille de brick|Haricot vert en conserve|Lait de coco|Maïs en conserve|Miso|Olive noire|Olive verte|Petit pois en conserve|Poivron grillé en bocal|Purée de tomate|Sardine en boîte|Seitan|Tempeh|Thon en boîte|Tofu|Tomate pelée|Tomates concassées|Concentré de tomate|Soupe en brique|Ravioles|Gnocchi frais",
+    "epicerie-sucree": "Abricot sec|Amande|Biscuit à la cuillère|Biscuit petit-beurre|Cacao en poudre|Caramel|Cassonade|Chocolat au lait|Chocolat blanc|Chocolat noir|Compote de pomme|Confiture|Cranberry séchée|Datte|Miel|Noisette|Noix|Noix de cajou|Noix de coco râpée|Noix de pécan|Pâte à tartiner|Pépites de chocolat|Pistache|Poudre d'amande|Pralin|Pruneau|Raisin sec|Sirop d'érable|Spéculoos|Sucre en poudre|Sucre glace|Sucre vanillé",
+    "condiments-huiles-epices": "Ail semoule|Aneth|Anis étoilé|Basilic|Bouillon de bœuf|Bouillon de légumes|Bouillon de volaille|Cannelle|Câpre|Cardamome|Ciboulette|Clou de girofle|Coriandre|Cumin|Curcuma|Curry|Estragon|Fleur de sel|Fond de veau|Gingembre frais|Gingembre moulu|Graine de chia|Graine de courge|Graine de lin|Graine de pavot|Graine de sésame|Graine de tournesol|Harissa|Herbes de Provence|Huile de colza|Huile de noix|Huile de sésame|Huile de tournesol|Huile d'olive|Ketchup|Laurier|Mayonnaise|Menthe|Moutarde|Moutarde à l'ancienne|Muscade|Origan|Paprika|Paprika fumé|Persil|Piment de Cayenne|Piment d'Espelette|Poivre blanc|Poivre noir|Romarin|Sauce barbecue|Sauce soja|Sauce teriyaki|Sauce Worcestershire|Sel|Sirop de grenadine|Sriracha|Tabasco|Tapenade|Thym|Vinaigre balsamique|Vinaigre de cidre|Vinaigre de vin|Pesto",
+    surgeles: "Brocoli surgelé|Cabillaud surgelé|Crevette surgelée|Épinards surgelés|Frites surgelées|Framboise surgelée|Fruits rouges surgelés|Glace à la vanille|Haricot vert surgelé|Mélange de légumes surgelés|Myrtille surgelée|Petits pois surgelés|Poisson pané|Pommes noisette|Purée surgelée|Saumon surgelé|Sorbet|Viande hachée surgelée",
+    boissons: "Bière|Café|Café soluble|Cidre|Cognac|Cola|Eau de coco|Eau gazeuse|Eau plate|Infusion|Jus d'orange|Jus de pomme|Limonade|Porto|Rhum|Thé|Vin blanc|Vin rouge",
+    autres: "Agar-agar|Bicarbonate alimentaire|Colorant alimentaire|Eau de fleur d'oranger|Extrait de vanille|Gélatine|Levure boulangère|Levure chimique|Protéine végétale texturée|Substitut d'œuf"
+  });
+  const catalogueIngredientsInitial = Object.freeze(
+    categoriesIngredients.flatMap((categorie) =>
+      (catalogueInitialParCategorie[categorie.id] || "").split("|").filter(Boolean).map((nom) =>
+        Object.freeze({ nom, categorie: categorie.id })
+      )
+    )
+  );
   const difficultes = ["Facile", "Moyenne", "Difficile"];
   const joursSemaine = [
     { cle: "lundi", libelle: "Lundi" },
@@ -398,12 +454,14 @@
   let recettes = [];
   let menuSemaine = creerMenuSemaineVide();
   let historique = [];
+  let catalogueIngredients = { version: 1, ingredients: [] };
   const recettesSelectionneesManuellement = new Set();
   let recettesSelectionneesParMenu = new Set();
   const portionsSouhaitees = new Map();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
   let prochainIdentifiantIngredient = 1;
+  let prochainIdentifiantCatalogue = 1;
   let prochainIdentifiantHistorique = 1;
   let idRecetteHistorique = null;
   let temporisationSauvegardeBrouillon = null;
@@ -2165,11 +2223,324 @@
       .replace(/\s+/g, " ")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[œŒ]/g, "oe")
       .toLocaleLowerCase("fr");
   }
 
   function normaliserNomIngredient(nom) {
     return normaliserRecherche(nom).replace(/\s+/g, " ");
+  }
+
+  function categorieIngredientEstValide(categorie) {
+    return categoriesIngredients.some((element) => element.id === categorie);
+  }
+
+  function obtenirLibelleCategorieIngredient(categorie) {
+    const categorieTrouvee = categoriesIngredients.find(
+      (element) => element.id === categorie
+    );
+
+    return categorieTrouvee ? categorieTrouvee.libelle : "À classer";
+  }
+
+  function nettoyerNomCatalogue(nom) {
+    return typeof nom === "string" ? nom.trim().replace(/\s+/g, " ") : "";
+  }
+
+  function creerIdentifiantCatalogue(identifiants = new Set()) {
+    let identifiant;
+
+    do {
+      identifiant =
+        "ingredient-" + Date.now() + "-" + prochainIdentifiantCatalogue;
+      prochainIdentifiantCatalogue += 1;
+    } while (identifiants.has(identifiant));
+
+    return identifiant;
+  }
+
+  function copierCatalogue(catalogue) {
+    return {
+      version: 1,
+      ingredients: catalogue.ingredients.map((ingredient) => ({ ...ingredient }))
+    };
+  }
+
+  function verifierCatalogueInitial() {
+    const noms = new Set();
+    const doublons = catalogueIngredientsInitial.filter((ingredient) => {
+      const nomNormalise = normaliserNomIngredient(ingredient.nom);
+      const dejaVu = noms.has(nomNormalise);
+      noms.add(nomNormalise);
+      return dejaVu;
+    });
+
+    if (
+      catalogueIngredientsInitial.length !== 384 ||
+      doublons.length > 0 ||
+      catalogueIngredientsInitial.some(
+        (ingredient) => !categorieIngredientEstValide(ingredient.categorie)
+      )
+    ) {
+      console.error(
+        "Application de recettes : le catalogue initial est invalide (384 entrées uniques attendues)."
+      );
+    }
+  }
+
+  function reparerCatalogue(brut) {
+    if (!brut || typeof brut !== "object" || Array.isArray(brut) ||
+      brut.version !== 1 || !Array.isArray(brut.ingredients)) {
+      return null;
+    }
+
+    const ingredients = [];
+    const noms = new Map();
+    const identifiants = new Set();
+    let reparations = 0;
+    let fusions = 0;
+
+    brut.ingredients.forEach((element) => {
+      const nom = nettoyerNomCatalogue(element && element.nom);
+      if (!nom) {
+        reparations += 1;
+        return;
+      }
+
+      const nomNormalise = normaliserNomIngredient(nom);
+      const categorie = categorieIngredientEstValide(element && element.categorie)
+        ? element.categorie
+        : "a-classer";
+      let identifiant = element && typeof element.id === "string"
+        ? element.id.trim()
+        : "";
+
+      if (!identifiant || identifiants.has(identifiant)) {
+        identifiant = creerIdentifiantCatalogue(identifiants);
+        reparations += 1;
+      }
+
+      const existant = noms.get(nomNormalise);
+      if (existant) {
+        fusions += 1;
+        if (existant.categorie === "a-classer" && categorie !== "a-classer") {
+          existant.categorie = categorie;
+        }
+        return;
+      }
+
+      const ingredient = { id: identifiant, nom, categorie };
+      ingredients.push(ingredient);
+      noms.set(nomNormalise, ingredient);
+      identifiants.add(identifiant);
+    });
+
+    if (reparations || fusions) {
+      console.warn(
+        "Application de recettes : catalogue réparé en mémoire (" +
+          reparations + " réparation(s), " + fusions + " fusion(s))."
+      );
+    }
+    return { version: 1, ingredients };
+  }
+
+  function completerCatalogueAvecIngredients(catalogue, ingredientsAAjouter) {
+    const candidat = copierCatalogue(catalogue);
+    const noms = new Set(
+      candidat.ingredients.map((ingredient) => normaliserNomIngredient(ingredient.nom))
+    );
+    const identifiants = new Set(candidat.ingredients.map((ingredient) => ingredient.id));
+    let modifie = false;
+
+    ingredientsAAjouter.forEach((ingredient) => {
+      const nom = nettoyerNomCatalogue(ingredient.nom);
+      const nomNormalise = normaliserNomIngredient(nom);
+      if (!nom || noms.has(nomNormalise)) {
+        return;
+      }
+      candidat.ingredients.push({
+        id: creerIdentifiantCatalogue(identifiants),
+        nom,
+        categorie: categorieIngredientEstValide(ingredient.categorie)
+          ? ingredient.categorie
+          : "a-classer"
+      });
+      noms.add(nomNormalise);
+      modifie = true;
+    });
+    return { catalogue: candidat, modifie };
+  }
+
+  function ingredientsRecettesPourCatalogue() {
+    return recettes.flatMap((recette) =>
+      obtenirIngredientsValides(recette).map((ingredient) => ({
+        nom: ingredient.nom,
+        categorie: "a-classer"
+      }))
+    );
+  }
+
+  function enregistrerCatalogue(catalogueCandidat) {
+    try {
+      localStorage.setItem(
+        cleStockageCatalogueIngredients,
+        JSON.stringify(catalogueCandidat)
+      );
+      return true;
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le catalogue d’ingrédients n’a pas pu être sauvegardé localement."
+      );
+      return false;
+    }
+  }
+
+  function creerCatalogueInitialAvecIdentifiants() {
+    const identifiants = new Set();
+    return {
+      version: 1,
+      ingredients: catalogueIngredientsInitial.map((ingredient) => ({
+        ...ingredient,
+        id: creerIdentifiantCatalogue(identifiants)
+      }))
+    };
+  }
+
+  function chargerCatalogueIngredients() {
+    verifierCatalogueInitial();
+    let donneesEnregistrees;
+    try {
+      donneesEnregistrees = localStorage.getItem(cleStockageCatalogueIngredients);
+    } catch (erreur) {
+      console.warn("Application de recettes : le catalogue d’ingrédients est inaccessible. Un catalogue de secours est utilisé.");
+      return completerCatalogueAvecIngredients(
+        creerCatalogueInitialAvecIdentifiants(), ingredientsRecettesPourCatalogue()
+      ).catalogue;
+    }
+
+    if (donneesEnregistrees === null) {
+      const candidat = completerCatalogueAvecIngredients(
+        creerCatalogueInitialAvecIdentifiants(), ingredientsRecettesPourCatalogue()
+      ).catalogue;
+      enregistrerCatalogue(candidat);
+      return candidat;
+    }
+
+    let brut;
+    try {
+      brut = JSON.parse(donneesEnregistrees);
+    } catch (erreur) {
+      console.warn("Application de recettes : le catalogue d’ingrédients est illisible. La valeur existante n’est pas écrasée.");
+      return completerCatalogueAvecIngredients(
+        creerCatalogueInitialAvecIdentifiants(), ingredientsRecettesPourCatalogue()
+      ).catalogue;
+    }
+
+    const catalogueRepare = reparerCatalogue(brut);
+    if (!catalogueRepare) {
+      console.warn("Application de recettes : le catalogue d’ingrédients est invalide. La valeur existante n’est pas écrasée.");
+      return completerCatalogueAvecIngredients(
+        creerCatalogueInitialAvecIdentifiants(), ingredientsRecettesPourCatalogue()
+      ).catalogue;
+    }
+
+    const avecInitial = completerCatalogueAvecIngredients(
+      catalogueRepare, catalogueIngredientsInitial
+    );
+    const avecRecettes = completerCatalogueAvecIngredients(
+      avecInitial.catalogue, ingredientsRecettesPourCatalogue()
+    );
+    if ((avecInitial.modifie || avecRecettes.modifie) &&
+      !enregistrerCatalogue(avecRecettes.catalogue)) {
+      console.warn("Application de recettes : les compléments du catalogue n’ont pas pu être enregistrés.");
+    }
+    return avecRecettes.catalogue;
+  }
+
+  function trouverIngredientCatalogueParId(identifiant) {
+    return typeof identifiant === "string"
+      ? catalogueIngredients.ingredients.find((ingredient) => ingredient.id === identifiant) || null
+      : null;
+  }
+
+  function trouverIngredientCatalogueParNom(nom) {
+    const nomNormalise = normaliserNomIngredient(nom);
+    return catalogueIngredients.ingredients.find(
+      (ingredient) => normaliserNomIngredient(ingredient.nom) === nomNormalise
+    ) || null;
+  }
+
+  function remplirOptionsCategories(menu, inclureOptionVide = true, libelleVide = "Choisir une catégorie") {
+    menu.textContent = "";
+    if (inclureOptionVide) {
+      const optionVide = document.createElement("option");
+      optionVide.value = "";
+      optionVide.textContent = libelleVide;
+      menu.append(optionVide);
+    }
+    categoriesIngredients.forEach((categorie) => {
+      const option = document.createElement("option");
+      option.value = categorie.id;
+      option.textContent = categorie.libelle;
+      menu.append(option);
+    });
+  }
+
+  function afficherCatalogueIngredients() {
+    const recherche = normaliserRecherche(champRechercheCatalogueIngredients.value);
+    const categorie = filtreCategorieCatalogue.value;
+    const ingredients = catalogueIngredients.ingredients.filter((ingredient) =>
+      (!recherche || normaliserRecherche(ingredient.nom).includes(recherche)) &&
+      (!categorie || ingredient.categorie === categorie)
+    ).sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+    const aClasser = catalogueIngredients.ingredients.filter(
+      (ingredient) => ingredient.categorie === "a-classer"
+    ).length;
+    compteurCatalogueIngredients.textContent = catalogueIngredients.ingredients.length === 0
+      ? "Aucun ingrédient dans le catalogue."
+      : aClasser === 0
+        ? catalogueIngredients.ingredients.length + " ingrédients, aucun à classer."
+        : catalogueIngredients.ingredients.length + " ingrédients, dont " + aClasser + " à classer.";
+    zoneListeCatalogueIngredients.textContent = "";
+    if (ingredients.length === 0) {
+      const message = document.createElement("p");
+      message.textContent = "Aucun ingrédient ne correspond à la recherche.";
+      zoneListeCatalogueIngredients.append(message);
+      return;
+    }
+    ingredients.forEach((ingredient) => {
+      const ligne = document.createElement("div");
+      const nom = document.createElement("p");
+      const groupe = document.createElement("div");
+      const label = document.createElement("label");
+      const menu = document.createElement("select");
+      const idMenu = "categorie-catalogue-" + ingredient.id;
+      ligne.className = "ligne-catalogue-ingredient";
+      nom.textContent = ingredient.nom;
+      label.htmlFor = idMenu;
+      label.textContent = "Catégorie";
+      menu.id = idMenu;
+      remplirOptionsCategories(menu, false);
+      menu.value = ingredient.categorie;
+      menu.addEventListener("change", () => {
+        const candidat = copierCatalogue(catalogueIngredients);
+        const cible = candidat.ingredients.find((element) => element.id === ingredient.id);
+        cible.categorie = menu.value;
+        if (!enregistrerCatalogue(candidat)) {
+          menu.value = ingredient.categorie;
+          afficherMessage("Impossible d’enregistrer le catalogue d’ingrédients sur cet appareil.", "erreur");
+          return;
+        }
+        catalogueIngredients = candidat;
+        afficherCatalogueIngredients();
+        actualiserListeCoursesSiAffichee();
+        afficherMessage("Catégorie de l’ingrédient mise à jour.", "succes");
+      });
+      groupe.className = "champ-formulaire";
+      groupe.append(label, menu);
+      ligne.append(nom, groupe);
+      zoneListeCatalogueIngredients.append(ligne);
+    });
   }
 
   function obtenirPortionsOriginales(recette) {
@@ -2391,6 +2762,9 @@
 
         if (groupeExistant) {
           groupeExistant.quantiteReference += quantiteReference;
+          if (!groupeExistant.ingredientId && trouverIngredientCatalogueParId(ingredient.ingredientId)) {
+            groupeExistant.ingredientId = ingredient.ingredientId;
+          }
           return;
         }
 
@@ -2398,7 +2772,10 @@
           nom: ingredient.nom.trim(),
           unite: ingredient.unite,
           famille,
-          quantiteReference
+          quantiteReference,
+          ingredientId: trouverIngredientCatalogueParId(ingredient.ingredientId)
+            ? ingredient.ingredientId
+            : null
         });
       });
     });
@@ -2408,7 +2785,8 @@
         return {
           nom: groupe.nom,
           unite: groupe.unite,
-          quantite: groupe.quantiteReference
+          quantite: groupe.quantiteReference,
+          categorie: obtenirCategoriePourCourses(groupe)
         };
       }
 
@@ -2418,11 +2796,21 @@
       );
 
       return {
-        nom: groupe.nom,
-        unite: affichage.unite,
-        quantite: affichage.quantite
+          nom: groupe.nom,
+          unite: affichage.unite,
+          quantite: affichage.quantite,
+          categorie: obtenirCategoriePourCourses(groupe)
       };
     });
+  }
+
+  function obtenirCategoriePourCourses(ingredient) {
+    const parIdentifiant = trouverIngredientCatalogueParId(ingredient.ingredientId);
+    if (parIdentifiant) {
+      return parIdentifiant.categorie;
+    }
+    const parNom = trouverIngredientCatalogueParNom(ingredient.nom);
+    return parNom ? parNom.categorie : "a-classer";
   }
 
   function formaterQuantitePourListe(quantite) {
@@ -2469,16 +2857,28 @@
       return;
     }
 
-    const liste = document.createElement("ul");
-
-    groupesIngredients.forEach((groupe) => {
-      const ligne = document.createElement("li");
-
-      ligne.textContent = `${formaterQuantitePourListe(groupe.quantite)} ${groupe.unite} ${groupe.nom}`;
-      liste.append(ligne);
+    categoriesIngredients.forEach((categorie) => {
+      const groupesCategorie = groupesIngredients.filter(
+        (groupe) => groupe.categorie === categorie.id
+      );
+      if (groupesCategorie.length === 0) {
+        return;
+      }
+      const section = document.createElement("section");
+      const titre = document.createElement("h3");
+      const liste = document.createElement("ul");
+      section.className = "liste-courses-categorie";
+      titre.textContent = categorie.libelle;
+      groupesCategorie.forEach((groupe) => {
+        const ligne = document.createElement("li");
+        ligne.textContent =
+          formaterQuantitePourListe(groupe.quantite) + " " +
+          groupe.unite + " " + groupe.nom;
+        liste.append(ligne);
+      });
+      section.append(titre, liste);
+      zoneListeCourses.append(section);
     });
-
-    zoneListeCourses.append(liste);
   }
 
   function genererListeCourses() {
@@ -2584,6 +2984,83 @@
   }
 
   // Ingrédients du formulaire et brouillon
+  function actualiserAideIngredientLigne(ligne) {
+    const champ = ligne.querySelector(".ingredient-nom");
+    const suggestions = ligne.querySelector(".suggestions-ingredients");
+    const etat = ligne.querySelector(".etat-ingredient-catalogue");
+    const zoneNouveau = ligne.querySelector(".etat-nouvel-ingredient");
+    const menuCategorie = ligne.querySelector(".categorie-nouvel-ingredient");
+    const recherche = normaliserNomIngredient(champ.value);
+    const exact = trouverIngredientCatalogueParNom(champ.value);
+    const associe = trouverIngredientCatalogueParId(ligne.dataset.ingredientId);
+
+    if (associe && normaliserNomIngredient(associe.nom) !== recherche) {
+      delete ligne.dataset.ingredientId;
+    }
+    if (exact) {
+      ligne.dataset.ingredientId = exact.id;
+      etat.textContent = obtenirLibelleCategorieIngredient(exact.categorie);
+      zoneNouveau.hidden = true;
+    } else if (recherche) {
+      etat.textContent = "Nouvel ingrédient";
+      zoneNouveau.hidden = false;
+    } else {
+      etat.textContent = "";
+      zoneNouveau.hidden = true;
+    }
+
+    suggestions.textContent = "";
+    if (!recherche) {
+      suggestions.hidden = true;
+      return;
+    }
+    const correspondances = catalogueIngredients.ingredients
+      .filter((ingredient) => normaliserNomIngredient(ingredient.nom).includes(recherche))
+      .sort((a, b) => {
+        const aCommence = normaliserNomIngredient(a.nom).startsWith(recherche);
+        const bCommence = normaliserNomIngredient(b.nom).startsWith(recherche);
+        return aCommence === bCommence ? a.nom.localeCompare(b.nom, "fr") : aCommence ? -1 : 1;
+      })
+      .slice(0, 8);
+    correspondances.forEach((ingredient) => {
+      const bouton = document.createElement("button");
+      const categorie = document.createElement("small");
+      bouton.type = "button";
+      bouton.className = "suggestion-ingredient";
+      bouton.textContent = ingredient.nom;
+      categorie.textContent = obtenirLibelleCategorieIngredient(ingredient.categorie);
+      bouton.append(categorie);
+      bouton.addEventListener("click", () => {
+        champ.value = ingredient.nom;
+        ligne.dataset.ingredientId = ingredient.id;
+        actualiserAideIngredientLigne(ligne);
+        suggestions.hidden = true;
+        programmerSauvegardeBrouillon();
+      });
+      bouton.addEventListener("keydown", (evenement) => {
+        const boutons = Array.from(suggestions.querySelectorAll("button"));
+        const position = boutons.indexOf(bouton);
+        if (evenement.key === "ArrowDown" && boutons[position + 1]) {
+          evenement.preventDefault();
+          boutons[position + 1].focus();
+        } else if (evenement.key === "ArrowUp") {
+          evenement.preventDefault();
+          if (boutons[position - 1]) {
+            boutons[position - 1].focus();
+          } else {
+            champ.focus();
+          }
+        } else if (evenement.key === "Escape") {
+          evenement.preventDefault();
+          suggestions.hidden = true;
+          champ.focus();
+        }
+      });
+      suggestions.append(bouton);
+    });
+    suggestions.hidden = correspondances.length === 0;
+  }
+
   function creerLigneIngredient(ingredient) {
     const identifiant = prochainIdentifiantIngredient;
     const ligne = document.createElement("div");
@@ -2598,10 +3075,15 @@
     const menuUniteIngredient = document.createElement("select");
     const boutonSupprimerIngredient = document.createElement("button");
     const optionVide = document.createElement("option");
+    const suggestions = document.createElement("div");
+    const etatCatalogue = document.createElement("small");
+    const zoneNouveau = document.createElement("div");
+    const labelCategorieNouvelIngredient = document.createElement("label");
+    const menuCategorieNouvelIngredient = document.createElement("select");
 
     prochainIdentifiantIngredient += 1;
     ligne.className = "ligne-ingredient";
-    groupeNom.className = "champ-formulaire";
+    groupeNom.className = "champ-formulaire groupe-nom-ingredient";
     groupeQuantite.className = "champ-formulaire";
     groupeUnite.className = "champ-formulaire";
 
@@ -2610,6 +3092,18 @@
     champNomIngredient.id = labelNom.htmlFor;
     champNomIngredient.type = "text";
     champNomIngredient.className = "ingredient-nom";
+    champNomIngredient.setAttribute("aria-autocomplete", "list");
+    suggestions.className = "suggestions-ingredients";
+    suggestions.setAttribute("role", "listbox");
+    suggestions.hidden = true;
+    etatCatalogue.className = "etat-ingredient-catalogue";
+    zoneNouveau.className = "etat-nouvel-ingredient";
+    zoneNouveau.hidden = true;
+    labelCategorieNouvelIngredient.htmlFor = "categorie-nouvel-ingredient-" + identifiant;
+    labelCategorieNouvelIngredient.textContent = "Catégorie du nouvel ingrédient";
+    menuCategorieNouvelIngredient.id = labelCategorieNouvelIngredient.htmlFor;
+    menuCategorieNouvelIngredient.className = "categorie-nouvel-ingredient";
+    remplirOptionsCategories(menuCategorieNouvelIngredient);
 
     labelQuantite.htmlFor = `ingredient-quantite-${identifiant}`;
     labelQuantite.textContent = "Quantité";
@@ -2654,9 +3148,37 @@
         unitesIngredient.includes(ingredient.unite)
           ? ingredient.unite
           : "";
+      if (typeof ingredient.ingredientId === "string") {
+        ligne.dataset.ingredientId = ingredient.ingredientId;
+      }
+      if (categorieIngredientEstValide(ingredient.categorieCatalogue)) {
+        menuCategorieNouvelIngredient.value = ingredient.categorieCatalogue;
+      }
     }
 
-    groupeNom.append(labelNom, champNomIngredient);
+    champNomIngredient.addEventListener("input", () => {
+      actualiserAideIngredientLigne(ligne);
+    });
+    champNomIngredient.addEventListener("keydown", (evenement) => {
+      if (evenement.key === "Escape") {
+        suggestions.hidden = true;
+      } else if (evenement.key === "ArrowDown") {
+        const premier = suggestions.querySelector("button");
+        if (premier) {
+          evenement.preventDefault();
+          premier.focus();
+        }
+      }
+    });
+    menuCategorieNouvelIngredient.addEventListener("change", programmerSauvegardeBrouillon);
+    groupeNom.append(
+      labelNom,
+      champNomIngredient,
+      etatCatalogue,
+      suggestions,
+      zoneNouveau
+    );
+    zoneNouveau.append(labelCategorieNouvelIngredient, menuCategorieNouvelIngredient);
     groupeQuantite.append(labelQuantite, champQuantiteIngredient);
     groupeUnite.append(labelUnite, menuUniteIngredient);
     ligne.append(
@@ -2665,6 +3187,7 @@
       groupeUnite,
       boutonSupprimerIngredient
     );
+    actualiserAideIngredientLigne(ligne);
 
     return ligne;
   }
@@ -2708,7 +3231,9 @@
     ).map((ligne) => ({
       nom: ligne.querySelector(".ingredient-nom").value,
       quantite: ligne.querySelector(".ingredient-quantite").value,
-      unite: ligne.querySelector(".ingredient-unite").value
+      unite: ligne.querySelector(".ingredient-unite").value,
+      ingredientId: ligne.dataset.ingredientId || null,
+      categorieCatalogue: ligne.querySelector(".categorie-nouvel-ingredient").value
     }));
   }
 
@@ -2831,10 +3356,72 @@
         };
       }
 
-      ingredients.push({ nom, quantite, unite });
+      ingredients.push({
+        nom,
+        quantite,
+        unite,
+        ingredientId: ligne.dataset.ingredientId || null,
+        categorieCatalogue: ligne.querySelector(".categorie-nouvel-ingredient").value,
+        menuCategorie: ligne.querySelector(".categorie-nouvel-ingredient")
+      });
     }
 
     return { estValide: true, ingredients };
+  }
+
+  function resoudreIngredientsFormulaire(ingredients) {
+    const candidat = copierCatalogue(catalogueIngredients);
+    const parNom = new Map(
+      candidat.ingredients.map((ingredient) => [
+        normaliserNomIngredient(ingredient.nom),
+        ingredient
+      ])
+    );
+    const identifiants = new Set(candidat.ingredients.map((ingredient) => ingredient.id));
+    const nouveauxIds = new Set();
+    const ingredientsResolus = [];
+
+    for (const ingredient of ingredients) {
+      const nomNormalise = normaliserNomIngredient(ingredient.nom);
+      let entree = trouverIngredientCatalogueParId(ingredient.ingredientId);
+      if (!entree || normaliserNomIngredient(entree.nom) !== nomNormalise) {
+        entree = parNom.get(nomNormalise) || null;
+      }
+      if (!entree) {
+        if (!categorieIngredientEstValide(ingredient.categorieCatalogue)) {
+          return {
+            estValide: false,
+            message: "Choisissez une catégorie pour le nouvel ingrédient « " + ingredient.nom + " ».",
+            champ: ingredient.menuCategorie
+          };
+        }
+        entree = {
+          id: creerIdentifiantCatalogue(identifiants),
+          nom: nettoyerNomCatalogue(ingredient.nom),
+          categorie: ingredient.categorieCatalogue
+        };
+        candidat.ingredients.push(entree);
+        parNom.set(nomNormalise, entree);
+        nouveauxIds.add(entree.id);
+      }
+      ingredientsResolus.push({
+        nom: entree.nom,
+        quantite: ingredient.quantite,
+        unite: ingredient.unite,
+        ingredientId: entree.id
+      });
+    }
+    return {
+      estValide: true,
+      catalogue: candidat,
+      catalogueModifie: nouveauxIds.size > 0,
+      ingredients: ingredientsResolus,
+      ingredientsSansNouveauxIds: ingredientsResolus.map((ingredient) =>
+        nouveauxIds.has(ingredient.ingredientId)
+          ? { nom: ingredient.nom, quantite: ingredient.quantite, unite: ingredient.unite }
+          : ingredient
+      )
+    };
   }
 
   function brouillonEstValide(brouillon) {
@@ -3284,6 +3871,7 @@
 
   // Écouteurs d’événements et initialisation
   recettes = chargerRecettes();
+  catalogueIngredients = chargerCatalogueIngredients();
   menuSemaine = nettoyerMenuSemaine(chargerMenuSemaine(), recettes);
   historique = chargerHistorique();
   actualiserSelectionProvenantDuMenu();
@@ -3300,6 +3888,9 @@
   afficherRecettes();
   afficherMenuSemaine();
   afficherHistorique();
+  remplirOptionsCategories(menuCategorieNouvelIngredientCatalogue);
+  remplirOptionsCategories(filtreCategorieCatalogue, true, "Toutes les catégories");
+  afficherCatalogueIngredients();
   afficherVue("vue-recettes");
 
   boutonsNavigation.forEach((bouton) => {
@@ -3320,6 +3911,54 @@
 
   boutonRetourAuxRecettes.addEventListener("click", () => {
     afficherVue("vue-recettes", true);
+  });
+
+  formulaireAjoutCatalogue.addEventListener("submit", (evenement) => {
+    evenement.preventDefault();
+    const nom = nettoyerNomCatalogue(champNouvelIngredientCatalogue.value);
+    const categorie = menuCategorieNouvelIngredientCatalogue.value;
+    const existant = trouverIngredientCatalogueParNom(nom);
+    if (!nom || !categorieIngredientEstValide(categorie)) {
+      afficherMessage("Veuillez indiquer un ingrédient et choisir une catégorie.", "erreur");
+      return;
+    }
+    if (existant) {
+      afficherMessage(
+        "Cet ingrédient existe déjà dans le catalogue sous le nom « " +
+          existant.nom + " ».",
+        "erreur"
+      );
+      return;
+    }
+    const candidat = copierCatalogue(catalogueIngredients);
+    candidat.ingredients.push({
+      id: creerIdentifiantCatalogue(new Set(candidat.ingredients.map((ingredient) => ingredient.id))),
+      nom,
+      categorie
+    });
+    if (!enregistrerCatalogue(candidat)) {
+      afficherMessage("Impossible d’enregistrer le catalogue d’ingrédients sur cet appareil.", "erreur");
+      return;
+    }
+    catalogueIngredients = candidat;
+    champNouvelIngredientCatalogue.value = "";
+    menuCategorieNouvelIngredientCatalogue.value = "";
+    afficherCatalogueIngredients();
+    afficherMessage("Ingrédient ajouté au catalogue.", "succes");
+  });
+
+  champRechercheCatalogueIngredients.addEventListener("input", afficherCatalogueIngredients);
+  filtreCategorieCatalogue.addEventListener("change", afficherCatalogueIngredients);
+
+  document.addEventListener("click", (evenement) => {
+    document.querySelectorAll(".ligne-ingredient").forEach((ligne) => {
+      if (!ligne.contains(evenement.target)) {
+        const suggestions = ligne.querySelector(".suggestions-ingredients");
+        if (suggestions) {
+          suggestions.hidden = true;
+        }
+      }
+    });
   });
 
   boutonFermerFicheRecette.addEventListener("click", () => {
@@ -3412,6 +4051,26 @@
       afficherMessage(resultatIngredient.message, "erreur");
       return;
     }
+    const resolutionIngredients = resoudreIngredientsFormulaire(
+      resultatIngredient.ingredients
+    );
+    if (!resolutionIngredients.estValide) {
+      afficherMessage(resolutionIngredients.message, "erreur");
+      resolutionIngredients.champ.focus();
+      return;
+    }
+    let echecCatalogue = false;
+    if (resolutionIngredients.catalogueModifie) {
+      if (enregistrerCatalogue(resolutionIngredients.catalogue)) {
+        catalogueIngredients = resolutionIngredients.catalogue;
+        afficherCatalogueIngredients();
+      } else {
+        echecCatalogue = true;
+      }
+    }
+    const ingredientsEnregistres = echecCatalogue
+      ? resolutionIngredients.ingredientsSansNouveauxIds
+      : resolutionIngredients.ingredients;
 
     if (idRecetteEnModification !== null) {
       const recette = recettes.find((recetteActuelle) => {
@@ -3430,7 +4089,7 @@
         ...recette,
         nom,
         categorie,
-        ingredients: resultatIngredient.ingredients,
+        ingredients: ingredientsEnregistres,
         preparation,
         cuisson,
         notes,
@@ -3456,7 +4115,12 @@
       afficherHistorique();
       revenirAuModeAjout(true);
       afficherVue("vue-recettes");
-      afficherMessage("Recette modifiée avec succès.", "succes");
+      afficherMessage(
+        echecCatalogue
+          ? "La recette a été enregistrée, mais le catalogue d’ingrédients n’a pas pu être mis à jour."
+          : "Recette modifiée avec succès.",
+        echecCatalogue ? "erreur" : "succes"
+      );
       return;
     }
 
@@ -3464,7 +4128,7 @@
       id: creerIdentifiantRecette(),
       nom,
       categorie,
-      ingredients: resultatIngredient.ingredients,
+      ingredients: ingredientsEnregistres,
       preparation,
       cuisson,
       notes,
@@ -3486,7 +4150,12 @@
     afficherMenuSemaine();
     revenirAuModeAjout(true);
     afficherVue("vue-recettes");
-    afficherMessage("La recette a été ajoutée.", "succes");
+    afficherMessage(
+      echecCatalogue
+        ? "La recette a été enregistrée, mais le catalogue d’ingrédients n’a pas pu être mis à jour."
+        : "La recette a été ajoutée.",
+      echecCatalogue ? "erreur" : "succes"
+    );
   });
 
   boutonAnnuler.addEventListener("click", () => {

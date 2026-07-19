@@ -32,6 +32,7 @@
   const champHistoriqueNotes = document.getElementById("historique-notes");
   const boutonAnnulerHistorique = document.getElementById("annuler-historique");
   const zoneListeHistorique = document.getElementById("liste-historique");
+  const zoneImpression = document.getElementById("zone-impression");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
@@ -67,6 +68,7 @@
     ["#historique-notes", champHistoriqueNotes],
     ["#annuler-historique", boutonAnnulerHistorique],
     ["#liste-historique", zoneListeHistorique],
+    ["#zone-impression", zoneImpression],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#effacer-brouillon", boutonEffacerBrouillon],
@@ -160,6 +162,8 @@
   let prochainIdentifiantHistorique = 1;
   let idRecetteHistorique = null;
   let temporisationSauvegardeBrouillon = null;
+  let titreDocumentAvantImpression = null;
+  let temporisationNettoyageImpression = null;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
@@ -701,6 +705,209 @@
     });
   }
 
+  // Impression d'une recette
+  function ajouterSectionImpression(fiche, titre, texte) {
+    const titreSection = document.createElement("h2");
+    const contenu = document.createElement("p");
+
+    titreSection.textContent = titre;
+    contenu.className = "texte-impression";
+    contenu.textContent = texte;
+    fiche.append(titreSection, contenu);
+  }
+
+  function construireFicheImpression(recette) {
+    zoneImpression.textContent = "";
+
+    const fiche = document.createElement("article");
+    const titre = document.createElement("h1");
+    const categorie = obtenirTexteRecette(recette.categorie);
+    const portionsOriginales = obtenirPortionsOriginales(recette);
+    const portionsSouhaiteesRecette =
+      portionsOriginales === null
+        ? null
+        : convertirNombreEntier(portionsSouhaitees.get(recette.id), 1);
+    const portionsUtilisees =
+      portionsSouhaiteesRecette === null
+        ? portionsOriginales
+        : portionsSouhaiteesRecette;
+    const coefficientPortions = calculerCoefficientPortions(
+      portionsOriginales,
+      portionsUtilisees
+    );
+    const quantitesSontAdaptees =
+      portionsOriginales !== null &&
+      portionsUtilisees !== portionsOriginales;
+    const informations = [];
+    const tempsPreparation = convertirNombreEntier(recette.tempsPreparation, 0);
+    const tempsCuisson = convertirNombreEntier(recette.tempsCuisson, 0);
+    const difficulte = obtenirDifficulte(recette.difficulte);
+
+    fiche.className = "fiche-impression";
+    titre.textContent = obtenirTexteRecette(recette.nom) || "Recette";
+    fiche.append(titre);
+
+    if (categorie) {
+      const texteCategorie = document.createElement("p");
+
+      texteCategorie.textContent = `Catégorie : ${categorie}`;
+      fiche.append(texteCategorie);
+    }
+
+    if (tempsPreparation !== null) {
+      informations.push(`Préparation : ${tempsPreparation} min`);
+    }
+
+    if (tempsCuisson !== null) {
+      informations.push(
+        tempsCuisson === 0 ? "Cuisson : Sans cuisson" : `Cuisson : ${tempsCuisson} min`
+      );
+    }
+
+    if (portionsUtilisees !== null) {
+      informations.push(`Portions : ${portionsUtilisees}`);
+    }
+
+    if (difficulte) {
+      informations.push(`Difficulté : ${difficulte}`);
+    }
+
+    if (informations.length > 0) {
+      const titreInformations = document.createElement("h2");
+      const listeInformations = document.createElement("div");
+
+      titreInformations.textContent = "Informations pratiques";
+      listeInformations.className = "informations-impression";
+
+      informations.forEach((information) => {
+        const element = document.createElement("p");
+
+        element.textContent = information;
+        listeInformations.append(element);
+      });
+
+      fiche.append(titreInformations, listeInformations);
+    }
+
+    if (quantitesSontAdaptees) {
+      const indicationPortions = document.createElement("p");
+
+      indicationPortions.className = "indication-impression-portions";
+      indicationPortions.textContent = `Quantités adaptées pour ${portionsUtilisees} portions`;
+      fiche.append(indicationPortions);
+    }
+
+    const ingredients = obtenirIngredientsValides(recette);
+
+    if (ingredients.length > 0) {
+      const titreIngredients = document.createElement("h2");
+      const listeIngredients = document.createElement("ul");
+
+      titreIngredients.textContent = "Ingrédients";
+
+      ingredients.forEach((ingredient) => {
+        const element = document.createElement("li");
+        const quantiteAdaptee = calculerQuantiteAdaptee(
+          ingredient.quantite,
+          coefficientPortions
+        );
+
+        element.textContent = `${formaterQuantitePourListe(quantiteAdaptee)} ${ingredient.unite} ${ingredient.nom}`;
+        listeIngredients.append(element);
+      });
+
+      fiche.append(titreIngredients, listeIngredients);
+    }
+
+    const preparation = obtenirTexteRecette(recette.preparation);
+    const cuisson = obtenirTexteRecette(recette.cuisson);
+    const notes = obtenirTexteRecette(recette.notes);
+    const conseils = obtenirTexteRecette(recette.conseils);
+
+    if (preparation) {
+      ajouterSectionImpression(fiche, "Préparation", preparation);
+    }
+
+    if (cuisson) {
+      ajouterSectionImpression(fiche, "Cuisson", cuisson);
+    }
+
+    if (notes) {
+      ajouterSectionImpression(fiche, "Notes personnelles", notes);
+    }
+
+    if (conseils) {
+      ajouterSectionImpression(fiche, "Conseils et astuces", conseils);
+    }
+
+    zoneImpression.append(fiche);
+  }
+
+  function nettoyerModeImpression() {
+    if (temporisationNettoyageImpression !== null) {
+      clearTimeout(temporisationNettoyageImpression);
+      temporisationNettoyageImpression = null;
+    }
+
+    document.body.classList.remove("mode-impression");
+    zoneImpression.textContent = "";
+
+    if (titreDocumentAvantImpression !== null) {
+      document.title = titreDocumentAvantImpression;
+      titreDocumentAvantImpression = null;
+    }
+  }
+
+  function imprimerRecette(idRecette) {
+    const recette = recettes.find((recetteActuelle) => recetteActuelle.id === idRecette);
+
+    if (!recette) {
+      console.error(
+        "Application de recettes : la recette à imprimer est introuvable."
+      );
+      afficherMessage(
+        "Impossible de préparer cette recette pour l’impression.",
+        "erreur"
+      );
+      return;
+    }
+
+    nettoyerModeImpression();
+    construireFicheImpression(recette);
+    titreDocumentAvantImpression = document.title;
+    document.title = obtenirTexteRecette(recette.nom) || document.title;
+    document.body.classList.add("mode-impression");
+    temporisationNettoyageImpression = setTimeout(
+      nettoyerModeImpression,
+      60000
+    );
+
+    if (typeof window.print !== "function") {
+      console.error(
+        "Application de recettes : l’impression native est indisponible dans ce navigateur."
+      );
+      nettoyerModeImpression();
+      afficherMessage(
+        "Impossible de préparer cette recette pour l’impression.",
+        "erreur"
+      );
+      return;
+    }
+
+    try {
+      window.print();
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : l’impression native n’a pas pu être lancée."
+      );
+      nettoyerModeImpression();
+      afficherMessage(
+        "Impossible de préparer cette recette pour l’impression.",
+        "erreur"
+      );
+    }
+  }
+
   // Affichage des recettes, filtres et sélection
   function mettreAJourResumeSelection() {
     const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
@@ -775,6 +982,7 @@
       const actions = document.createElement("div");
       const boutonFavori = document.createElement("button");
       const boutonAjouterHistorique = document.createElement("button");
+      const boutonImprimer = document.createElement("button");
       const boutonModifier = document.createElement("button");
       const boutonSuppression = document.createElement("button");
 
@@ -817,6 +1025,10 @@
       boutonAjouterHistorique.className = "bouton-ajouter-historique";
       boutonAjouterHistorique.dataset.recetteId = recette.id;
       boutonAjouterHistorique.textContent = "Ajouter à l’historique";
+      boutonImprimer.type = "button";
+      boutonImprimer.className = "bouton-imprimer";
+      boutonImprimer.dataset.recetteId = recette.id;
+      boutonImprimer.textContent = "Imprimer / PDF";
       boutonModifier.type = "button";
       boutonModifier.className = "bouton-modifier";
       boutonModifier.dataset.recetteId = recette.id;
@@ -839,6 +1051,10 @@
 
       boutonAjouterHistorique.addEventListener("click", () => {
         ouvrirFormulaireHistorique(boutonAjouterHistorique.dataset.recetteId);
+      });
+
+      boutonImprimer.addEventListener("click", () => {
+        imprimerRecette(boutonImprimer.dataset.recetteId);
       });
 
       boutonModifier.addEventListener("click", () => {
@@ -877,6 +1093,7 @@
       actions.append(
         boutonFavori,
         boutonAjouterHistorique,
+        boutonImprimer,
         boutonModifier,
         boutonSuppression
       );
@@ -2356,6 +2573,10 @@
   boutonAnnulerHistorique.addEventListener("click", () => {
     fermerFormulaireHistorique();
     afficherMessage("Ajout à l’historique annulé.", "succes");
+  });
+
+  window.addEventListener("afterprint", () => {
+    nettoyerModeImpression();
   });
 
   filtreCategorie.addEventListener("change", () => {

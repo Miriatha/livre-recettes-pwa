@@ -340,6 +340,20 @@ button:focus-visible {
   background: #bdceb0;
 }
 
+.bouton-imprimer {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-imprimer:hover,
+.bouton-imprimer:focus-visible {
+  background: #d2bfa1;
+}
+
+#zone-impression {
+  display: none;
+}
+
 .filtre-categorie {
   display: grid;
   gap: 0.4rem;
@@ -664,5 +678,81 @@ button:focus-visible {
   .actions-adaptation-portions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 1.5cm;
+}
+
+@media print {
+  body.mode-impression {
+    min-height: 0;
+    padding: 0;
+    background: #fff;
+    color: #111;
+  }
+
+  body.mode-impression > .conteneur {
+    display: none !important;
+  }
+
+  body.mode-impression #zone-impression {
+    display: block;
+  }
+
+  .fiche-impression {
+    max-width: none;
+    color: #111;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  .fiche-impression h1,
+  .fiche-impression h2 {
+    margin: 0;
+    color: #111;
+    break-after: avoid;
+  }
+
+  .fiche-impression h1 {
+    margin-bottom: 0.35rem;
+    font-size: 20pt;
+  }
+
+  .fiche-impression h2 {
+    margin-top: 1.1rem;
+    font-size: 13pt;
+  }
+
+  .fiche-impression p {
+    margin: 0.45rem 0 0;
+  }
+
+  .fiche-impression ul {
+    margin: 0.45rem 0 0;
+    padding-left: 1.3rem;
+    break-inside: avoid;
+  }
+
+  .fiche-impression li {
+    margin-bottom: 0.2rem;
+  }
+
+  .informations-impression {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    break-inside: avoid;
+  }
+
+  .texte-impression {
+    white-space: pre-wrap;
+    break-inside: avoid;
+  }
+
+  .indication-impression-portions {
+    font-weight: bold;
   }
 }

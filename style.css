@@ -208,6 +208,73 @@ form {
   gap: 0.4rem;
 }
 
+.navigation-formulaire {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  padding: 0.6rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.5rem;
+  background: #faf6ed;
+}
+
+.navigation-formulaire button {
+  flex: 1 1 10rem;
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.navigation-formulaire button:hover,
+.navigation-formulaire button:focus-visible {
+  background: #d2bfa1;
+}
+
+.section-formulaire {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.6rem;
+  background: #faf6ed;
+}
+
+.section-formulaire h3 {
+  margin: 0;
+  color: #51654e;
+  font-size: 1.15rem;
+}
+
+.grille-formulaire-informations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.champ-nom-recette {
+  grid-column: 1 / -1;
+}
+
+.grille-formulaire-textes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1rem;
+}
+
+#actions-formulaire-recette {
+  z-index: 5;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid #c7b99f;
+  border-radius: 0.6rem;
+  background: #fffdf7;
+  box-shadow: 0 -0.2rem 0.7rem rgba(56, 66, 55, 0.08);
+}
+
+#actions-formulaire-recette #bouton-enregistrer {
+  flex-grow: 2;
+}
+
 .informations-pratiques {
   margin: 0;
   padding: 1rem;
@@ -1169,6 +1236,11 @@ body.selecteur-recette-menu-ouvert {
     align-items: stretch;
   }
 
+  #actions-formulaire-recette {
+    position: sticky;
+    bottom: 1rem;
+  }
+
   .menu-semaine {
     grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
     gap: 1rem;
@@ -1182,6 +1254,25 @@ body.selecteur-recette-menu-ouvert {
 }
 
 @media (max-width: 900px) {
+  .navigation-formulaire {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .navigation-formulaire button {
+    min-width: 0;
+  }
+
+  .grille-formulaire-informations,
+  .grille-formulaire-textes {
+    grid-template-columns: 1fr;
+  }
+
+  #actions-formulaire-recette {
+    position: sticky;
+    bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+
   #fiche-recette-panneau {
     width: 100%;
     border-left: 0;

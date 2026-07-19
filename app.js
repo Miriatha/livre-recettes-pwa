@@ -79,6 +79,24 @@
   const boutonRetourAuxRecettes = document.getElementById(
     "retour-aux-recettes"
   );
+  const navigationFormulaire = document.getElementById(
+    "navigation-formulaire"
+  );
+  const sectionFormulaireInformations = document.getElementById(
+    "section-formulaire-informations"
+  );
+  const sectionFormulaireIngredients = document.getElementById(
+    "section-formulaire-ingredients"
+  );
+  const sectionFormulairePreparation = document.getElementById(
+    "section-formulaire-preparation"
+  );
+  const sectionFormulaireNotes = document.getElementById(
+    "section-formulaire-notes"
+  );
+  const actionsFormulaireRecette = document.getElementById(
+    "actions-formulaire-recette"
+  );
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
@@ -149,6 +167,12 @@
     ["#vue-plus", vuePlus],
     ["#nouvelle-recette", boutonNouvelleRecette],
     ["#retour-aux-recettes", boutonRetourAuxRecettes],
+    ["#navigation-formulaire", navigationFormulaire],
+    ["#section-formulaire-informations", sectionFormulaireInformations],
+    ["#section-formulaire-ingredients", sectionFormulaireIngredients],
+    ["#section-formulaire-preparation", sectionFormulairePreparation],
+    ["#section-formulaire-notes", sectionFormulaireNotes],
+    ["#actions-formulaire-recette", actionsFormulaireRecette],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#effacer-brouillon", boutonEffacerBrouillon],
@@ -306,6 +330,15 @@
   const boutonsNavigation = navigationsPrincipales.flatMap((navigation) =>
     Array.from(navigation.element.querySelectorAll(".bouton-navigation"))
   );
+  const sectionsFormulaire = new Map([
+    ["section-formulaire-informations", sectionFormulaireInformations],
+    ["section-formulaire-ingredients", sectionFormulaireIngredients],
+    ["section-formulaire-preparation", sectionFormulairePreparation],
+    ["section-formulaire-notes", sectionFormulaireNotes]
+  ]);
+  const boutonsNavigationFormulaire = Array.from(
+    navigationFormulaire.querySelectorAll("button[data-section-formulaire]")
+  );
 
   // Constantes et état interne
   const cleStockage = "livreRecettes.recettes";
@@ -426,6 +459,38 @@
     }
 
     return true;
+  }
+
+  function naviguerVersSectionFormulaire(identifiantSection) {
+    const section = sectionsFormulaire.get(identifiantSection);
+
+    if (!section) {
+      console.error(
+        "Application de recettes : la section du formulaire demandée est inconnue."
+      );
+      return;
+    }
+
+    const animationsReduites =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (typeof section.scrollIntoView === "function") {
+      section.scrollIntoView({
+        behavior: animationsReduites ? "auto" : "smooth",
+        block: "start"
+      });
+    }
+
+    const titre = section.querySelector("h3[tabindex='-1']");
+
+    if (titre && typeof titre.focus === "function") {
+      try {
+        titre.focus({ preventScroll: true });
+      } catch (erreur) {
+        titre.focus();
+      }
+    }
   }
 
   // Menu de la semaine
@@ -3240,6 +3305,12 @@
   boutonsNavigation.forEach((bouton) => {
     bouton.addEventListener("click", () => {
       afficherVue(bouton.dataset.vue, true);
+    });
+  });
+
+  boutonsNavigationFormulaire.forEach((bouton) => {
+    bouton.addEventListener("click", () => {
+      naviguerVersSectionFormulaire(bouton.dataset.sectionFormulaire);
     });
   });
 

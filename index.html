@@ -31,29 +31,39 @@
       <section id="vue-formulaire" class="section vue" aria-labelledby="titre-ajout" hidden>
         <div class="entete-vue">
           <h2 id="titre-ajout" tabindex="-1">Ajouter une recette</h2>
-          <button id="retour-aux-recettes" class="bouton-retour" type="button">Retour aux recettes</button>
         </div>
 
+        <nav id="navigation-formulaire" class="navigation-formulaire" aria-label="Sections du formulaire">
+          <button type="button" data-section-formulaire="section-formulaire-informations">Informations</button>
+          <button type="button" data-section-formulaire="section-formulaire-ingredients">Ingrédients</button>
+          <button type="button" data-section-formulaire="section-formulaire-preparation">Préparation</button>
+          <button type="button" data-section-formulaire="section-formulaire-notes">Notes</button>
+        </nav>
+
         <form id="formulaire-recette">
-          <div class="champ-formulaire">
-            <label for="nom-recette">Nom de la recette</label>
-            <input id="nom-recette" name="nom" type="text" required>
-          </div>
+          <p class="information-brouillon">
+            Le formulaire est sauvegardé automatiquement sur cet appareil.
+          </p>
 
-          <div class="champ-formulaire">
-            <label for="categorie-recette">Catégorie</label>
-            <select id="categorie-recette" name="categorie" required>
-              <option value="">Choisir une catégorie</option>
-              <option value="Entrée">Entrée</option>
-              <option value="Plat">Plat</option>
-              <option value="Dessert">Dessert</option>
-              <option value="Encas">Encas</option>
-            </select>
-          </div>
+          <section id="section-formulaire-informations" class="section-formulaire" aria-labelledby="titre-section-formulaire-informations">
+            <h3 id="titre-section-formulaire-informations" tabindex="-1">Informations générales</h3>
+            <div class="grille-formulaire-informations">
+              <div class="champ-formulaire champ-nom-recette">
+                <label for="nom-recette">Nom de la recette</label>
+                <input id="nom-recette" name="nom" type="text" required>
+              </div>
 
-          <fieldset class="informations-pratiques">
-            <legend>Informations pratiques</legend>
-            <div class="grille-informations-pratiques">
+              <div class="champ-formulaire">
+                <label for="categorie-recette">Catégorie</label>
+                <select id="categorie-recette" name="categorie" required>
+                  <option value="">Choisir une catégorie</option>
+                  <option value="Entrée">Entrée</option>
+                  <option value="Plat">Plat</option>
+                  <option value="Dessert">Dessert</option>
+                  <option value="Encas">Encas</option>
+                </select>
+              </div>
+
               <div class="champ-formulaire">
                 <label for="temps-preparation">Temps de préparation</label>
                 <div class="champ-avec-unite">
@@ -106,10 +116,10 @@
                 </select>
               </div>
             </div>
-          </fieldset>
+          </section>
 
-          <fieldset class="ingredients">
-            <legend>Ingrédients</legend>
+          <section id="section-formulaire-ingredients" class="section-formulaire" aria-labelledby="titre-section-formulaire-ingredients">
+            <h3 id="titre-section-formulaire-ingredients" tabindex="-1">Ingrédients</h3>
             <div id="liste-ingredients" class="liste-ingredients"></div>
             <button
               id="ajouter-ingredient"
@@ -118,53 +128,56 @@
             >
               Ajouter un ingrédient
             </button>
-          </fieldset>
+          </section>
 
-          <div class="champ-formulaire">
-            <label for="instructions-preparation">Instructions de préparation</label>
-            <textarea
-              id="instructions-preparation"
-              name="preparation"
-              required
-              placeholder="Décrivez les différentes étapes de préparation…"
-            ></textarea>
-          </div>
+          <section id="section-formulaire-preparation" class="section-formulaire" aria-labelledby="titre-section-formulaire-preparation">
+            <h3 id="titre-section-formulaire-preparation" tabindex="-1">Préparation et cuisson</h3>
+            <div class="grille-formulaire-textes">
+              <div class="champ-formulaire">
+                <label for="instructions-preparation">Instructions de préparation</label>
+                <textarea
+                  id="instructions-preparation"
+                  name="preparation"
+                  required
+                  placeholder="Décrivez les différentes étapes de préparation…"
+                ></textarea>
+              </div>
 
-          <div class="champ-formulaire">
-            <label for="instructions-cuisson">Instructions de cuisson</label>
-            <textarea
-              id="instructions-cuisson"
-              name="cuisson"
-              placeholder="Température, durée et méthode de cuisson…"
-            ></textarea>
-          </div>
-
-          <fieldset class="notes-conseils">
-            <legend>Notes et conseils</legend>
-            <div class="champ-formulaire">
-              <label for="notes">Notes personnelles</label>
-              <textarea
-                id="notes"
-                name="notes"
-                placeholder="Ajoutez votre avis, vos ajustements ou vos observations…"
-              ></textarea>
+              <div class="champ-formulaire">
+                <label for="instructions-cuisson">Instructions de cuisson</label>
+                <textarea
+                  id="instructions-cuisson"
+                  name="cuisson"
+                  placeholder="Température, durée et méthode de cuisson…"
+                ></textarea>
+              </div>
             </div>
+          </section>
 
-            <div class="champ-formulaire">
-              <label for="conseils">Conseils et astuces</label>
-              <textarea
-                id="conseils"
-                name="conseils"
-                placeholder="Variantes, conservation, accompagnement ou points d’attention…"
-              ></textarea>
+          <section id="section-formulaire-notes" class="section-formulaire" aria-labelledby="titre-section-formulaire-notes">
+            <h3 id="titre-section-formulaire-notes" tabindex="-1">Notes et conseils</h3>
+            <div class="grille-formulaire-textes">
+              <div class="champ-formulaire">
+                <label for="notes">Notes personnelles</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  placeholder="Ajoutez votre avis, vos ajustements ou vos observations…"
+                ></textarea>
+              </div>
+
+              <div class="champ-formulaire">
+                <label for="conseils">Conseils et astuces</label>
+                <textarea
+                  id="conseils"
+                  name="conseils"
+                  placeholder="Variantes, conservation, accompagnement ou points d’attention…"
+                ></textarea>
+              </div>
             </div>
-          </fieldset>
+          </section>
 
-          <p class="information-brouillon">
-            Le formulaire est sauvegardé automatiquement sur cet appareil.
-          </p>
-
-          <div class="actions-formulaire">
+          <div id="actions-formulaire-recette" class="actions-formulaire">
             <button id="bouton-enregistrer" type="submit">Ajouter la recette</button>
             <button
               id="bouton-annuler-modification"
@@ -181,6 +194,7 @@
             >
               Effacer le brouillon
             </button>
+            <button id="retour-aux-recettes" class="bouton-retour" type="button">Retour aux recettes</button>
           </div>
         </form>
 

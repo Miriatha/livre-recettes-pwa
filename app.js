@@ -12,6 +12,10 @@
   const resumeSelectionRecettes = document.getElementById(
     "resume-selection-recettes"
   );
+  const boutonGenererListeCourses = document.getElementById(
+    "generer-liste-courses"
+  );
+  const zoneListeCourses = document.getElementById("liste-courses");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const listeIngredients = document.getElementById("liste-ingredients");
@@ -35,6 +39,8 @@
     ["#filtre-favoris", filtreFavoris],
     ["#recherche-recettes", champRecherche],
     ["#resume-selection-recettes", resumeSelectionRecettes],
+    ["#generer-liste-courses", boutonGenererListeCourses],
+    ["#liste-courses", zoneListeCourses],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#liste-ingredients", listeIngredients],
@@ -364,6 +370,87 @@
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLocaleLowerCase("fr");
+  }
+
+  function normaliserNomIngredient(nom) {
+    return normaliserRecherche(nom).replace(/\s+/g, " ");
+  }
+
+  function regrouperIngredientsPourCourses(recettesPourCourses) {
+    const groupesIngredients = new Map();
+
+    recettesPourCourses.forEach((recette) => {
+      obtenirIngredientsValides(recette).forEach((ingredient) => {
+        const nomNormalise = normaliserNomIngredient(ingredient.nom);
+        const cleGroupe = JSON.stringify([nomNormalise, ingredient.unite]);
+        const groupeExistant = groupesIngredients.get(cleGroupe);
+
+        if (groupeExistant) {
+          groupeExistant.quantite += ingredient.quantite;
+          return;
+        }
+
+        groupesIngredients.set(cleGroupe, {
+          nom: ingredient.nom.trim(),
+          unite: ingredient.unite,
+          quantite: ingredient.quantite
+        });
+      });
+    });
+
+    return Array.from(groupesIngredients.values());
+  }
+
+  function formaterQuantitePourListe(quantite) {
+    const quantiteArrondie = Number(quantite.toFixed(12));
+
+    return quantiteArrondie.toLocaleString("fr-FR", {
+      maximumFractionDigits: 12,
+      useGrouping: false
+    });
+  }
+
+  function genererListeCourses() {
+    mettreAJourResumeSelection();
+    const recettesPourCourses = recettes.filter((recette) =>
+      recettesSelectionnees.has(recette.id)
+    );
+
+    zoneListeCourses.textContent = "";
+
+    if (recettesPourCourses.length === 0) {
+      const messageAucuneSelection = document.createElement("p");
+
+      messageAucuneSelection.textContent = "Aucune recette sélectionnée.";
+      zoneListeCourses.append(messageAucuneSelection);
+      afficherMessage(
+        "Sélectionnez au moins une recette avant de générer la liste de courses.",
+        "erreur"
+      );
+      return;
+    }
+
+    const groupesIngredients = regrouperIngredientsPourCourses(recettesPourCourses);
+
+    if (groupesIngredients.length === 0) {
+      const messageAucunIngredient = document.createElement("p");
+
+      messageAucunIngredient.textContent =
+        "Les recettes sélectionnées ne contiennent aucun ingrédient.";
+      zoneListeCourses.append(messageAucunIngredient);
+      return;
+    }
+
+    const liste = document.createElement("ul");
+
+    groupesIngredients.forEach((groupe) => {
+      const ligne = document.createElement("li");
+
+      ligne.textContent = `${formaterQuantitePourListe(groupe.quantite)} ${groupe.unite} ${groupe.nom}`;
+      liste.append(ligne);
+    });
+
+    zoneListeCourses.append(liste);
   }
 
   function recetteCorrespondRecherche(recette, recherche) {
@@ -934,6 +1021,10 @@
   boutonAjouterIngredient.addEventListener("click", () => {
     const ligne = ajouterLigneIngredient();
     ligne.querySelector(".ingredient-nom").focus();
+  });
+
+  boutonGenererListeCourses.addEventListener("click", () => {
+    genererListeCourses();
   });
 
   filtreCategorie.addEventListener("change", () => {

@@ -183,10 +183,18 @@
             Afficher uniquement les favoris
           </label>
         </div>
-        <p id="resume-selection-recettes" class="resume-selection-recettes" aria-live="polite">Aucune recette sélectionnée.</p>
+        <div class="zone-selection-recettes">
+          <p id="resume-selection-recettes" class="resume-selection-recettes" aria-live="polite">Aucune recette sélectionnée.</p>
+          <button id="generer-liste-courses" class="bouton-generer-liste-courses" type="button">Générer la liste de courses</button>
+        </div>
         <div id="liste-recettes" class="liste-recettes">
           <p class="aucune-recette">Aucune recette n’est encore enregistrée.</p>
         </div>
+      </section>
+
+      <section class="section" aria-labelledby="titre-liste-courses">
+        <h2 id="titre-liste-courses">Liste de courses</h2>
+        <div id="liste-courses" class="liste-courses" aria-live="polite"><p>Sélectionnez des recettes puis générez la liste de courses.</p></div>
       </section>
     </main>
   </body>

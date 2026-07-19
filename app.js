@@ -18,6 +18,7 @@
   const zoneListeCourses = document.getElementById("liste-courses");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
+  const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
   const listeIngredients = document.getElementById("liste-ingredients");
   const boutonAjouterIngredient = document.getElementById("ajouter-ingredient");
   const champPreparation = document.getElementById("instructions-preparation");
@@ -43,6 +44,7 @@
     ["#liste-courses", zoneListeCourses],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
+    ["#effacer-brouillon", boutonEffacerBrouillon],
     ["#liste-ingredients", listeIngredients],
     ["#ajouter-ingredient", boutonAjouterIngredient],
     ["#instructions-preparation", champPreparation],
@@ -68,6 +70,7 @@
   }
 
   const cleStockage = "livreRecettes.recettes";
+  const cleStockageBrouillon = "livreRecettes.brouillon";
   const difficultes = ["Facile", "Moyenne", "Difficile"];
   const unitesIngredient = [
     "mg",
@@ -601,10 +604,19 @@
       supprimerLigneIngredient(ligne);
     });
 
-    if (ingredientEstValide(ingredient)) {
-      champNomIngredient.value = ingredient.nom;
-      champQuantiteIngredient.value = ingredient.quantite;
-      menuUniteIngredient.value = ingredient.unite;
+    if (ingredient && typeof ingredient === "object") {
+      champNomIngredient.value =
+        typeof ingredient.nom === "string" ? ingredient.nom : "";
+      champQuantiteIngredient.value =
+        typeof ingredient.quantite === "string" ||
+        typeof ingredient.quantite === "number"
+          ? String(ingredient.quantite)
+          : "";
+      menuUniteIngredient.value =
+        typeof ingredient.unite === "string" &&
+        unitesIngredient.includes(ingredient.unite)
+          ? ingredient.unite
+          : "";
     }
 
     groupeNom.append(labelNom, champNomIngredient);
@@ -629,28 +641,133 @@
   function supprimerLigneIngredient(ligne) {
     if (listeIngredients.children.length > 1) {
       ligne.remove();
+      programmerSauvegardeBrouillon();
       return;
     }
 
     ligne.querySelector(".ingredient-nom").value = "";
     ligne.querySelector(".ingredient-quantite").value = "";
     ligne.querySelector(".ingredient-unite").value = "";
+    programmerSauvegardeBrouillon();
   }
 
   function reinitialiserLignesIngredient(ingredients) {
     listeIngredients.textContent = "";
-    const ingredientsValides = Array.isArray(ingredients)
-      ? ingredients.filter(ingredientEstValide)
-      : [];
+    const ingredientsAAfficher = Array.isArray(ingredients) ? ingredients : [];
 
-    if (ingredientsValides.length === 0) {
+    if (ingredientsAAfficher.length === 0) {
       ajouterLigneIngredient();
       return;
     }
 
-    ingredientsValides.forEach((ingredient) => {
+    ingredientsAAfficher.forEach((ingredient) => {
       ajouterLigneIngredient(ingredient);
     });
+  }
+
+  function collecterIngredientsBrouillon() {
+    return Array.from(
+      listeIngredients.querySelectorAll(".ligne-ingredient")
+    ).map((ligne) => ({
+      nom: ligne.querySelector(".ingredient-nom").value,
+      quantite: ligne.querySelector(".ingredient-quantite").value,
+      unite: ligne.querySelector(".ingredient-unite").value
+    }));
+  }
+
+  function formulaireEstVide() {
+    const ingredients = collecterIngredientsBrouillon();
+
+    return (
+      champNom.value === "" &&
+      menuCategorie.value === "" &&
+      champTempsPreparation.value === "" &&
+      champTempsCuisson.value === "" &&
+      champPortions.value === "" &&
+      menuDifficulte.value === "" &&
+      champPreparation.value === "" &&
+      champCuisson.value === "" &&
+      champNotes.value === "" &&
+      champConseils.value === "" &&
+      ingredients.every(
+        (ingredient) =>
+          ingredient.nom === "" &&
+          ingredient.quantite === "" &&
+          ingredient.unite === ""
+      )
+    );
+  }
+
+  function collecterBrouillon() {
+    return {
+      version: 1,
+      mode: idRecetteEnModification === null ? "ajout" : "modification",
+      recetteId: idRecetteEnModification,
+      nom: champNom.value,
+      categorie: menuCategorie.value,
+      tempsPreparation: champTempsPreparation.value,
+      tempsCuisson: champTempsCuisson.value,
+      portions: champPortions.value,
+      difficulte: menuDifficulte.value,
+      ingredients: collecterIngredientsBrouillon(),
+      preparation: champPreparation.value,
+      cuisson: champCuisson.value,
+      notes: champNotes.value,
+      conseils: champConseils.value
+    };
+  }
+
+  function supprimerBrouillon() {
+    if (temporisationSauvegardeBrouillon !== null) {
+      clearTimeout(temporisationSauvegardeBrouillon);
+      temporisationSauvegardeBrouillon = null;
+    }
+
+    try {
+      localStorage.removeItem(cleStockageBrouillon);
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : le brouillon n’a pas pu être supprimé localement."
+      );
+    }
+  }
+
+  function enregistrerBrouillon() {
+    if (idRecetteEnModification === null && formulaireEstVide()) {
+      supprimerBrouillon();
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        cleStockageBrouillon,
+        JSON.stringify(collecterBrouillon())
+      );
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : le brouillon n’a pas pu être sauvegardé localement."
+      );
+    }
+  }
+
+  function programmerSauvegardeBrouillon() {
+    if (temporisationSauvegardeBrouillon !== null) {
+      clearTimeout(temporisationSauvegardeBrouillon);
+    }
+
+    temporisationSauvegardeBrouillon = setTimeout(() => {
+      temporisationSauvegardeBrouillon = null;
+      enregistrerBrouillon();
+    }, 400);
+  }
+
+  function conserverBrouillonAvantReinitialisation() {
+    if (temporisationSauvegardeBrouillon !== null) {
+      clearTimeout(temporisationSauvegardeBrouillon);
+      temporisationSauvegardeBrouillon = null;
+    }
+
+    enregistrerBrouillon();
   }
 
   function lireIngredients() {
@@ -690,6 +807,87 @@
     }
 
     return { estValide: true, ingredients };
+  }
+
+  function brouillonEstValide(brouillon) {
+    if (
+      !brouillon ||
+      typeof brouillon !== "object" ||
+      Array.isArray(brouillon)
+    ) {
+      return false;
+    }
+
+    const champsTexte = [
+      "nom",
+      "categorie",
+      "tempsPreparation",
+      "tempsCuisson",
+      "portions",
+      "difficulte",
+      "preparation",
+      "cuisson",
+      "notes",
+      "conseils"
+    ];
+    const ingredientsValides =
+      Array.isArray(brouillon.ingredients) &&
+      brouillon.ingredients.every(
+        (ingredient) =>
+          ingredient &&
+          typeof ingredient === "object" &&
+          typeof ingredient.nom === "string" &&
+          typeof ingredient.quantite === "string" &&
+          typeof ingredient.unite === "string"
+      );
+
+    return (
+      brouillon.version === 1 &&
+      (brouillon.mode === "ajout" || brouillon.mode === "modification") &&
+      ((brouillon.mode === "ajout" && brouillon.recetteId === null) ||
+        (brouillon.mode === "modification" &&
+          typeof brouillon.recetteId === "string" &&
+          brouillon.recetteId.trim() !== "")) &&
+      champsTexte.every((champ) => typeof brouillon[champ] === "string") &&
+      ingredientsValides
+    );
+  }
+
+  function chargerBrouillon() {
+    let donneesEnregistrees;
+
+    try {
+      donneesEnregistrees = localStorage.getItem(cleStockageBrouillon);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le brouillon enregistré est inaccessible. Le formulaire démarre vide."
+      );
+      return null;
+    }
+
+    if (donneesEnregistrees === null) {
+      return null;
+    }
+
+    let brouillon;
+
+    try {
+      brouillon = JSON.parse(donneesEnregistrees);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le brouillon enregistré est illisible. Le formulaire démarre vide."
+      );
+      return null;
+    }
+
+    if (!brouillonEstValide(brouillon)) {
+      console.warn(
+        "Application de recettes : le brouillon enregistré est invalide. Le formulaire démarre vide."
+      );
+      return null;
+    }
+
+    return brouillon;
   }
 
   function recetteEstValide(recette) {
@@ -769,10 +967,12 @@
   function enregistrerRecettes() {
     try {
       localStorage.setItem(cleStockage, JSON.stringify(recettes));
+      return true;
     } catch (erreur) {
       console.warn(
         "Application de recettes : les recettes n’ont pas pu être sauvegardées localement."
       );
+      return false;
     }
   }
 
@@ -806,8 +1006,14 @@
     );
   }
 
-  function revenirAuModeAjout() {
+  function activerModeAjout() {
     idRecetteEnModification = null;
+    boutonPrincipal.textContent = "Ajouter la recette";
+    boutonAnnuler.hidden = true;
+  }
+
+  function revenirAuModeAjout(supprimerLeBrouillon = false) {
+    activerModeAjout();
     champNom.value = "";
     menuCategorie.value = "";
     reinitialiserLignesIngredient();
@@ -819,8 +1025,48 @@
     champTempsCuisson.value = "";
     champPortions.value = "";
     menuDifficulte.value = "";
-    boutonPrincipal.textContent = "Ajouter la recette";
-    boutonAnnuler.hidden = true;
+
+    if (supprimerLeBrouillon) {
+      supprimerBrouillon();
+    }
+  }
+
+  function restaurerBrouillon(brouillon) {
+    champNom.value = brouillon.nom;
+    menuCategorie.value = brouillon.categorie;
+    reinitialiserLignesIngredient(brouillon.ingredients);
+    champPreparation.value = brouillon.preparation;
+    champCuisson.value = brouillon.cuisson;
+    champNotes.value = brouillon.notes;
+    champConseils.value = brouillon.conseils;
+    champTempsPreparation.value = brouillon.tempsPreparation;
+    champTempsCuisson.value = brouillon.tempsCuisson;
+    champPortions.value = brouillon.portions;
+    menuDifficulte.value = brouillon.difficulte;
+
+    if (brouillon.mode === "modification") {
+      const recetteExiste = recettes.some(
+        (recette) => recette.id === brouillon.recetteId
+      );
+
+      if (recetteExiste) {
+        idRecetteEnModification = brouillon.recetteId;
+        boutonPrincipal.textContent = "Enregistrer les modifications";
+        boutonAnnuler.hidden = false;
+        afficherMessage("Brouillon restauré automatiquement.", "succes");
+        return;
+      }
+
+      activerModeAjout();
+      afficherMessage(
+        "Le brouillon a été restauré en mode ajout car la recette d’origine n’existe plus.",
+        "succes"
+      );
+      return;
+    }
+
+    activerModeAjout();
+    afficherMessage("Brouillon restauré automatiquement.", "succes");
   }
 
   function commencerModification(idRecette) {
@@ -860,6 +1106,7 @@
     boutonAnnuler.hidden = false;
     champNom.focus();
     afficherMessage("Modification de la recette en cours.", "succes");
+    programmerSauvegardeBrouillon();
   }
 
   function supprimerRecette(idRecette) {
@@ -895,11 +1142,14 @@
     recettes.splice(indexRecette, 1);
     recettesSelectionnees.delete(idRecette);
     mettreAJourResumeSelection();
-    enregistrerRecettes();
+    const recetteSupprimee = enregistrerRecettes();
     afficherRecettes();
 
     if (idRecetteEnModification === idRecette) {
-      revenirAuModeAjout();
+      if (!recetteSupprimee) {
+        conserverBrouillonAvantReinitialisation();
+      }
+      revenirAuModeAjout(recetteSupprimee);
     }
 
     afficherMessage("Recette supprimée avec succès.", "succes");
@@ -910,8 +1160,16 @@
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
   let prochainIdentifiantIngredient = 1;
+  let temporisationSauvegardeBrouillon = null;
 
-  reinitialiserLignesIngredient();
+  const brouillon = chargerBrouillon();
+
+  if (brouillon) {
+    restaurerBrouillon(brouillon);
+  } else {
+    revenirAuModeAjout();
+  }
+
   mettreAJourResumeSelection();
   afficherRecettes();
 
@@ -978,9 +1236,14 @@
       recette.tempsCuisson = resultatInformations.tempsCuisson;
       recette.portions = resultatInformations.portions;
       recette.difficulte = resultatInformations.difficulte;
-      enregistrerRecettes();
+      const recetteEnregistree = enregistrerRecettes();
       afficherRecettes();
-      revenirAuModeAjout();
+
+      if (!recetteEnregistree) {
+        conserverBrouillonAvantReinitialisation();
+      }
+
+      revenirAuModeAjout(recetteEnregistree);
       afficherMessage("Recette modifiée avec succès.", "succes");
       champNom.focus();
       return;
@@ -1004,23 +1267,53 @@
 
     prochainIdentifiant += 1;
     recettes.push(recette);
-    enregistrerRecettes();
+    const recetteEnregistree = enregistrerRecettes();
     afficherRecettes();
-    revenirAuModeAjout();
+
+    if (!recetteEnregistree) {
+      conserverBrouillonAvantReinitialisation();
+    }
+
+    revenirAuModeAjout(recetteEnregistree);
     afficherMessage("La recette a été ajoutée.", "succes");
 
     champNom.focus();
   });
 
   boutonAnnuler.addEventListener("click", () => {
-    revenirAuModeAjout();
+    revenirAuModeAjout(true);
     afficherMessage("Modification annulée.", "succes");
     champNom.focus();
   });
 
   boutonAjouterIngredient.addEventListener("click", () => {
     const ligne = ajouterLigneIngredient();
+    programmerSauvegardeBrouillon();
     ligne.querySelector(".ingredient-nom").focus();
+  });
+
+  boutonEffacerBrouillon.addEventListener("click", () => {
+    const formulaireContientDesInformations =
+      idRecetteEnModification !== null || !formulaireEstVide();
+
+    if (
+      formulaireContientDesInformations &&
+      !window.confirm("Effacer le brouillon et vider le formulaire ?")
+    ) {
+      return;
+    }
+
+    supprimerBrouillon();
+    revenirAuModeAjout();
+    afficherMessage("Brouillon effacé.", "succes");
+  });
+
+  formulaire.addEventListener("input", () => {
+    programmerSauvegardeBrouillon();
+  });
+
+  formulaire.addEventListener("change", () => {
+    programmerSauvegardeBrouillon();
   });
 
   boutonGenererListeCourses.addEventListener("click", () => {

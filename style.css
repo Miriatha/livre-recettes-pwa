@@ -210,6 +210,12 @@ button:focus-visible {
   color: #486943;
 }
 
+.information-brouillon {
+  margin: 0;
+  color: #5c6758;
+  font-size: 0.9rem;
+}
+
 .liste-recettes {
   display: grid;
   gap: 0.75rem;
@@ -427,6 +433,16 @@ button:focus-visible {
 
 .bouton-annuler:hover,
 .bouton-annuler:focus-visible {
+  background: #d2bfa1;
+}
+
+.bouton-effacer-brouillon {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-effacer-brouillon:hover,
+.bouton-effacer-brouillon:focus-visible {
   background: #d2bfa1;
 }
 

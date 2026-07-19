@@ -112,6 +112,7 @@
 
   let recettes = [];
   const recettesSelectionnees = new Set();
+  const portionsSouhaitees = new Map();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
   let prochainIdentifiantIngredient = 1;
@@ -210,6 +211,14 @@
       const notes = obtenirTexteRecette(recette.notes);
       const conseils = obtenirTexteRecette(recette.conseils);
       const informationsPratiques = obtenirInformationsPratiques(recette);
+      const portionsOriginales = obtenirPortionsOriginales(recette);
+      const portionsSouhaiteesRecette = obtenirPortionsSouhaiteesRecette(
+        recette
+      );
+      const coefficientPortions = obtenirCoefficientPortionsRecette(recette);
+      const quantitesSontAdaptees =
+        portionsOriginales !== null &&
+        portionsSouhaiteesRecette !== portionsOriginales;
 
       selection.className = "selection-recette";
       caseSelection.id = `selection-recette-${recette.id}`;
@@ -293,7 +302,12 @@
 
         ingredients.forEach((ingredient) => {
           const element = document.createElement("li");
-          element.textContent = `${ingredient.quantite} ${ingredient.unite} ${ingredient.nom}`;
+          const quantiteAdaptee = calculerQuantiteAdaptee(
+            ingredient.quantite,
+            coefficientPortions
+          );
+
+          element.textContent = `${formaterQuantitePourListe(quantiteAdaptee)} ${ingredient.unite} ${ingredient.nom}`;
           liste.append(element);
         });
 
@@ -315,6 +329,24 @@
         });
 
         carte.append(titreInformations, listeInformations);
+      }
+
+      if (quantitesSontAdaptees) {
+        const indicationPortions = document.createElement("p");
+
+        indicationPortions.className = "indication-portions-adaptees";
+        indicationPortions.textContent = `Quantités affichées pour ${portionsSouhaiteesRecette} portions`;
+        carte.append(indicationPortions);
+      }
+
+      const zoneAdaptationPortions = creerZoneAdaptationPortions(
+        recette,
+        portionsOriginales,
+        portionsSouhaiteesRecette
+      );
+
+      if (zoneAdaptationPortions) {
+        carte.append(zoneAdaptationPortions);
       }
 
       if (preparation) {
@@ -409,6 +441,148 @@
     return normaliserRecherche(nom).replace(/\s+/g, " ");
   }
 
+  function obtenirPortionsOriginales(recette) {
+    return recette ? convertirNombreEntier(recette.portions, 1) : null;
+  }
+
+  function calculerCoefficientPortions(portionsOriginales, portionsVoulues) {
+    const original = convertirNombreEntier(portionsOriginales, 1);
+    const souhaitees = convertirNombreEntier(portionsVoulues, 1);
+
+    return original !== null && souhaitees !== null ? souhaitees / original : 1;
+  }
+
+  function calculerQuantiteAdaptee(quantite, coefficient) {
+    return quantite * coefficient;
+  }
+
+  function obtenirPortionsSouhaiteesRecette(recette) {
+    const portionsOriginales = obtenirPortionsOriginales(recette);
+
+    if (portionsOriginales === null) {
+      portionsSouhaitees.delete(recette.id);
+      return null;
+    }
+
+    const portionsSouhaiteesRecette = convertirNombreEntier(
+      portionsSouhaitees.get(recette.id),
+      1
+    );
+
+    if (portionsSouhaiteesRecette === null) {
+      portionsSouhaitees.delete(recette.id);
+      return portionsOriginales;
+    }
+
+    return portionsSouhaiteesRecette;
+  }
+
+  function obtenirCoefficientPortionsRecette(recette) {
+    return calculerCoefficientPortions(
+      obtenirPortionsOriginales(recette),
+      obtenirPortionsSouhaiteesRecette(recette)
+    );
+  }
+
+  function adapterPortions(idRecette, valeurPortions) {
+    const portions = convertirNombreEntier(valeurPortions, 1);
+
+    if (portions === null) {
+      afficherMessage(
+        "Le nombre de portions souhaité doit être un entier supérieur ou égal à 1.",
+        "erreur"
+      );
+      return;
+    }
+
+    const recette = recettes.find((recetteActuelle) => recetteActuelle.id === idRecette);
+
+    if (!recette || obtenirPortionsOriginales(recette) === null) {
+      console.error(
+        "Application de recettes : la recette dont les portions doivent être adaptées est introuvable ou invalide."
+      );
+      return;
+    }
+
+    portionsSouhaitees.set(recette.id, portions);
+    afficherRecettes();
+    afficherMessage(`Quantités adaptées pour ${portions} portions.`, "succes");
+  }
+
+  function reinitialiserPortions(idRecette) {
+    const recette = recettes.find((recetteActuelle) => recetteActuelle.id === idRecette);
+
+    if (!recette) {
+      console.error(
+        "Application de recettes : la recette dont les portions doivent être réinitialisées est introuvable."
+      );
+      return;
+    }
+
+    portionsSouhaitees.delete(recette.id);
+    afficherRecettes();
+    afficherMessage(
+      "Quantités réinitialisées aux portions d’origine.",
+      "succes"
+    );
+  }
+
+  function creerZoneAdaptationPortions(
+    recette,
+    portionsOriginales,
+    portionsSouhaiteesRecette
+  ) {
+    if (portionsOriginales === null) {
+      return null;
+    }
+
+    const zone = document.createElement("section");
+    const titre = document.createElement("h4");
+    const actions = document.createElement("div");
+    const champ = document.createElement("input");
+    const libelle = document.createElement("label");
+    const boutonAdapter = document.createElement("button");
+
+    zone.className = "adaptation-portions";
+    titre.textContent = "Adapter les quantités";
+    actions.className = "actions-adaptation-portions";
+    champ.id = `portions-souhaitees-${recette.id}`;
+    champ.className = "champ-portions-souhaitees";
+    champ.type = "number";
+    champ.min = "1";
+    champ.step = "1";
+    champ.value = portionsSouhaiteesRecette;
+    champ.dataset.recetteId = recette.id;
+    libelle.htmlFor = champ.id;
+    libelle.textContent = "Portions souhaitées";
+    boutonAdapter.type = "button";
+    boutonAdapter.className = "bouton-adapter-portions";
+    boutonAdapter.dataset.recetteId = recette.id;
+    boutonAdapter.textContent = "Adapter";
+
+    boutonAdapter.addEventListener("click", () => {
+      adapterPortions(boutonAdapter.dataset.recetteId, champ.value);
+    });
+
+    actions.append(libelle, champ, boutonAdapter);
+
+    if (portionsSouhaiteesRecette !== portionsOriginales) {
+      const boutonReinitialiser = document.createElement("button");
+
+      boutonReinitialiser.type = "button";
+      boutonReinitialiser.className = "bouton-reinitialiser-portions";
+      boutonReinitialiser.dataset.recetteId = recette.id;
+      boutonReinitialiser.textContent = "Revenir aux portions d’origine";
+      boutonReinitialiser.addEventListener("click", () => {
+        reinitialiserPortions(boutonReinitialiser.dataset.recetteId);
+      });
+      actions.append(boutonReinitialiser);
+    }
+
+    zone.append(titre, actions);
+    return zone;
+  }
+
   // Liste de courses
   function obtenirConversionUnite(unite) {
     for (const [famille, conversion] of Object.entries(conversionsUnites)) {
@@ -465,6 +639,8 @@
     const groupesIngredients = new Map();
 
     recettesPourCourses.forEach((recette) => {
+      const coefficientPortions = obtenirCoefficientPortionsRecette(recette);
+
       obtenirIngredientsValides(recette).forEach((ingredient) => {
         const nomNormalise = normaliserNomIngredient(ingredient.nom);
         const conversionUnite = obtenirConversionUnite(ingredient.unite);
@@ -474,9 +650,13 @@
           : `unite:${ingredient.unite}`;
         const cleGroupe = JSON.stringify([nomNormalise, cleUnite]);
         const groupeExistant = groupesIngredients.get(cleGroupe);
+        const quantiteAdaptee = calculerQuantiteAdaptee(
+          ingredient.quantite,
+          coefficientPortions
+        );
         const quantiteReference = conversionUnite
-          ? ingredient.quantite * conversionUnite.conversion.facteurs[ingredient.unite]
-          : ingredient.quantite;
+          ? quantiteAdaptee * conversionUnite.conversion.facteurs[ingredient.unite]
+          : quantiteAdaptee;
 
         if (groupeExistant) {
           groupeExistant.quantiteReference += quantiteReference;
@@ -1315,6 +1495,7 @@
       return;
     }
 
+    portionsSouhaitees.delete(idRecette);
     recettesSelectionnees.delete(idRecette);
     mettreAJourResumeSelection();
     afficherRecettes();
@@ -1416,6 +1597,7 @@
         return;
       }
 
+      portionsSouhaitees.delete(recetteProposee.id);
       afficherRecettes();
       revenirAuModeAjout(true);
       afficherMessage("Recette modifiée avec succès.", "succes");

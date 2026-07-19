@@ -380,6 +380,59 @@ button:focus-visible {
   padding-left: 1.2rem;
 }
 
+.indication-portions-adaptees {
+  padding: 0.65rem 0.75rem;
+  border-left: 0.25rem solid #789173;
+  background: #f7f1e5;
+  color: #40563b;
+  font-weight: bold;
+}
+
+.adaptation-portions {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border: 1px solid #c7b99f;
+  border-radius: 0.4rem;
+  background: #fffdf7;
+}
+
+.adaptation-portions h4 {
+  margin: 0;
+  color: #51654e;
+}
+
+.actions-adaptation-portions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.65rem;
+}
+
+.actions-adaptation-portions label {
+  flex: 1 1 10rem;
+}
+
+.champ-portions-souhaitees {
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+
+.actions-adaptation-portions button {
+  flex: 1 1 10rem;
+}
+
+.bouton-reinitialiser-portions {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-reinitialiser-portions:hover,
+.bouton-reinitialiser-portions:focus-visible {
+  background: #d2bfa1;
+}
+
 .actions-formulaire,
 .actions-recette {
   display: flex;
@@ -477,6 +530,11 @@ button:focus-visible {
   }
 
   .zone-selection-recettes {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions-adaptation-portions {
     flex-direction: column;
     align-items: stretch;
   }

@@ -9,6 +9,9 @@
   const filtreCategorie = document.getElementById("filtre-categorie");
   const filtreFavoris = document.getElementById("filtre-favoris");
   const champRecherche = document.getElementById("recherche-recettes");
+  const resumeSelectionRecettes = document.getElementById(
+    "resume-selection-recettes"
+  );
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const listeIngredients = document.getElementById("liste-ingredients");
@@ -31,6 +34,7 @@
     ["#filtre-categorie", filtreCategorie],
     ["#filtre-favoris", filtreFavoris],
     ["#recherche-recettes", champRecherche],
+    ["#resume-selection-recettes", resumeSelectionRecettes],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#liste-ingredients", listeIngredients],
@@ -82,8 +86,31 @@
     zoneMessage.className = `message ${type}`;
   }
 
+  function mettreAJourResumeSelection() {
+    const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
+
+    recettesSelectionnees.forEach((idRecette) => {
+      if (!identifiantsRecettes.has(idRecette)) {
+        console.error(
+          "Application de recettes : un identifiant de recette sélectionnée est invalide et a été retiré."
+        );
+        recettesSelectionnees.delete(idRecette);
+      }
+    });
+
+    const nombreRecettesSelectionnees = recettesSelectionnees.size;
+
+    resumeSelectionRecettes.textContent =
+      nombreRecettesSelectionnees === 0
+        ? "Aucune recette sélectionnée."
+        : nombreRecettesSelectionnees === 1
+          ? "1 recette sélectionnée."
+          : `${nombreRecettesSelectionnees} recettes sélectionnées.`;
+  }
+
   function afficherRecettes() {
     zoneRecettes.textContent = "";
+    mettreAJourResumeSelection();
     const recherche = normaliserRecherche(champRecherche.value);
 
     if (recettes.length === 0) {
@@ -126,6 +153,9 @@
       const carte = document.createElement("article");
       const nom = document.createElement("h3");
       const categorie = document.createElement("p");
+      const selection = document.createElement("div");
+      const caseSelection = document.createElement("input");
+      const libelleSelection = document.createElement("label");
       const actions = document.createElement("div");
       const boutonFavori = document.createElement("button");
       const boutonModifier = document.createElement("button");
@@ -142,6 +172,14 @@
       const notes = obtenirTexteRecette(recette.notes);
       const conseils = obtenirTexteRecette(recette.conseils);
       const informationsPratiques = obtenirInformationsPratiques(recette);
+
+      selection.className = "selection-recette";
+      caseSelection.id = `selection-recette-${recette.id}`;
+      caseSelection.type = "checkbox";
+      caseSelection.dataset.recetteId = recette.id;
+      caseSelection.checked = recettesSelectionnees.has(recette.id);
+      libelleSelection.htmlFor = caseSelection.id;
+      libelleSelection.textContent = "Sélectionner pour la liste de courses";
 
       actions.className = "actions-recette";
       boutonFavori.type = "button";
@@ -178,8 +216,34 @@
         supprimerRecette(boutonSuppression.dataset.recetteId);
       });
 
+      caseSelection.addEventListener("change", () => {
+        const idRecette = caseSelection.dataset.recetteId;
+        const recetteExiste = recettes.some(
+          (recetteActuelle) => recetteActuelle.id === idRecette
+        );
+
+        if (!recetteExiste) {
+          console.error(
+            "Application de recettes : la recette à sélectionner est introuvable."
+          );
+          recettesSelectionnees.delete(idRecette);
+          caseSelection.checked = false;
+          mettreAJourResumeSelection();
+          return;
+        }
+
+        if (caseSelection.checked) {
+          recettesSelectionnees.add(idRecette);
+        } else {
+          recettesSelectionnees.delete(idRecette);
+        }
+
+        mettreAJourResumeSelection();
+      });
+
       actions.append(boutonFavori, boutonModifier, boutonSuppression);
-      carte.append(nom, categorie);
+      selection.append(caseSelection, libelleSelection);
+      carte.append(nom, categorie, selection);
 
       if (ingredients.length > 0) {
         const titreIngredients = document.createElement("h4");
@@ -742,6 +806,8 @@
     }
 
     recettes.splice(indexRecette, 1);
+    recettesSelectionnees.delete(idRecette);
+    mettreAJourResumeSelection();
     enregistrerRecettes();
     afficherRecettes();
 
@@ -753,11 +819,13 @@
   }
 
   const recettes = chargerRecettes();
+  const recettesSelectionnees = new Set();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
   let prochainIdentifiantIngredient = 1;
 
   reinitialiserLignesIngredient();
+  mettreAJourResumeSelection();
   afficherRecettes();
 
   formulaire.addEventListener("submit", (evenement) => {

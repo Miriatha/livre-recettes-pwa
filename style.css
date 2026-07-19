@@ -241,6 +241,16 @@ button:focus-visible {
   min-height: auto;
 }
 
+.resume-selection-recettes {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #c7b99f;
+  border-radius: 0.4rem;
+  background: #f7f1e5;
+  color: #40563b;
+  font-weight: bold;
+}
+
 .carte-recette {
   padding: 1rem;
   background: #eee5d4;
@@ -272,6 +282,31 @@ button:focus-visible {
 .carte-recette p,
 .aucune-recette {
   margin: 0.45rem 0 0;
+}
+
+.selection-recette {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #b9ad96;
+  border-radius: 0.4rem;
+  background: #fffdf7;
+}
+
+.selection-recette input {
+  width: 1.35rem;
+  min-width: 1.35rem;
+  min-height: 1.35rem;
+  height: 1.35rem;
+  margin: 0;
+  padding: 0;
+  accent-color: #789173;
+}
+
+.selection-recette label {
+  cursor: pointer;
 }
 
 .titre-instructions-recette {

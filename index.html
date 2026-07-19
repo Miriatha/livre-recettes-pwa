@@ -309,6 +309,41 @@
       </article>
     </dialog>
 
+    <dialog
+      id="selecteur-recette-menu-dialogue"
+      aria-labelledby="selecteur-recette-menu-titre"
+    >
+      <article id="selecteur-recette-menu-panneau">
+        <header class="entete-selecteur-recette-menu">
+          <h2 id="selecteur-recette-menu-titre" tabindex="-1"></h2>
+          <button id="fermer-selecteur-recette-menu" type="button">Fermer</button>
+        </header>
+        <div class="contenu-selecteur-recette-menu">
+          <div class="champ-formulaire">
+            <label for="recherche-recette-menu">Rechercher une recette</label>
+            <input
+              id="recherche-recette-menu"
+              type="search"
+              placeholder="Rechercher par nom ou ingrédient…"
+            >
+          </div>
+          <div class="filtres-selecteur-recette-menu">
+            <div class="champ-formulaire">
+              <label for="filtre-categorie-recette-menu">Catégorie</label>
+              <select id="filtre-categorie-recette-menu">
+                <option value="">Toutes les catégories</option>
+              </select>
+            </div>
+            <label class="filtre-favoris">
+              <input id="filtre-favoris-recette-menu" type="checkbox">
+              Favoris uniquement
+            </label>
+          </div>
+          <div id="resultats-recettes-menu" aria-live="polite"></div>
+        </div>
+      </article>
+    </dialog>
+
     <div id="zone-impression" aria-hidden="true"></div>
   </body>
 </html>

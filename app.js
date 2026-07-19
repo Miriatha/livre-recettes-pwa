@@ -46,6 +46,30 @@
   const boutonFermerFicheRecette = document.getElementById(
     "fermer-fiche-recette"
   );
+  const selecteurRecetteMenuDialogue = document.getElementById(
+    "selecteur-recette-menu-dialogue"
+  );
+  const selecteurRecetteMenuPanneau = document.getElementById(
+    "selecteur-recette-menu-panneau"
+  );
+  const selecteurRecetteMenuTitre = document.getElementById(
+    "selecteur-recette-menu-titre"
+  );
+  const boutonFermerSelecteurRecetteMenu = document.getElementById(
+    "fermer-selecteur-recette-menu"
+  );
+  const champRechercheRecetteMenu = document.getElementById(
+    "recherche-recette-menu"
+  );
+  const filtreCategorieRecetteMenu = document.getElementById(
+    "filtre-categorie-recette-menu"
+  );
+  const filtreFavorisRecetteMenu = document.getElementById(
+    "filtre-favoris-recette-menu"
+  );
+  const zoneResultatsRecettesMenu = document.getElementById(
+    "resultats-recettes-menu"
+  );
   const vueRecettes = document.getElementById("vue-recettes");
   const vueFormulaire = document.getElementById("vue-formulaire");
   const vueMenu = document.getElementById("vue-menu");
@@ -110,6 +134,14 @@
     ["#fiche-recette-titre", ficheRecetteTitre],
     ["#fiche-recette-contenu", ficheRecetteContenu],
     ["#fermer-fiche-recette", boutonFermerFicheRecette],
+    ["#selecteur-recette-menu-dialogue", selecteurRecetteMenuDialogue],
+    ["#selecteur-recette-menu-panneau", selecteurRecetteMenuPanneau],
+    ["#selecteur-recette-menu-titre", selecteurRecetteMenuTitre],
+    ["#fermer-selecteur-recette-menu", boutonFermerSelecteurRecetteMenu],
+    ["#recherche-recette-menu", champRechercheRecetteMenu],
+    ["#filtre-categorie-recette-menu", filtreCategorieRecetteMenu],
+    ["#filtre-favoris-recette-menu", filtreFavorisRecetteMenu],
+    ["#resultats-recettes-menu", zoneResultatsRecettesMenu],
     ["#vue-recettes", vueRecettes],
     ["#vue-formulaire", vueFormulaire],
     ["#vue-menu", vueMenu],
@@ -333,7 +365,8 @@
   let recettes = [];
   let menuSemaine = creerMenuSemaineVide();
   let historique = [];
-  const recettesSelectionnees = new Set();
+  const recettesSelectionneesManuellement = new Set();
+  let recettesSelectionneesParMenu = new Set();
   const portionsSouhaitees = new Map();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
@@ -346,6 +379,11 @@
   let idRecetteFicheOuverte = null;
   let elementDeclencheurFiche = null;
   let restaurerFocusFicheALaFermeture = true;
+  let jourMenuCible = null;
+  let repasMenuCible = null;
+  let elementDeclencheurSelecteurMenu = null;
+  let restaurerFocusSelecteurMenuALaFermeture = true;
+  let listeCoursesEstAffichee = false;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
@@ -520,88 +558,132 @@
     return menuNettoye;
   }
 
-  function obtenirLibelleRecettePourMenu(recette) {
-    const nom =
-      typeof recette.nom === "string" && recette.nom.trim()
-        ? recette.nom.trim()
-        : "Recette sans nom";
-    const categorie =
-      typeof recette.categorie === "string" && recette.categorie.trim()
-        ? recette.categorie.trim()
-        : "Catégorie non renseignée";
-
-    return `${nom} — ${categorie}`;
+  function emplacementMenuEstValide(jour, repas) {
+    return (
+      joursSemaine.some((jourSemaine) => jourSemaine.cle === jour) &&
+      repasSemaine.some((repasSemaine) => repasSemaine.cle === repas)
+    );
   }
 
-  function modifierEmplacementMenuSemaine(jour, repas, identifiant) {
-    const menuPropose = copierMenuSemaine(menuSemaine);
-    const valeurPrecedente = menuSemaine[jour][repas];
+  function obtenirSelectionProvenantDuMenu(menu, recettesDisponibles) {
+    const identifiantsDisponibles = new Set(
+      recettesDisponibles.map((recette) => recette.id)
+    );
+    const selection = new Set();
 
-    menuPropose[jour][repas] = identifiant;
+    joursSemaine.forEach((jour) => {
+      repasSemaine.forEach((repas) => {
+        const identifiant = menu[jour.cle][repas.cle];
 
-    if (!enregistrerMenuSemaine(menuPropose)) {
-      afficherMessage(
-        "Impossible d’enregistrer le menu sur cet appareil. Le changement n’a pas été appliqué.",
-        "erreur"
-      );
-      return false;
-    }
+        if (identifiantsDisponibles.has(identifiant)) {
+          selection.add(identifiant);
+        }
+      });
+    });
 
-    menuSemaine = menuPropose;
-    return valeurPrecedente !== identifiant;
+    return selection;
   }
 
-  function creerSelecteurRepasMenu(jour, repas) {
-    const groupe = document.createElement("div");
-    const libelle = document.createElement("label");
-    const menu = document.createElement("select");
-    const optionVide = document.createElement("option");
+  function actualiserSelectionProvenantDuMenu() {
+    recettesSelectionneesParMenu = obtenirSelectionProvenantDuMenu(
+      menuSemaine,
+      recettes
+    );
+  }
+
+  function obtenirSelectionEffective() {
+    return new Set([
+      ...recettesSelectionneesManuellement,
+      ...recettesSelectionneesParMenu
+    ]);
+  }
+
+  function actualiserApresChangementMenu() {
+    actualiserSelectionProvenantDuMenu();
+    afficherMenuSemaine();
+    mettreAJourResumeSelection();
+    afficherRecettes();
+    actualiserListeCoursesSiAffichee();
+  }
+
+  function creerEmplacementRepasMenu(jour, repas) {
+    const groupe = document.createElement("section");
+    const titre = document.createElement("h4");
+    const identifiant = menuSemaine[jour.cle][repas.cle];
+    const recette = recettes.find((recetteActuelle) => {
+      return recetteActuelle.id === identifiant;
+    });
 
     groupe.className = "repas-menu-semaine";
-    menu.id = `menu-semaine-${jour.cle}-${repas.cle}`;
-    menu.dataset.jour = jour.cle;
-    menu.dataset.repas = repas.cle;
-    libelle.htmlFor = menu.id;
-    libelle.textContent = repas.libelle;
-    optionVide.value = "";
-    optionVide.textContent = "Aucune recette";
-    menu.append(optionVide);
+    titre.textContent = repas.libelle;
+    groupe.append(titre);
 
-    recettes.forEach((recette) => {
-      const option = document.createElement("option");
+    if (!recette) {
+      const boutonAjouter = document.createElement("button");
 
-      option.value = recette.id;
-      option.textContent = obtenirLibelleRecettePourMenu(recette);
-      menu.append(option);
-    });
+      boutonAjouter.type = "button";
+      boutonAjouter.className = "bouton-ajouter-recette-menu";
+      boutonAjouter.dataset.jour = jour.cle;
+      boutonAjouter.dataset.repas = repas.cle;
+      boutonAjouter.textContent = "Ajouter une recette";
+      boutonAjouter.addEventListener("click", () => {
+        ouvrirSelecteurRecetteMenu(
+          boutonAjouter.dataset.jour,
+          boutonAjouter.dataset.repas,
+          boutonAjouter
+        );
+      });
+      groupe.append(boutonAjouter);
+      return groupe;
+    }
 
-    menu.value = menuSemaine[jour.cle][repas.cle] || "";
-    menu.addEventListener("change", () => {
-      const identifiant = menu.value || null;
-      const recetteExiste =
-        identifiant === null ||
-        recettes.some((recette) => recette.id === identifiant);
+    const nom = document.createElement("p");
+    const categorie = obtenirTexteRecette(recette.categorie).trim();
+    const actions = document.createElement("div");
+    const boutonChanger = document.createElement("button");
+    const boutonRetirer = document.createElement("button");
 
-      if (!recetteExiste) {
-        menu.value = menuSemaine[jour.cle][repas.cle] || "";
-        return;
-      }
+    nom.className = "recette-menu-semaine";
+    nom.textContent = obtenirTexteRecette(recette.nom).trim() || "Recette";
+    groupe.append(nom);
 
-      const changementApplique = modifierEmplacementMenuSemaine(
-        jour.cle,
-        repas.cle,
-        identifiant
+    if (categorie) {
+      const texteCategorie = document.createElement("p");
+
+      texteCategorie.className = "categorie-menu-semaine";
+      texteCategorie.textContent = `Catégorie : ${categorie}`;
+      groupe.append(texteCategorie);
+    }
+
+    actions.className = "actions-repas-menu-semaine";
+    boutonChanger.type = "button";
+    boutonChanger.dataset.jour = jour.cle;
+    boutonChanger.dataset.repas = repas.cle;
+    boutonChanger.textContent = "Changer";
+    boutonRetirer.type = "button";
+    boutonRetirer.className = "bouton-retirer-recette-menu";
+    boutonRetirer.dataset.jour = jour.cle;
+    boutonRetirer.dataset.repas = repas.cle;
+    boutonRetirer.setAttribute(
+      "aria-label",
+      `Retirer la recette du ${repas.libelle.toLowerCase()} de ${jour.libelle}`
+    );
+    boutonRetirer.textContent = "Retirer";
+    boutonChanger.addEventListener("click", () => {
+      ouvrirSelecteurRecetteMenu(
+        boutonChanger.dataset.jour,
+        boutonChanger.dataset.repas,
+        boutonChanger
       );
-
-      if (!changementApplique) {
-        menu.value = menuSemaine[jour.cle][repas.cle] || "";
-        return;
-      }
-
-      afficherMessage("Menu de la semaine mis à jour.", "succes");
     });
-
-    groupe.append(libelle, menu);
+    boutonRetirer.addEventListener("click", () => {
+      retirerRecetteDuMenu(
+        boutonRetirer.dataset.jour,
+        boutonRetirer.dataset.repas
+      );
+    });
+    actions.append(boutonChanger, boutonRetirer);
+    groupe.append(actions);
     return groupe;
   }
 
@@ -617,11 +699,18 @@
       blocJour.append(titreJour);
 
       repasSemaine.forEach((repas) => {
-        blocJour.append(creerSelecteurRepasMenu(jour, repas));
+        blocJour.append(creerEmplacementRepasMenu(jour, repas));
       });
 
       zoneMenuSemaine.append(blocJour);
     });
+  }
+
+  function afficherErreurSauvegardeMenu() {
+    afficherMessage(
+      "Impossible d’enregistrer le menu sur cet appareil. Le changement n’a pas été appliqué.",
+      "erreur"
+    );
   }
 
   function effacerMenuSemaine() {
@@ -632,16 +721,259 @@
     const menuVide = creerMenuSemaineVide();
 
     if (!enregistrerMenuSemaine(menuVide)) {
-      afficherMessage(
-        "Impossible d’enregistrer le menu sur cet appareil. Le changement n’a pas été appliqué.",
-        "erreur"
-      );
+      afficherErreurSauvegardeMenu();
       return;
     }
 
     menuSemaine = menuVide;
-    afficherMenuSemaine();
+    actualiserApresChangementMenu();
     afficherMessage("Menu de la semaine effacé.", "succes");
+  }
+
+  function mettreAJourCategoriesSelecteurRecetteMenu() {
+    const categories = [];
+    const categoriesVues = new Set();
+
+    recettes.forEach((recette) => {
+      const categorie = obtenirTexteRecette(recette.categorie).trim();
+
+      if (categorie && !categoriesVues.has(categorie)) {
+        categoriesVues.add(categorie);
+        categories.push(categorie);
+      }
+    });
+
+    filtreCategorieRecetteMenu.textContent = "";
+    const optionToutes = document.createElement("option");
+
+    optionToutes.value = "";
+    optionToutes.textContent = "Toutes les catégories";
+    filtreCategorieRecetteMenu.append(optionToutes);
+
+    categories.forEach((categorie) => {
+      const option = document.createElement("option");
+
+      option.value = categorie;
+      option.textContent = categorie;
+      filtreCategorieRecetteMenu.append(option);
+    });
+  }
+
+  function afficherResultatsSelecteurRecetteMenu() {
+    zoneResultatsRecettesMenu.textContent = "";
+    const recherche = normaliserRecherche(champRechercheRecetteMenu.value);
+    const categorie = filtreCategorieRecetteMenu.value;
+    let resultats = recettes.filter((recette) => {
+      return !categorie || recette.categorie === categorie;
+    });
+
+    if (filtreFavorisRecetteMenu.checked) {
+      resultats = resultats.filter((recette) => recette.favori === true);
+    }
+
+    if (recherche) {
+      resultats = resultats.filter((recette) =>
+        recetteCorrespondRecherche(recette, recherche)
+      );
+    }
+
+    if (resultats.length === 0) {
+      const messageVide = document.createElement("p");
+
+      messageVide.className = "aucune-recette";
+      messageVide.textContent = "Aucune recette ne correspond à votre recherche.";
+      zoneResultatsRecettesMenu.append(messageVide);
+      return;
+    }
+
+    resultats.forEach((recette) => {
+      const bouton = document.createElement("button");
+      const nom = document.createElement("span");
+      const categorieRecette = obtenirTexteRecette(recette.categorie).trim();
+      const informations = obtenirInformationsPratiques(recette);
+
+      bouton.type = "button";
+      bouton.className = "resultat-recette-menu";
+      bouton.dataset.recetteId = recette.id;
+      nom.className = "resultat-recette-menu-nom";
+      nom.textContent = obtenirTexteRecette(recette.nom).trim() || "Recette";
+      bouton.append(nom);
+
+      if (categorieRecette) {
+        const texteCategorie = document.createElement("span");
+
+        texteCategorie.className = "resultat-recette-menu-details";
+        texteCategorie.textContent = `Catégorie : ${categorieRecette}`;
+        bouton.append(texteCategorie);
+      }
+
+      if (informations.length > 0) {
+        const texteInformations = document.createElement("span");
+
+        texteInformations.className = "resultat-recette-menu-details";
+        texteInformations.textContent = informations.join(" • ");
+        bouton.append(texteInformations);
+      }
+
+      if (recette.favori === true) {
+        const indicationFavorite = document.createElement("span");
+
+        indicationFavorite.className = "indication-favorite";
+        indicationFavorite.textContent = "Favorite";
+        bouton.append(indicationFavorite);
+      }
+
+      bouton.addEventListener("click", () => {
+        affecterRecetteAuMenu(bouton.dataset.recetteId);
+      });
+      zoneResultatsRecettesMenu.append(bouton);
+    });
+  }
+
+  function nettoyerSelecteurRecetteMenu(restaurerFocus = true) {
+    const declencheur = elementDeclencheurSelecteurMenu;
+
+    jourMenuCible = null;
+    repasMenuCible = null;
+    elementDeclencheurSelecteurMenu = null;
+    champRechercheRecetteMenu.value = "";
+    filtreCategorieRecetteMenu.value = "";
+    filtreFavorisRecetteMenu.checked = false;
+    zoneResultatsRecettesMenu.textContent = "";
+    selecteurRecetteMenuTitre.textContent = "";
+    document.body.classList.remove("selecteur-recette-menu-ouvert");
+
+    if (
+      restaurerFocus &&
+      declencheur &&
+      declencheur.isConnected &&
+      !declencheur.disabled &&
+      typeof declencheur.focus === "function"
+    ) {
+      declencheur.focus();
+    }
+  }
+
+  function fermerSelecteurRecetteMenu(restaurerFocus = true) {
+    restaurerFocusSelecteurMenuALaFermeture = restaurerFocus;
+
+    if (
+      selecteurRecetteMenuDialogue.open &&
+      typeof selecteurRecetteMenuDialogue.close === "function"
+    ) {
+      selecteurRecetteMenuDialogue.close();
+      return;
+    }
+
+    selecteurRecetteMenuDialogue.removeAttribute("open");
+    nettoyerSelecteurRecetteMenu(restaurerFocus);
+    restaurerFocusSelecteurMenuALaFermeture = true;
+  }
+
+  function ouvrirSelecteurRecetteMenu(jour, repas, declencheur) {
+    if (!emplacementMenuEstValide(jour, repas)) {
+      console.error(
+        "Application de recettes : l’emplacement du menu à modifier est invalide."
+      );
+      return false;
+    }
+
+    if (ficheRecetteDialogue.open) {
+      fermerFicheRecette(false);
+    }
+
+    const jourSelectionne = joursSemaine.find(
+      (jourSemaine) => jourSemaine.cle === jour
+    );
+    const repasSelectionne = repasSemaine.find(
+      (repasSemaine) => repasSemaine.cle === repas
+    );
+
+    jourMenuCible = jour;
+    repasMenuCible = repas;
+    elementDeclencheurSelecteurMenu = declencheur;
+    champRechercheRecetteMenu.value = "";
+    filtreFavorisRecetteMenu.checked = false;
+    mettreAJourCategoriesSelecteurRecetteMenu();
+    filtreCategorieRecetteMenu.value = "";
+    selecteurRecetteMenuTitre.textContent =
+      `Choisir une recette pour ${jourSelectionne.cle} ${repasSelectionne.cle}`;
+    afficherResultatsSelecteurRecetteMenu();
+    document.body.classList.add("selecteur-recette-menu-ouvert");
+
+    try {
+      if (!selecteurRecetteMenuDialogue.open) {
+        if (typeof selecteurRecetteMenuDialogue.showModal === "function") {
+          selecteurRecetteMenuDialogue.showModal();
+        } else {
+          selecteurRecetteMenuDialogue.setAttribute("open", "");
+        }
+      }
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : le sélecteur de recettes du menu n’a pas pu être ouvert."
+      );
+      nettoyerSelecteurRecetteMenu(false);
+      return false;
+    }
+
+    champRechercheRecetteMenu.focus();
+    return true;
+  }
+
+  function affecterRecetteAuMenu(idRecette) {
+    const recette = recettes.find((recetteActuelle) => recetteActuelle.id === idRecette);
+
+    if (
+      !recette ||
+      !emplacementMenuEstValide(jourMenuCible, repasMenuCible)
+    ) {
+      console.error(
+        "Application de recettes : la recette ou l’emplacement du menu est invalide."
+      );
+      return;
+    }
+
+    if (menuSemaine[jourMenuCible][repasMenuCible] === recette.id) {
+      fermerSelecteurRecetteMenu();
+      return;
+    }
+
+    const menuPropose = copierMenuSemaine(menuSemaine);
+
+    menuPropose[jourMenuCible][repasMenuCible] = recette.id;
+
+    if (!enregistrerMenuSemaine(menuPropose)) {
+      afficherErreurSauvegardeMenu();
+      return;
+    }
+
+    menuSemaine = menuPropose;
+    fermerSelecteurRecetteMenu(false);
+    actualiserApresChangementMenu();
+    afficherMessage("Recette ajoutée au menu de la semaine.", "succes");
+  }
+
+  function retirerRecetteDuMenu(jour, repas) {
+    if (!emplacementMenuEstValide(jour, repas)) {
+      console.error(
+        "Application de recettes : l’emplacement du menu à retirer est invalide."
+      );
+      return;
+    }
+
+    const menuPropose = copierMenuSemaine(menuSemaine);
+
+    menuPropose[jour][repas] = null;
+
+    if (!enregistrerMenuSemaine(menuPropose)) {
+      afficherErreurSauvegardeMenu();
+      return;
+    }
+
+    menuSemaine = menuPropose;
+    actualiserApresChangementMenu();
+    afficherMessage("Recette retirée du menu de la semaine.", "succes");
   }
 
   // Historique des recettes cuisinées
@@ -1471,6 +1803,10 @@
       return false;
     }
 
+    if (selecteurRecetteMenuDialogue.open) {
+      fermerSelecteurRecetteMenu(false);
+    }
+
     idRecetteFicheOuverte = recette.id;
     elementDeclencheurFiche =
       declencheur && typeof declencheur.focus === "function"
@@ -1506,23 +1842,35 @@
   function mettreAJourResumeSelection() {
     const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
 
-    recettesSelectionnees.forEach((idRecette) => {
+    recettesSelectionneesManuellement.forEach((idRecette) => {
       if (!identifiantsRecettes.has(idRecette)) {
         console.error(
           "Application de recettes : un identifiant de recette sélectionnée est invalide et a été retiré."
         );
-        recettesSelectionnees.delete(idRecette);
+        recettesSelectionneesManuellement.delete(idRecette);
       }
     });
 
-    const nombreRecettesSelectionnees = recettesSelectionnees.size;
+    actualiserSelectionProvenantDuMenu();
+    const nombreRecettesSelectionnees = obtenirSelectionEffective().size;
+    const nombreRecettesMenu = recettesSelectionneesParMenu.size;
+
+    if (nombreRecettesSelectionnees === 0) {
+      resumeSelectionRecettes.textContent = "Aucune recette sélectionnée.";
+      return;
+    }
+
+    const texteSelection =
+      nombreRecettesSelectionnees === 1
+        ? "1 recette sélectionnée"
+        : `${nombreRecettesSelectionnees} recettes sélectionnées`;
 
     resumeSelectionRecettes.textContent =
-      nombreRecettesSelectionnees === 0
-        ? "Aucune recette sélectionnée."
-        : nombreRecettesSelectionnees === 1
-          ? "1 recette sélectionnée."
-          : `${nombreRecettesSelectionnees} recettes sélectionnées.`;
+      nombreRecettesMenu === 0
+        ? `${texteSelection}.`
+        : `${texteSelection}, dont ${nombreRecettesMenu} ${
+            nombreRecettesMenu === 1 ? "incluse" : "incluses"
+          } par le menu.`;
   }
 
   function creerCarteRecetteCompacte(recette) {
@@ -1542,6 +1890,7 @@
     const boutonFavori = document.createElement("button");
     const boutonVoirRecette = document.createElement("button");
     const estFavorite = recette.favori === true;
+    const estIncluseParMenu = recettesSelectionneesParMenu.has(recette.id);
 
     carte.className = estFavorite ? "carte-recette favorite" : "carte-recette";
     carte.dataset.recetteId = recette.id;
@@ -1586,10 +1935,24 @@
     caseSelection.id = "selection-recette-" + recette.id;
     caseSelection.type = "checkbox";
     caseSelection.dataset.recetteId = recette.id;
-    caseSelection.checked = recettesSelectionnees.has(recette.id);
+    caseSelection.checked =
+      estIncluseParMenu || recettesSelectionneesManuellement.has(recette.id);
+    caseSelection.disabled = estIncluseParMenu;
     libelleSelection.htmlFor = caseSelection.id;
     libelleSelection.textContent = "Sélectionner pour la liste de courses";
     selection.append(caseSelection, libelleSelection);
+
+    if (estIncluseParMenu) {
+      const indicationMenu = document.createElement("span");
+
+      indicationMenu.className = "indication-selection-menu";
+      indicationMenu.textContent = "Incluse par le menu";
+      caseSelection.setAttribute(
+        "aria-label",
+        "Incluse par le menu de la semaine, cette recette ne peut pas être décochée."
+      );
+      selection.append(indicationMenu);
+    }
 
     actions.className = "actions-carte-recette";
     boutonFavori.type = "button";
@@ -1626,16 +1989,21 @@
         console.error(
           "Application de recettes : la recette à sélectionner est introuvable."
         );
-        recettesSelectionnees.delete(idRecette);
+        recettesSelectionneesManuellement.delete(idRecette);
         caseSelection.checked = false;
         mettreAJourResumeSelection();
         return;
       }
 
+      if (recettesSelectionneesParMenu.has(idRecette)) {
+        caseSelection.checked = true;
+        return;
+      }
+
       if (caseSelection.checked) {
-        recettesSelectionnees.add(idRecette);
+        recettesSelectionneesManuellement.add(idRecette);
       } else {
-        recettesSelectionnees.delete(idRecette);
+        recettesSelectionneesManuellement.delete(idRecette);
       }
 
       mettreAJourResumeSelection();
@@ -1729,6 +2097,7 @@
 
     return texte
       .trim()
+      .replace(/\s+/g, " ")
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLocaleLowerCase("fr");
@@ -2000,10 +2369,11 @@
     });
   }
 
-  function genererListeCourses() {
+  function rendreListeCourses(afficherErreurSiSelectionVide = false) {
     mettreAJourResumeSelection();
+    const selectionEffective = obtenirSelectionEffective();
     const recettesPourCourses = recettes.filter((recette) =>
-      recettesSelectionnees.has(recette.id)
+      selectionEffective.has(recette.id)
     );
 
     zoneListeCourses.textContent = "";
@@ -2013,10 +2383,13 @@
 
       messageAucuneSelection.textContent = "Aucune recette sélectionnée.";
       zoneListeCourses.append(messageAucuneSelection);
-      afficherMessage(
-        "Sélectionnez au moins une recette avant de générer la liste de courses.",
-        "erreur"
-      );
+
+      if (afficherErreurSiSelectionVide) {
+        afficherMessage(
+          "Sélectionnez au moins une recette avant de générer la liste de courses.",
+          "erreur"
+        );
+      }
       return;
     }
 
@@ -2041,6 +2414,17 @@
     });
 
     zoneListeCourses.append(liste);
+  }
+
+  function genererListeCourses() {
+    listeCoursesEstAffichee = true;
+    rendreListeCourses(true);
+  }
+
+  function actualiserListeCoursesSiAffichee() {
+    if (listeCoursesEstAffichee) {
+      rendreListeCourses();
+    }
   }
 
   function recetteCorrespondRecherche(recette, recherche) {
@@ -2639,6 +3023,10 @@
       return;
     }
 
+    if (selecteurRecetteMenuDialogue.open) {
+      afficherResultatsSelecteurRecetteMenu();
+    }
+
     afficherRecettes();
     afficherMessage(
       favori
@@ -2794,7 +3182,7 @@
     }
 
     portionsSouhaitees.delete(idRecette);
-    recettesSelectionnees.delete(idRecette);
+    recettesSelectionneesManuellement.delete(idRecette);
     const menuNettoye = nettoyerMenuSemaine(menuSemaine, recettesProposees);
 
     if (!menuSemaineEstIdentique(menuSemaine, menuNettoye)) {
@@ -2807,10 +3195,12 @@
       }
     }
 
+    actualiserSelectionProvenantDuMenu();
     mettreAJourResumeSelection();
     afficherRecettes();
     afficherMenuSemaine();
     afficherHistorique();
+    actualiserListeCoursesSiAffichee();
 
     const formulaireHistoriqueOuvert = idRecetteHistorique === idRecette;
 
@@ -2831,6 +3221,7 @@
   recettes = chargerRecettes();
   menuSemaine = nettoyerMenuSemaine(chargerMenuSemaine(), recettes);
   historique = chargerHistorique();
+  actualiserSelectionProvenantDuMenu();
 
   const brouillon = chargerBrouillon();
 
@@ -2878,6 +3269,38 @@
     if (evenement.target === ficheRecetteDialogue) {
       fermerFicheRecette();
     }
+  });
+
+  boutonFermerSelecteurRecetteMenu.addEventListener("click", () => {
+    fermerSelecteurRecetteMenu();
+  });
+
+  selecteurRecetteMenuDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    fermerSelecteurRecetteMenu();
+  });
+
+  selecteurRecetteMenuDialogue.addEventListener("close", () => {
+    nettoyerSelecteurRecetteMenu(restaurerFocusSelecteurMenuALaFermeture);
+    restaurerFocusSelecteurMenuALaFermeture = true;
+  });
+
+  selecteurRecetteMenuDialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === selecteurRecetteMenuDialogue) {
+      fermerSelecteurRecetteMenu();
+    }
+  });
+
+  champRechercheRecetteMenu.addEventListener("input", () => {
+    afficherResultatsSelecteurRecetteMenu();
+  });
+
+  filtreCategorieRecetteMenu.addEventListener("change", () => {
+    afficherResultatsSelecteurRecetteMenu();
+  });
+
+  filtreFavorisRecetteMenu.addEventListener("change", () => {
+    afficherResultatsSelecteurRecetteMenu();
   });
 
   formulaire.addEventListener("submit", (evenement) => {

@@ -33,6 +33,19 @@
   const boutonAnnulerHistorique = document.getElementById("annuler-historique");
   const zoneListeHistorique = document.getElementById("liste-historique");
   const zoneImpression = document.getElementById("zone-impression");
+  const ficheRecetteDialogue = document.getElementById(
+    "fiche-recette-dialogue"
+  );
+  const ficheRecettePanneau = document.getElementById(
+    "fiche-recette-panneau"
+  );
+  const ficheRecetteTitre = document.getElementById("fiche-recette-titre");
+  const ficheRecetteContenu = document.getElementById(
+    "fiche-recette-contenu"
+  );
+  const boutonFermerFicheRecette = document.getElementById(
+    "fermer-fiche-recette"
+  );
   const vueRecettes = document.getElementById("vue-recettes");
   const vueFormulaire = document.getElementById("vue-formulaire");
   const vueMenu = document.getElementById("vue-menu");
@@ -92,6 +105,11 @@
     ["#annuler-historique", boutonAnnulerHistorique],
     ["#liste-historique", zoneListeHistorique],
     ["#zone-impression", zoneImpression],
+    ["#fiche-recette-dialogue", ficheRecetteDialogue],
+    ["#fiche-recette-panneau", ficheRecettePanneau],
+    ["#fiche-recette-titre", ficheRecetteTitre],
+    ["#fiche-recette-contenu", ficheRecetteContenu],
+    ["#fermer-fiche-recette", boutonFermerFicheRecette],
     ["#vue-recettes", vueRecettes],
     ["#vue-formulaire", vueFormulaire],
     ["#vue-menu", vueMenu],
@@ -325,6 +343,9 @@
   let temporisationSauvegardeBrouillon = null;
   let titreDocumentAvantImpression = null;
   let temporisationNettoyageImpression = null;
+  let idRecetteFicheOuverte = null;
+  let elementDeclencheurFiche = null;
+  let restaurerFocusFicheALaFermeture = true;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
@@ -1107,6 +1128,380 @@
     }
   }
 
+  // Fiche détaillée d’une recette
+  function ajouterSectionTexteFicheRecette(titre, texte, classeTexte) {
+    const section = document.createElement("section");
+    const titreSection = document.createElement("h3");
+    const contenu = document.createElement("p");
+
+    section.className = "section-fiche-recette";
+    titreSection.textContent = titre;
+    contenu.className = classeTexte;
+    contenu.textContent = texte;
+    section.append(titreSection, contenu);
+    ficheRecetteContenu.append(section);
+  }
+
+  function ajouterInformationsPratiquesFicheRecette(
+    recette,
+    portionsOriginales,
+    portionsAffichees
+  ) {
+    const informations = [];
+    const tempsPreparation = convertirNombreEntier(recette.tempsPreparation, 0);
+    const tempsCuisson = convertirNombreEntier(recette.tempsCuisson, 0);
+    const difficulte = obtenirDifficulte(recette.difficulte);
+
+    if (tempsPreparation !== null) {
+      informations.push(`Préparation : ${tempsPreparation} min`);
+    }
+
+    if (tempsCuisson !== null) {
+      informations.push(
+        tempsCuisson === 0
+          ? "Cuisson : Sans cuisson"
+          : `Cuisson : ${tempsCuisson} min`
+      );
+    }
+
+    if (portionsOriginales !== null) {
+      informations.push(`Portions d’origine : ${portionsOriginales}`);
+
+      if (portionsAffichees !== portionsOriginales) {
+        informations.push(`Portions affichées : ${portionsAffichees}`);
+      }
+    }
+
+    if (difficulte) {
+      informations.push(`Difficulté : ${difficulte}`);
+    }
+
+    if (informations.length === 0) {
+      return;
+    }
+
+    const section = document.createElement("section");
+    const titre = document.createElement("h3");
+    const liste = document.createElement("ul");
+
+    section.className = "section-fiche-recette";
+    titre.textContent = "Informations pratiques";
+    liste.className = "informations-pratiques-recette";
+
+    informations.forEach((information) => {
+      const element = document.createElement("li");
+
+      element.textContent = information;
+      liste.append(element);
+    });
+
+    section.append(titre, liste);
+    ficheRecetteContenu.append(section);
+  }
+
+  function ajouterIngredientsFicheRecette(recette, coefficientPortions) {
+    const ingredients = obtenirIngredientsValides(recette);
+
+    if (ingredients.length === 0) {
+      return;
+    }
+
+    const section = document.createElement("section");
+    const titre = document.createElement("h3");
+    const liste = document.createElement("ul");
+
+    section.className = "section-fiche-recette";
+    titre.textContent = "Ingrédients";
+    liste.className = "liste-ingredients-fiche";
+
+    ingredients.forEach((ingredient) => {
+      const element = document.createElement("li");
+      const quantiteAdaptee = calculerQuantiteAdaptee(
+        ingredient.quantite,
+        coefficientPortions
+      );
+
+      element.textContent = `${formaterQuantitePourListe(quantiteAdaptee)} ${ingredient.unite} ${ingredient.nom}`;
+      liste.append(element);
+    });
+
+    section.append(titre, liste);
+    ficheRecetteContenu.append(section);
+  }
+
+  function rendreFicheRecette(recette) {
+    const categorie = obtenirTexteRecette(recette.categorie).trim();
+    const preparation = obtenirTexteRecette(recette.preparation).trim();
+    const cuisson = obtenirTexteRecette(recette.cuisson).trim();
+    const notes = obtenirTexteRecette(recette.notes).trim();
+    const conseils = obtenirTexteRecette(recette.conseils).trim();
+    const portionsOriginales = obtenirPortionsOriginales(recette);
+    const portionsAffichees = obtenirPortionsSouhaiteesRecette(recette);
+    const coefficientPortions = obtenirCoefficientPortionsRecette(recette);
+    const quantitesSontAdaptees =
+      portionsOriginales !== null &&
+      portionsAffichees !== portionsOriginales;
+    const boutonFavori = document.createElement("button");
+    const boutonModifier = document.createElement("button");
+    const actionsPrincipales = document.createElement("div");
+    const actionsSecondaires = document.createElement("details");
+    const resumeActions = document.createElement("summary");
+    const contenuActions = document.createElement("div");
+    const boutonAjouterHistorique = document.createElement("button");
+    const boutonImprimer = document.createElement("button");
+    const boutonSuppression = document.createElement("button");
+
+    ficheRecetteTitre.textContent =
+      obtenirTexteRecette(recette.nom).trim() || "Recette";
+    ficheRecetteContenu.textContent = "";
+
+    if (categorie) {
+      const texteCategorie = document.createElement("p");
+
+      texteCategorie.className = "categorie-fiche-recette";
+      texteCategorie.textContent = `Catégorie : ${categorie}`;
+      ficheRecetteContenu.append(texteCategorie);
+    }
+
+    const statutFavori = document.createElement("p");
+
+    statutFavori.className = "statut-fiche-recette";
+    statutFavori.textContent =
+      recette.favori === true ? "Statut : Favorite" : "Statut : Non favorite";
+    ficheRecetteContenu.append(statutFavori);
+
+    ajouterInformationsPratiquesFicheRecette(
+      recette,
+      portionsOriginales,
+      portionsAffichees
+    );
+    ficheRecetteContenu.append(actionsPrincipales);
+
+    if (quantitesSontAdaptees) {
+      const indicationPortions = document.createElement("p");
+
+      indicationPortions.className = "indication-portions-adaptees";
+      indicationPortions.textContent = `Quantités affichées pour ${portionsAffichees} portions`;
+      ficheRecetteContenu.append(indicationPortions);
+    }
+
+    const zoneAdaptationPortions = creerZoneAdaptationPortions(
+      recette,
+      portionsOriginales,
+      portionsAffichees
+    );
+
+    if (zoneAdaptationPortions) {
+      ficheRecetteContenu.append(zoneAdaptationPortions);
+    }
+
+    ajouterIngredientsFicheRecette(recette, coefficientPortions);
+
+    if (preparation) {
+      ajouterSectionTexteFicheRecette(
+        "Préparation",
+        preparation,
+        "instructions-recette"
+      );
+    }
+
+    if (cuisson) {
+      ajouterSectionTexteFicheRecette(
+        "Cuisson",
+        cuisson,
+        "instructions-recette"
+      );
+    }
+
+    if (notes) {
+      ajouterSectionTexteFicheRecette(
+        "Notes personnelles",
+        notes,
+        "instructions-recette notes-conseils-recette"
+      );
+    }
+
+    if (conseils) {
+      ajouterSectionTexteFicheRecette(
+        "Conseils et astuces",
+        conseils,
+        "instructions-recette notes-conseils-recette"
+      );
+    }
+
+    actionsPrincipales.className = "actions-fiche-recette-principales";
+    boutonFavori.type = "button";
+    boutonFavori.className = "bouton-favori";
+    boutonFavori.textContent =
+      recette.favori === true ? "Retirer des favoris" : "Ajouter aux favoris";
+    boutonModifier.type = "button";
+    boutonModifier.className = "bouton-modifier";
+    boutonModifier.textContent = "Modifier";
+    actionsPrincipales.append(boutonModifier, boutonFavori);
+
+    actionsSecondaires.className = "fiche-recette-actions-secondaires";
+    resumeActions.textContent = "Actions";
+    contenuActions.className = "contenu-actions-fiche-recette";
+    boutonAjouterHistorique.type = "button";
+    boutonAjouterHistorique.className = "bouton-ajouter-historique";
+    boutonAjouterHistorique.textContent = "Ajouter à l’historique";
+    boutonImprimer.type = "button";
+    boutonImprimer.className = "bouton-imprimer";
+    boutonImprimer.textContent = "Imprimer / PDF";
+    boutonSuppression.type = "button";
+    boutonSuppression.className = "bouton-suppression";
+    boutonSuppression.textContent = "Supprimer";
+    contenuActions.append(
+      boutonAjouterHistorique,
+      boutonImprimer,
+      boutonSuppression
+    );
+    actionsSecondaires.append(resumeActions, contenuActions);
+    ficheRecetteContenu.append(actionsSecondaires);
+
+    boutonFavori.addEventListener("click", () => {
+      basculerFavori(recette.id);
+    });
+
+    boutonModifier.addEventListener("click", () => {
+      fermerFicheRecette(false);
+      commencerModification(recette.id);
+    });
+
+    boutonAjouterHistorique.addEventListener("click", () => {
+      fermerFicheRecette(false);
+      ouvrirFormulaireHistorique(recette.id);
+    });
+
+    boutonImprimer.addEventListener("click", () => {
+      imprimerRecette(recette.id);
+    });
+
+    boutonSuppression.addEventListener("click", () => {
+      supprimerRecette(recette.id);
+    });
+  }
+
+  function nettoyerFicheRecette(restaurerFocus = true) {
+    const declencheur = elementDeclencheurFiche;
+
+    ficheRecetteContenu.querySelectorAll("details[open]").forEach((details) => {
+      details.open = false;
+    });
+    ficheRecetteTitre.textContent = "";
+    ficheRecetteContenu.textContent = "";
+    idRecetteFicheOuverte = null;
+    elementDeclencheurFiche = null;
+    document.body.classList.remove("fiche-recette-ouverte");
+
+    if (
+      restaurerFocus &&
+      declencheur &&
+      declencheur.isConnected &&
+      !declencheur.disabled &&
+      typeof declencheur.focus === "function"
+    ) {
+      declencheur.focus();
+    }
+  }
+
+  function fermerFicheRecette(restaurerFocus = true) {
+    restaurerFocusFicheALaFermeture = restaurerFocus;
+
+    if (
+      ficheRecetteDialogue.open &&
+      typeof ficheRecetteDialogue.close === "function"
+    ) {
+      ficheRecetteDialogue.close();
+      return;
+    } else {
+      ficheRecetteDialogue.removeAttribute("open");
+    }
+
+    nettoyerFicheRecette(restaurerFocus);
+    restaurerFocusFicheALaFermeture = true;
+  }
+
+  function actualiserFicheRecetteOuverte() {
+    if (idRecetteFicheOuverte === null) {
+      return;
+    }
+
+    const recette = recettes.find(
+      (recetteActuelle) => recetteActuelle.id === idRecetteFicheOuverte
+    );
+
+    if (!recette) {
+      fermerFicheRecette();
+      return;
+    }
+
+    const focusEtaitDansLaFiche = ficheRecetteDialogue.contains(
+      document.activeElement
+    );
+
+    rendreFicheRecette(recette);
+
+    if (
+      focusEtaitDansLaFiche &&
+      typeof boutonFermerFicheRecette.focus === "function"
+    ) {
+      boutonFermerFicheRecette.focus();
+    }
+  }
+
+  function ouvrirFicheRecette(idRecette, declencheur) {
+    if (typeof idRecette !== "string" || idRecette.trim() === "") {
+      console.error(
+        "Application de recettes : l’identifiant de la recette à ouvrir est invalide."
+      );
+      afficherMessage("Impossible d’ouvrir cette recette.", "erreur");
+      return false;
+    }
+
+    const recette = recettes.find(
+      (recetteActuelle) => recetteActuelle.id === idRecette
+    );
+
+    if (!recette) {
+      console.error(
+        "Application de recettes : la recette à ouvrir est introuvable."
+      );
+      afficherMessage("Impossible d’ouvrir cette recette.", "erreur");
+      return false;
+    }
+
+    idRecetteFicheOuverte = recette.id;
+    elementDeclencheurFiche =
+      declencheur && typeof declencheur.focus === "function"
+        ? declencheur
+        : null;
+    rendreFicheRecette(recette);
+    ficheRecettePanneau.scrollTop = 0;
+    ficheRecetteContenu.scrollTop = 0;
+    document.body.classList.add("fiche-recette-ouverte");
+
+    try {
+      if (!ficheRecetteDialogue.open) {
+        if (typeof ficheRecetteDialogue.showModal === "function") {
+          ficheRecetteDialogue.showModal();
+        } else {
+          ficheRecetteDialogue.setAttribute("open", "");
+        }
+      }
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : la fiche de recette n’a pas pu être ouverte."
+      );
+      nettoyerFicheRecette(false);
+      afficherMessage("Impossible d’ouvrir cette recette.", "erreur");
+      return false;
+    }
+
+    boutonFermerFicheRecette.focus();
+    return true;
+  }
+
   // Affichage des recettes, filtres et sélection
   function mettreAJourResumeSelection() {
     const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
@@ -1130,6 +1525,125 @@
           : `${nombreRecettesSelectionnees} recettes sélectionnées.`;
   }
 
+  function creerCarteRecetteCompacte(recette) {
+    const carte = document.createElement("article");
+    const nom = document.createElement("h3");
+    const categorie = obtenirTexteRecette(recette.categorie).trim();
+    const informationsPratiques = obtenirInformationsPratiques(recette);
+    const portionsOriginales = obtenirPortionsOriginales(recette);
+    const portionsAffichees = obtenirPortionsSouhaiteesRecette(recette);
+    const quantitesSontAdaptees =
+      portionsOriginales !== null &&
+      portionsAffichees !== portionsOriginales;
+    const selection = document.createElement("div");
+    const caseSelection = document.createElement("input");
+    const libelleSelection = document.createElement("label");
+    const actions = document.createElement("div");
+    const boutonFavori = document.createElement("button");
+    const boutonVoirRecette = document.createElement("button");
+    const estFavorite = recette.favori === true;
+
+    carte.className = estFavorite ? "carte-recette favorite" : "carte-recette";
+    carte.dataset.recetteId = recette.id;
+    nom.textContent = obtenirTexteRecette(recette.nom).trim() || "Recette";
+
+    if (estFavorite) {
+      const indicationFavorite = document.createElement("span");
+
+      indicationFavorite.className = "indication-favorite";
+      indicationFavorite.textContent = "Favorite";
+      nom.append(" ", indicationFavorite);
+    }
+
+    carte.append(nom);
+
+    if (categorie) {
+      const texteCategorie = document.createElement("p");
+
+      texteCategorie.className = "categorie-recette";
+      texteCategorie.textContent = "Catégorie : " + categorie;
+      carte.append(texteCategorie);
+    }
+
+    if (informationsPratiques.length > 0) {
+      const texteInformations = document.createElement("p");
+
+      texteInformations.className = "informations-pratiques-compactes";
+      texteInformations.textContent = informationsPratiques.join(" • ");
+      carte.append(texteInformations);
+    }
+
+    if (quantitesSontAdaptees) {
+      const indicationPortions = document.createElement("p");
+
+      indicationPortions.className = "indication-portions-adaptees";
+      indicationPortions.textContent =
+        "Quantités affichées pour " + portionsAffichees + " portions";
+      carte.append(indicationPortions);
+    }
+
+    selection.className = "selection-recette";
+    caseSelection.id = "selection-recette-" + recette.id;
+    caseSelection.type = "checkbox";
+    caseSelection.dataset.recetteId = recette.id;
+    caseSelection.checked = recettesSelectionnees.has(recette.id);
+    libelleSelection.htmlFor = caseSelection.id;
+    libelleSelection.textContent = "Sélectionner pour la liste de courses";
+    selection.append(caseSelection, libelleSelection);
+
+    actions.className = "actions-carte-recette";
+    boutonFavori.type = "button";
+    boutonFavori.className = "bouton-favori";
+    boutonFavori.dataset.recetteId = recette.id;
+    boutonFavori.textContent = estFavorite
+      ? "Retirer des favoris"
+      : "Ajouter aux favoris";
+    boutonVoirRecette.type = "button";
+    boutonVoirRecette.className = "bouton-voir-recette";
+    boutonVoirRecette.dataset.recetteId = recette.id;
+    boutonVoirRecette.textContent = "Voir la recette";
+    actions.append(boutonFavori, boutonVoirRecette);
+    carte.append(selection, actions);
+
+    boutonFavori.addEventListener("click", () => {
+      basculerFavori(boutonFavori.dataset.recetteId);
+    });
+
+    boutonVoirRecette.addEventListener("click", () => {
+      ouvrirFicheRecette(
+        boutonVoirRecette.dataset.recetteId,
+        boutonVoirRecette
+      );
+    });
+
+    caseSelection.addEventListener("change", () => {
+      const idRecette = caseSelection.dataset.recetteId;
+      const recetteExiste = recettes.some(
+        (recetteActuelle) => recetteActuelle.id === idRecette
+      );
+
+      if (!recetteExiste) {
+        console.error(
+          "Application de recettes : la recette à sélectionner est introuvable."
+        );
+        recettesSelectionnees.delete(idRecette);
+        caseSelection.checked = false;
+        mettreAJourResumeSelection();
+        return;
+      }
+
+      if (caseSelection.checked) {
+        recettesSelectionnees.add(idRecette);
+      } else {
+        recettesSelectionnees.delete(idRecette);
+      }
+
+      mettreAJourResumeSelection();
+    });
+
+    return carte;
+  }
+
   function afficherRecettes() {
     zoneRecettes.textContent = "";
     mettreAJourResumeSelection();
@@ -1137,9 +1651,11 @@
 
     if (recettes.length === 0) {
       const messageVide = document.createElement("p");
+
       messageVide.className = "aucune-recette";
       messageVide.textContent = "Aucune recette n’est encore enregistrée.";
       zoneRecettes.append(messageVide);
+      actualiserFicheRecetteOuverte();
       return;
     }
 
@@ -1161,6 +1677,7 @@
 
     if (recettesAffichees.length === 0) {
       const messageVide = document.createElement("p");
+
       messageVide.className = "aucune-recette";
       messageVide.textContent = recherche
         ? "Aucune recette ne correspond à votre recherche et aux filtres sélectionnés."
@@ -1168,243 +1685,16 @@
           ? "Aucune recette favorite ne correspond aux filtres sélectionnés."
           : "Aucune recette ne correspond à cette catégorie.";
       zoneRecettes.append(messageVide);
+      actualiserFicheRecetteOuverte();
       return;
     }
 
     recettesAffichees.forEach((recette) => {
-      const carte = document.createElement("article");
-      const nom = document.createElement("h3");
-      const categorie = document.createElement("p");
-      const selection = document.createElement("div");
-      const caseSelection = document.createElement("input");
-      const libelleSelection = document.createElement("label");
-      const actions = document.createElement("div");
-      const boutonFavori = document.createElement("button");
-      const boutonAjouterHistorique = document.createElement("button");
-      const boutonImprimer = document.createElement("button");
-      const boutonModifier = document.createElement("button");
-      const boutonSuppression = document.createElement("button");
-
-      const estFavorite = recette.favori === true;
-
-      carte.className = estFavorite ? "carte-recette favorite" : "carte-recette";
-      nom.textContent = recette.nom;
-      categorie.textContent = `Catégorie : ${recette.categorie}`;
-      const ingredients = obtenirIngredientsValides(recette);
-      const preparation = obtenirTexteRecette(recette.preparation);
-      const cuisson = obtenirTexteRecette(recette.cuisson);
-      const notes = obtenirTexteRecette(recette.notes);
-      const conseils = obtenirTexteRecette(recette.conseils);
-      const informationsPratiques = obtenirInformationsPratiques(recette);
-      const portionsOriginales = obtenirPortionsOriginales(recette);
-      const portionsSouhaiteesRecette = obtenirPortionsSouhaiteesRecette(
-        recette
-      );
-      const coefficientPortions = obtenirCoefficientPortionsRecette(recette);
-      const quantitesSontAdaptees =
-        portionsOriginales !== null &&
-        portionsSouhaiteesRecette !== portionsOriginales;
-
-      selection.className = "selection-recette";
-      caseSelection.id = `selection-recette-${recette.id}`;
-      caseSelection.type = "checkbox";
-      caseSelection.dataset.recetteId = recette.id;
-      caseSelection.checked = recettesSelectionnees.has(recette.id);
-      libelleSelection.htmlFor = caseSelection.id;
-      libelleSelection.textContent = "Sélectionner pour la liste de courses";
-
-      actions.className = "actions-recette";
-      boutonFavori.type = "button";
-      boutonFavori.className = "bouton-favori";
-      boutonFavori.dataset.recetteId = recette.id;
-      boutonFavori.textContent = estFavorite
-        ? "Retirer des favoris"
-        : "Ajouter aux favoris";
-      boutonAjouterHistorique.type = "button";
-      boutonAjouterHistorique.className = "bouton-ajouter-historique";
-      boutonAjouterHistorique.dataset.recetteId = recette.id;
-      boutonAjouterHistorique.textContent = "Ajouter à l’historique";
-      boutonImprimer.type = "button";
-      boutonImprimer.className = "bouton-imprimer";
-      boutonImprimer.dataset.recetteId = recette.id;
-      boutonImprimer.textContent = "Imprimer / PDF";
-      boutonModifier.type = "button";
-      boutonModifier.className = "bouton-modifier";
-      boutonModifier.dataset.recetteId = recette.id;
-      boutonModifier.textContent = "Modifier";
-      boutonSuppression.type = "button";
-      boutonSuppression.className = "bouton-suppression";
-      boutonSuppression.dataset.recetteId = recette.id;
-      boutonSuppression.textContent = "Supprimer";
-
-      if (estFavorite) {
-        const indicationFavorite = document.createElement("span");
-        indicationFavorite.className = "indication-favorite";
-        indicationFavorite.textContent = "Favorite";
-        nom.append(" ", indicationFavorite);
-      }
-
-      boutonFavori.addEventListener("click", () => {
-        basculerFavori(boutonFavori.dataset.recetteId);
-      });
-
-      boutonAjouterHistorique.addEventListener("click", () => {
-        ouvrirFormulaireHistorique(boutonAjouterHistorique.dataset.recetteId);
-      });
-
-      boutonImprimer.addEventListener("click", () => {
-        imprimerRecette(boutonImprimer.dataset.recetteId);
-      });
-
-      boutonModifier.addEventListener("click", () => {
-        commencerModification(boutonModifier.dataset.recetteId);
-      });
-
-      boutonSuppression.addEventListener("click", () => {
-        supprimerRecette(boutonSuppression.dataset.recetteId);
-      });
-
-      caseSelection.addEventListener("change", () => {
-        const idRecette = caseSelection.dataset.recetteId;
-        const recetteExiste = recettes.some(
-          (recetteActuelle) => recetteActuelle.id === idRecette
-        );
-
-        if (!recetteExiste) {
-          console.error(
-            "Application de recettes : la recette à sélectionner est introuvable."
-          );
-          recettesSelectionnees.delete(idRecette);
-          caseSelection.checked = false;
-          mettreAJourResumeSelection();
-          return;
-        }
-
-        if (caseSelection.checked) {
-          recettesSelectionnees.add(idRecette);
-        } else {
-          recettesSelectionnees.delete(idRecette);
-        }
-
-        mettreAJourResumeSelection();
-      });
-
-      actions.append(
-        boutonFavori,
-        boutonAjouterHistorique,
-        boutonImprimer,
-        boutonModifier,
-        boutonSuppression
-      );
-      selection.append(caseSelection, libelleSelection);
-      carte.append(nom, categorie, selection);
-
-      if (ingredients.length > 0) {
-        const titreIngredients = document.createElement("h4");
-        const liste = document.createElement("ul");
-
-        titreIngredients.className = "titre-ingredients-recette";
-        titreIngredients.textContent = "Ingrédients";
-        liste.className = "ingredients-recette";
-
-        ingredients.forEach((ingredient) => {
-          const element = document.createElement("li");
-          const quantiteAdaptee = calculerQuantiteAdaptee(
-            ingredient.quantite,
-            coefficientPortions
-          );
-
-          element.textContent = `${formaterQuantitePourListe(quantiteAdaptee)} ${ingredient.unite} ${ingredient.nom}`;
-          liste.append(element);
-        });
-
-        carte.append(titreIngredients, liste);
-      }
-
-      if (informationsPratiques.length > 0) {
-        const titreInformations = document.createElement("h4");
-        const listeInformations = document.createElement("ul");
-
-        titreInformations.className = "titre-instructions-recette";
-        titreInformations.textContent = "Informations pratiques";
-        listeInformations.className = "informations-pratiques-recette";
-
-        informationsPratiques.forEach((information) => {
-          const element = document.createElement("li");
-          element.textContent = information;
-          listeInformations.append(element);
-        });
-
-        carte.append(titreInformations, listeInformations);
-      }
-
-      if (quantitesSontAdaptees) {
-        const indicationPortions = document.createElement("p");
-
-        indicationPortions.className = "indication-portions-adaptees";
-        indicationPortions.textContent = `Quantités affichées pour ${portionsSouhaiteesRecette} portions`;
-        carte.append(indicationPortions);
-      }
-
-      const zoneAdaptationPortions = creerZoneAdaptationPortions(
-        recette,
-        portionsOriginales,
-        portionsSouhaiteesRecette
-      );
-
-      if (zoneAdaptationPortions) {
-        carte.append(zoneAdaptationPortions);
-      }
-
-      if (preparation) {
-        const titrePreparation = document.createElement("h4");
-        const textePreparation = document.createElement("p");
-
-        titrePreparation.className = "titre-instructions-recette";
-        titrePreparation.textContent = "Préparation";
-        textePreparation.className = "instructions-recette";
-        textePreparation.textContent = preparation;
-        carte.append(titrePreparation, textePreparation);
-      }
-
-      if (cuisson) {
-        const titreCuisson = document.createElement("h4");
-        const texteCuisson = document.createElement("p");
-
-        titreCuisson.className = "titre-instructions-recette";
-        titreCuisson.textContent = "Cuisson";
-        texteCuisson.className = "instructions-recette";
-        texteCuisson.textContent = cuisson;
-        carte.append(titreCuisson, texteCuisson);
-      }
-
-      if (notes) {
-        const titreNotes = document.createElement("h4");
-        const texteNotes = document.createElement("p");
-
-        titreNotes.className = "titre-instructions-recette";
-        titreNotes.textContent = "Notes personnelles";
-        texteNotes.className = "instructions-recette notes-conseils-recette";
-        texteNotes.textContent = notes;
-        carte.append(titreNotes, texteNotes);
-      }
-
-      if (conseils) {
-        const titreConseils = document.createElement("h4");
-        const texteConseils = document.createElement("p");
-
-        titreConseils.className = "titre-instructions-recette";
-        titreConseils.textContent = "Conseils et astuces";
-        texteConseils.className = "instructions-recette notes-conseils-recette";
-        texteConseils.textContent = conseils;
-        carte.append(titreConseils, texteConseils);
-      }
-
-      carte.append(actions);
-      zoneRecettes.append(carte);
+      zoneRecettes.append(creerCarteRecetteCompacte(recette));
     });
-  }
 
+    actualiserFicheRecetteOuverte();
+  }
   // Validation et normalisation des données
   function ingredientEstValide(ingredient) {
     return (
@@ -2568,6 +2858,26 @@
 
   boutonRetourAuxRecettes.addEventListener("click", () => {
     afficherVue("vue-recettes", true);
+  });
+
+  boutonFermerFicheRecette.addEventListener("click", () => {
+    fermerFicheRecette();
+  });
+
+  ficheRecetteDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    fermerFicheRecette();
+  });
+
+  ficheRecetteDialogue.addEventListener("close", () => {
+    nettoyerFicheRecette(restaurerFocusFicheALaFermeture);
+    restaurerFocusFicheALaFermeture = true;
+  });
+
+  ficheRecetteDialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === ficheRecetteDialogue) {
+      fermerFicheRecette();
+    }
   });
 
   formulaire.addEventListener("submit", (evenement) => {

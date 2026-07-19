@@ -1,6 +1,7 @@
 (() => {
   console.log("Application de recettes : app.js chargé");
 
+  // Références DOM
   const formulaire = document.getElementById("formulaire-recette");
   const champNom = document.getElementById("nom-recette");
   const menuCategorie = document.getElementById("categorie-recette");
@@ -69,6 +70,7 @@
     return;
   }
 
+  // Constantes et état interne
   const cleStockage = "livreRecettes.recettes";
   const cleStockageBrouillon = "livreRecettes.brouillon";
   const difficultes = ["Facile", "Moyenne", "Difficile"];
@@ -90,11 +92,20 @@
     "sachet"
   ];
 
+  let recettes = [];
+  const recettesSelectionnees = new Set();
+  let prochainIdentifiant = 1;
+  let idRecetteEnModification = null;
+  let prochainIdentifiantIngredient = 1;
+  let temporisationSauvegardeBrouillon = null;
+
+  // Fonctions génériques
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
     zoneMessage.className = `message ${type}`;
   }
 
+  // Affichage des recettes, filtres et sélection
   function mettreAJourResumeSelection() {
     const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
 
@@ -337,6 +348,7 @@
     });
   }
 
+  // Validation et normalisation des données
   function ingredientEstValide(ingredient) {
     return (
       ingredient &&
@@ -379,6 +391,7 @@
     return normaliserRecherche(nom).replace(/\s+/g, " ");
   }
 
+  // Liste de courses
   function regrouperIngredientsPourCourses(recettesPourCourses) {
     const groupesIngredients = new Map();
 
@@ -547,6 +560,7 @@
     };
   }
 
+  // Ingrédients du formulaire et brouillon
   function creerLigneIngredient(ingredient) {
     const identifiant = prochainIdentifiantIngredient;
     const ligne = document.createElement("div");
@@ -761,15 +775,6 @@
     }, 400);
   }
 
-  function conserverBrouillonAvantReinitialisation() {
-    if (temporisationSauvegardeBrouillon !== null) {
-      clearTimeout(temporisationSauvegardeBrouillon);
-      temporisationSauvegardeBrouillon = null;
-    }
-
-    enregistrerBrouillon();
-  }
-
   function lireIngredients() {
     const ingredients = [];
     const lignes = listeIngredients.querySelectorAll(".ligne-ingredient");
@@ -890,11 +895,29 @@
     return brouillon;
   }
 
+  // Chargement et sauvegarde des données
+  function identifiantRecetteEstValide(identifiant) {
+    return typeof identifiant === "string" && identifiant.trim() !== "";
+  }
+
+  function creerIdentifiantRecette(identifiantsUtilises) {
+    const identifiants = identifiantsUtilises || new Set(
+      recettes.map((recette) => recette.id)
+    );
+    let identifiant;
+
+    do {
+      identifiant = `recette-${Date.now()}-${prochainIdentifiant}`;
+      prochainIdentifiant += 1;
+    } while (identifiants.has(identifiant));
+
+    return identifiant;
+  }
+
   function recetteEstValide(recette) {
     return (
       recette &&
       typeof recette === "object" &&
-      typeof recette.id === "string" &&
       typeof recette.nom === "string" &&
       recette.nom.trim() !== "" &&
       typeof recette.categorie === "string" &&
@@ -939,21 +962,38 @@
       return [];
     }
 
+    const identifiantsUtilises = new Set();
+    let nombreIdentifiantsRepares = 0;
     const recettesValides = donneesAnalysees
       .filter(recetteEstValide)
-      .map((recette) => ({
-        ...recette,
-        ingredients: obtenirIngredientsValides(recette),
-        preparation: obtenirTexteRecette(recette.preparation),
-        cuisson: obtenirTexteRecette(recette.cuisson),
-        notes: obtenirTexteRecette(recette.notes),
-        conseils: obtenirTexteRecette(recette.conseils),
-        favori: recette.favori === true,
-        tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0),
-        tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0),
-        portions: convertirNombreEntier(recette.portions, 1),
-        difficulte: obtenirDifficulte(recette.difficulte)
-      }));
+      .map((recette) => {
+        let identifiant = recette.id;
+
+        if (
+          !identifiantRecetteEstValide(identifiant) ||
+          identifiantsUtilises.has(identifiant)
+        ) {
+          identifiant = creerIdentifiantRecette(identifiantsUtilises);
+          nombreIdentifiantsRepares += 1;
+        }
+
+        identifiantsUtilises.add(identifiant);
+
+        return {
+          ...recette,
+          id: identifiant,
+          ingredients: obtenirIngredientsValides(recette),
+          preparation: obtenirTexteRecette(recette.preparation),
+          cuisson: obtenirTexteRecette(recette.cuisson),
+          notes: obtenirTexteRecette(recette.notes),
+          conseils: obtenirTexteRecette(recette.conseils),
+          favori: recette.favori === true,
+          tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0),
+          tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0),
+          portions: convertirNombreEntier(recette.portions, 1),
+          difficulte: obtenirDifficulte(recette.difficulte)
+        };
+      });
 
     if (recettesValides.length !== donneesAnalysees.length) {
       console.warn(
@@ -961,12 +1001,18 @@
       );
     }
 
+    if (nombreIdentifiantsRepares > 0) {
+      console.warn(
+        `Application de recettes : ${nombreIdentifiantsRepares} identifiant(s) de recette ont été réparé(s).`
+      );
+    }
+
     return recettesValides;
   }
 
-  function enregistrerRecettes() {
+  function enregistrerRecettes(recettesAEnregistrer) {
     try {
-      localStorage.setItem(cleStockage, JSON.stringify(recettes));
+      localStorage.setItem(cleStockage, JSON.stringify(recettesAEnregistrer));
       return true;
     } catch (erreur) {
       console.warn(
@@ -974,6 +1020,19 @@
       );
       return false;
     }
+  }
+
+  function appliquerRecettes(recettesProposees) {
+    if (!enregistrerRecettes(recettesProposees)) {
+      afficherMessage(
+        "Impossible d’enregistrer les recettes sur cet appareil. Aucune modification n’a été appliquée.",
+        "erreur"
+      );
+      return false;
+    }
+
+    recettes = recettesProposees;
+    return true;
   }
 
   function basculerFavori(idRecette) {
@@ -995,15 +1054,48 @@
       return;
     }
 
-    recette.favori = recette.favori !== true;
-    enregistrerRecettes();
+    const favori = recette.favori !== true;
+    const recettesProposees = recettes.map((recetteActuelle) =>
+      recetteActuelle.id === idRecette
+        ? { ...recetteActuelle, favori }
+        : recetteActuelle
+    );
+
+    if (!appliquerRecettes(recettesProposees)) {
+      return;
+    }
+
     afficherRecettes();
     afficherMessage(
-      recette.favori
+      favori
         ? "Recette ajoutée aux favoris."
         : "Recette retirée des favoris.",
       "succes"
     );
+  }
+
+  // Formulaire, ingrédients et brouillon
+  function obtenirValeurChamp(valeur) {
+    return typeof valeur === "string" || typeof valeur === "number"
+      ? String(valeur)
+      : "";
+  }
+
+  function remplirChampsPrincipaux(donnees) {
+    champNom.value = obtenirTexteRecette(donnees.nom);
+    menuCategorie.value = obtenirTexteRecette(donnees.categorie);
+    champPreparation.value = obtenirTexteRecette(donnees.preparation);
+    champCuisson.value = obtenirTexteRecette(donnees.cuisson);
+    champNotes.value = obtenirTexteRecette(donnees.notes);
+    champConseils.value = obtenirTexteRecette(donnees.conseils);
+    champTempsPreparation.value = obtenirValeurChamp(donnees.tempsPreparation);
+    champTempsCuisson.value = obtenirValeurChamp(donnees.tempsCuisson);
+    champPortions.value = obtenirValeurChamp(donnees.portions);
+    menuDifficulte.value = obtenirTexteRecette(donnees.difficulte);
+  }
+
+  function viderChampsPrincipaux() {
+    remplirChampsPrincipaux({});
   }
 
   function activerModeAjout() {
@@ -1014,17 +1106,8 @@
 
   function revenirAuModeAjout(supprimerLeBrouillon = false) {
     activerModeAjout();
-    champNom.value = "";
-    menuCategorie.value = "";
+    viderChampsPrincipaux();
     reinitialiserLignesIngredient();
-    champPreparation.value = "";
-    champCuisson.value = "";
-    champNotes.value = "";
-    champConseils.value = "";
-    champTempsPreparation.value = "";
-    champTempsCuisson.value = "";
-    champPortions.value = "";
-    menuDifficulte.value = "";
 
     if (supprimerLeBrouillon) {
       supprimerBrouillon();
@@ -1032,17 +1115,8 @@
   }
 
   function restaurerBrouillon(brouillon) {
-    champNom.value = brouillon.nom;
-    menuCategorie.value = brouillon.categorie;
+    remplirChampsPrincipaux(brouillon);
     reinitialiserLignesIngredient(brouillon.ingredients);
-    champPreparation.value = brouillon.preparation;
-    champCuisson.value = brouillon.cuisson;
-    champNotes.value = brouillon.notes;
-    champConseils.value = brouillon.conseils;
-    champTempsPreparation.value = brouillon.tempsPreparation;
-    champTempsCuisson.value = brouillon.tempsCuisson;
-    champPortions.value = brouillon.portions;
-    menuDifficulte.value = brouillon.difficulte;
 
     if (brouillon.mode === "modification") {
       const recetteExiste = recettes.some(
@@ -1091,17 +1165,14 @@
     }
 
     idRecetteEnModification = recette.id;
-    champNom.value = recette.nom;
-    menuCategorie.value = recette.categorie;
+    remplirChampsPrincipaux({
+      ...recette,
+      tempsPreparation: convertirNombreEntier(recette.tempsPreparation, 0) ?? "",
+      tempsCuisson: convertirNombreEntier(recette.tempsCuisson, 0) ?? "",
+      portions: convertirNombreEntier(recette.portions, 1) ?? "",
+      difficulte: obtenirDifficulte(recette.difficulte)
+    });
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
-    champPreparation.value = obtenirTexteRecette(recette.preparation);
-    champCuisson.value = obtenirTexteRecette(recette.cuisson);
-    champNotes.value = obtenirTexteRecette(recette.notes);
-    champConseils.value = obtenirTexteRecette(recette.conseils);
-    champTempsPreparation.value = convertirNombreEntier(recette.tempsPreparation, 0) ?? "";
-    champTempsCuisson.value = convertirNombreEntier(recette.tempsCuisson, 0) ?? "";
-    champPortions.value = convertirNombreEntier(recette.portions, 1) ?? "";
-    menuDifficulte.value = obtenirDifficulte(recette.difficulte);
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     champNom.focus();
@@ -1139,28 +1210,27 @@
       return;
     }
 
-    recettes.splice(indexRecette, 1);
+    const recettesProposees = recettes.filter(
+      (recetteActuelle) => recetteActuelle.id !== idRecette
+    );
+
+    if (!appliquerRecettes(recettesProposees)) {
+      return;
+    }
+
     recettesSelectionnees.delete(idRecette);
     mettreAJourResumeSelection();
-    const recetteSupprimee = enregistrerRecettes();
     afficherRecettes();
 
     if (idRecetteEnModification === idRecette) {
-      if (!recetteSupprimee) {
-        conserverBrouillonAvantReinitialisation();
-      }
-      revenirAuModeAjout(recetteSupprimee);
+      revenirAuModeAjout(true);
     }
 
     afficherMessage("Recette supprimée avec succès.", "succes");
   }
 
-  const recettes = chargerRecettes();
-  const recettesSelectionnees = new Set();
-  let prochainIdentifiant = 1;
-  let idRecetteEnModification = null;
-  let prochainIdentifiantIngredient = 1;
-  let temporisationSauvegardeBrouillon = null;
+  // Écouteurs d’événements et initialisation
+  recettes = chargerRecettes();
 
   const brouillon = chargerBrouillon();
 
@@ -1225,32 +1295,39 @@
         return;
       }
 
-      recette.nom = nom;
-      recette.categorie = categorie;
-      recette.ingredients = resultatIngredient.ingredients;
-      recette.preparation = preparation;
-      recette.cuisson = cuisson;
-      recette.notes = notes;
-      recette.conseils = conseils;
-      recette.tempsPreparation = resultatInformations.tempsPreparation;
-      recette.tempsCuisson = resultatInformations.tempsCuisson;
-      recette.portions = resultatInformations.portions;
-      recette.difficulte = resultatInformations.difficulte;
-      const recetteEnregistree = enregistrerRecettes();
-      afficherRecettes();
+      const recetteProposee = {
+        ...recette,
+        nom,
+        categorie,
+        ingredients: resultatIngredient.ingredients,
+        preparation,
+        cuisson,
+        notes,
+        conseils,
+        tempsPreparation: resultatInformations.tempsPreparation,
+        tempsCuisson: resultatInformations.tempsCuisson,
+        portions: resultatInformations.portions,
+        difficulte: resultatInformations.difficulte
+      };
+      const recettesProposees = recettes.map((recetteActuelle) =>
+        recetteActuelle.id === recetteProposee.id
+          ? recetteProposee
+          : recetteActuelle
+      );
 
-      if (!recetteEnregistree) {
-        conserverBrouillonAvantReinitialisation();
+      if (!appliquerRecettes(recettesProposees)) {
+        return;
       }
 
-      revenirAuModeAjout(recetteEnregistree);
+      afficherRecettes();
+      revenirAuModeAjout(true);
       afficherMessage("Recette modifiée avec succès.", "succes");
       champNom.focus();
       return;
     }
 
     const recette = {
-      id: `recette-${Date.now()}-${prochainIdentifiant}`,
+      id: creerIdentifiantRecette(),
       nom,
       categorie,
       ingredients: resultatIngredient.ingredients,
@@ -1265,16 +1342,14 @@
       difficulte: resultatInformations.difficulte
     };
 
-    prochainIdentifiant += 1;
-    recettes.push(recette);
-    const recetteEnregistree = enregistrerRecettes();
-    afficherRecettes();
+    const recettesProposees = [...recettes, recette];
 
-    if (!recetteEnregistree) {
-      conserverBrouillonAvantReinitialisation();
+    if (!appliquerRecettes(recettesProposees)) {
+      return;
     }
 
-    revenirAuModeAjout(recetteEnregistree);
+    afficherRecettes();
+    revenirAuModeAjout(true);
     afficherMessage("La recette a été ajoutée.", "succes");
 
     champNom.focus();

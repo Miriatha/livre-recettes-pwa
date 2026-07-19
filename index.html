@@ -8,14 +8,31 @@
     <script src="app.js" defer></script>
   </head>
   <body>
-    <main class="conteneur">
+    <div class="application">
+      <nav class="navigation-principale navigation-bureau" aria-label="Navigation principale">
+        <p class="titre-navigation">Mon livre de recettes</p>
+        <div class="liens-navigation">
+          <button class="bouton-navigation actif" type="button" data-vue="vue-recettes" aria-current="page">Recettes</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-menu">Menu</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-courses">Courses</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-plus">Plus</button>
+        </div>
+      </nav>
+
+      <main class="zone-principale">
+        <div class="conteneur">
       <header class="entete">
         <h1>Mon livre de recettes</h1>
         <p>Ajoutez vos recettes pour les retrouver pendant votre visite.</p>
       </header>
 
-      <section class="section" aria-labelledby="titre-ajout">
-        <h2 id="titre-ajout">Ajouter une recette</h2>
+      <p id="message-formulaire" class="message" aria-live="polite"></p>
+
+      <section id="vue-formulaire" class="section vue" aria-labelledby="titre-ajout" hidden>
+        <div class="entete-vue">
+          <h2 id="titre-ajout" tabindex="-1">Ajouter une recette</h2>
+          <button id="retour-aux-recettes" class="bouton-retour" type="button">Retour aux recettes</button>
+        </div>
 
         <form id="formulaire-recette">
           <div class="champ-formulaire">
@@ -167,11 +184,13 @@
           </div>
         </form>
 
-        <p id="message-formulaire" class="message" aria-live="polite"></p>
       </section>
 
-      <section class="section" aria-labelledby="titre-recettes">
-        <h2 id="titre-recettes">Mes recettes</h2>
+      <section id="vue-recettes" class="section vue" aria-labelledby="titre-recettes">
+        <div class="entete-vue">
+          <h2 id="titre-recettes" tabindex="-1">Mes recettes</h2>
+          <button id="nouvelle-recette" type="button">Nouvelle recette</button>
+        </div>
         <div class="filtre-categorie">
           <label for="filtre-categorie">Filtrer par catégorie</label>
           <select id="filtre-categorie">
@@ -194,17 +213,13 @@
             Afficher uniquement les favoris
           </label>
         </div>
-        <div class="zone-selection-recettes">
-          <p id="resume-selection-recettes" class="resume-selection-recettes" aria-live="polite">Aucune recette sélectionnée.</p>
-          <button id="generer-liste-courses" class="bouton-generer-liste-courses" type="button">Générer la liste de courses</button>
-        </div>
         <div id="liste-recettes" class="liste-recettes">
           <p class="aucune-recette">Aucune recette n’est encore enregistrée.</p>
         </div>
       </section>
 
-      <section class="section" aria-labelledby="titre-menu-semaine">
-        <h2 id="titre-menu-semaine">Menu de la semaine</h2>
+      <section id="vue-menu" class="section vue" aria-labelledby="titre-menu-semaine" hidden>
+        <h2 id="titre-menu-semaine" tabindex="-1">Menu de la semaine</h2>
         <p class="information-menu-semaine">
           Vos choix sont sauvegardés automatiquement sur cet appareil.
         </p>
@@ -218,8 +233,9 @@
         </button>
       </section>
 
-      <section class="section" aria-labelledby="titre-historique">
-        <h2 id="titre-historique">Historique des recettes cuisinées</h2>
+      <section id="vue-plus" class="section vue" aria-labelledby="titre-plus" hidden>
+        <h2 id="titre-plus" tabindex="-1">Plus</h2>
+        <h3 id="titre-historique">Historique des recettes cuisinées</h3>
         <form id="formulaire-historique" class="formulaire-historique" hidden>
           <p id="historique-recette-nom" class="historique-recette-nom"></p>
 
@@ -262,11 +278,26 @@
         </div>
       </section>
 
-      <section class="section" aria-labelledby="titre-liste-courses">
-        <h2 id="titre-liste-courses">Liste de courses</h2>
+      <section id="vue-courses" class="section vue" aria-labelledby="titre-liste-courses" hidden>
+        <h2 id="titre-liste-courses" tabindex="-1">Liste de courses</h2>
+        <div class="zone-selection-recettes">
+          <p id="resume-selection-recettes" class="resume-selection-recettes" aria-live="polite">Aucune recette sélectionnée.</p>
+          <button id="generer-liste-courses" class="bouton-generer-liste-courses" type="button">Générer la liste de courses</button>
+        </div>
         <div id="liste-courses" class="liste-courses" aria-live="polite"><p>Sélectionnez des recettes puis générez la liste de courses.</p></div>
       </section>
-    </main>
+        </div>
+      </main>
+
+      <nav class="navigation-principale navigation-mobile" aria-label="Navigation principale">
+        <div class="liens-navigation">
+          <button class="bouton-navigation actif" type="button" data-vue="vue-recettes" aria-current="page">Recettes</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-menu">Menu</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-courses">Courses</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-plus">Plus</button>
+        </div>
+      </nav>
+    </div>
     <div id="zone-impression" aria-hidden="true"></div>
   </body>
 </html>

@@ -19,6 +19,155 @@ body {
   margin: 0 auto;
 }
 
+.application {
+  min-height: 100vh;
+}
+
+.zone-principale {
+  min-width: 0;
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+}
+
+.navigation-bureau,
+.navigation-mobile {
+  display: none;
+}
+
+.navigation-principale {
+  color: #40563b;
+}
+
+.titre-navigation {
+  margin: 0 0 1.25rem;
+  color: #51654e;
+  font-weight: bold;
+}
+
+.liens-navigation {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.bouton-navigation {
+  min-height: 3rem;
+  border: 2px solid transparent;
+  background: #f7f1e5;
+  color: #40563b;
+  text-align: left;
+}
+
+.bouton-navigation:hover,
+.bouton-navigation:focus-visible {
+  background: #e8dfcc;
+}
+
+.bouton-navigation.actif {
+  border-color: #51654e;
+  background: #dfe8d8;
+  box-shadow: inset 0.3rem 0 #51654e;
+  font-weight: bold;
+}
+
+.vue[hidden] {
+  display: none;
+}
+
+.entete-vue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.entete-vue h2 {
+  margin-bottom: 0;
+}
+
+.bouton-retour {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-retour:hover,
+.bouton-retour:focus-visible {
+  background: #d2bfa1;
+}
+
+@media (max-width: 900px) {
+  .navigation-mobile {
+    position: fixed;
+    z-index: 10;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
+    border-top: 1px solid #dfd3bb;
+    background: #fffdf7;
+    box-shadow: 0 -0.25rem 0.8rem rgba(56, 66, 55, 0.12);
+  }
+
+  .navigation-mobile .liens-navigation {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+  }
+
+  .navigation-mobile .bouton-navigation {
+    width: auto;
+    min-height: 3.25rem;
+    padding: 0.4rem 0.25rem;
+    font-size: 0.75rem;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .navigation-mobile .bouton-navigation.actif {
+    box-shadow: inset 0 -0.25rem #51654e;
+  }
+
+  .grille-informations-pratiques,
+  .ligne-ingredient,
+  .menu-semaine {
+    grid-template-columns: 1fr;
+  }
+
+  .ligne-ingredient .bouton-supprimer-ingredient {
+    justify-self: stretch;
+  }
+}
+
+@media (min-width: 901px) {
+  body {
+    padding: 0;
+  }
+
+  .application {
+    display: grid;
+    grid-template-columns: 14.5rem minmax(0, 1fr);
+  }
+
+  .navigation-bureau {
+    position: sticky;
+    top: 0;
+    display: block;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 2rem 1.25rem;
+    border-right: 1px solid #dfd3bb;
+    background: #eee5d4;
+  }
+
+  .navigation-bureau .bouton-navigation {
+    width: 100%;
+  }
+
+  .zone-principale {
+    padding: 2rem;
+  }
+}
+
 .entete,
 .section {
   padding: 1.5rem;
@@ -694,7 +843,7 @@ button:focus-visible {
     color: #111;
   }
 
-  body.mode-impression > .conteneur {
+  body.mode-impression > .application {
     display: none !important;
   }
 

@@ -33,6 +33,15 @@
   const boutonAnnulerHistorique = document.getElementById("annuler-historique");
   const zoneListeHistorique = document.getElementById("liste-historique");
   const zoneImpression = document.getElementById("zone-impression");
+  const vueRecettes = document.getElementById("vue-recettes");
+  const vueFormulaire = document.getElementById("vue-formulaire");
+  const vueMenu = document.getElementById("vue-menu");
+  const vueCourses = document.getElementById("vue-courses");
+  const vuePlus = document.getElementById("vue-plus");
+  const boutonNouvelleRecette = document.getElementById("nouvelle-recette");
+  const boutonRetourAuxRecettes = document.getElementById(
+    "retour-aux-recettes"
+  );
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
@@ -46,6 +55,20 @@
   const menuDifficulte = document.getElementById("difficulte");
   const champNotes = document.getElementById("notes");
   const champConseils = document.getElementById("conseils");
+
+  const identifiantsVuesConnues = [
+    "vue-recettes",
+    "vue-formulaire",
+    "vue-menu",
+    "vue-courses",
+    "vue-plus"
+  ];
+  const destinationsNavigationPrincipale = [
+    "vue-recettes",
+    "vue-menu",
+    "vue-courses",
+    "vue-plus"
+  ];
 
   const elementsNecessaires = [
     ["#formulaire-recette", formulaire],
@@ -69,6 +92,13 @@
     ["#annuler-historique", boutonAnnulerHistorique],
     ["#liste-historique", zoneListeHistorique],
     ["#zone-impression", zoneImpression],
+    ["#vue-recettes", vueRecettes],
+    ["#vue-formulaire", vueFormulaire],
+    ["#vue-menu", vueMenu],
+    ["#vue-courses", vueCourses],
+    ["#vue-plus", vuePlus],
+    ["#nouvelle-recette", boutonNouvelleRecette],
+    ["#retour-aux-recettes", boutonRetourAuxRecettes],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#effacer-brouillon", boutonEffacerBrouillon],
@@ -88,6 +118,18 @@
     .map(([selecteur]) => selecteur);
 
   if (elementsManquants.length > 0) {
+    const identifiantsVuesManquants = identifiantsVuesConnues.filter(
+      (identifiantVue) => elementsManquants.includes(`#${identifiantVue}`)
+    );
+
+    if (identifiantsVuesManquants.length > 0) {
+      console.error(
+        `Application de recettes : conteneur(s) de vue manquant(s) : ${identifiantsVuesManquants.join(
+          ", "
+        )}.`
+      );
+    }
+
     console.error(
       `Application de recettes : élément(s) introuvable(s) dans la page : ${elementsManquants.join(
         ", "
@@ -95,6 +137,125 @@
     );
     return;
   }
+
+  const vues = new Map([
+    ["vue-recettes", vueRecettes],
+    ["vue-formulaire", vueFormulaire],
+    ["vue-menu", vueMenu],
+    ["vue-courses", vueCourses],
+    ["vue-plus", vuePlus]
+  ]);
+  const navigationsPrincipales = [
+    {
+      nom: "ordinateur",
+      element: document.querySelector(".navigation-bureau")
+    },
+    {
+      nom: "mobile",
+      element: document.querySelector(".navigation-mobile")
+    }
+  ];
+
+  function validerNavigationPrincipale(navigation) {
+    if (!navigation.element) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} est introuvable.`
+      );
+      return false;
+    }
+
+    const boutons = Array.from(navigation.element.querySelectorAll("button"));
+
+    if (boutons.length !== destinationsNavigationPrincipale.length) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} doit contenir exactement ${destinationsNavigationPrincipale.length} boutons.`
+      );
+      return false;
+    }
+
+    const boutonSansClasse = boutons.find(
+      (bouton) => !bouton.classList.contains("bouton-navigation")
+    );
+
+    if (boutonSansClasse) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} contient un bouton sans la classe bouton-navigation.`
+      );
+      return false;
+    }
+
+    const boutonSansType = boutons.find((bouton) => bouton.type !== "button");
+
+    if (boutonSansType) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} contient un bouton qui n’est pas de type button.`
+      );
+      return false;
+    }
+
+    const destinationAbsente = boutons.find(
+      (bouton) => !bouton.dataset.vue || bouton.dataset.vue.trim() === ""
+    );
+
+    if (destinationAbsente) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} contient un bouton sans valeur data-vue.`
+      );
+      return false;
+    }
+
+    const destinations = boutons.map((bouton) => bouton.dataset.vue);
+    const destinationInvalide = destinations.find(
+      (destination) =>
+        !destinationsNavigationPrincipale.includes(destination)
+    );
+
+    if (destinationInvalide) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} contient la valeur data-vue invalide : ${destinationInvalide}.`
+      );
+      return false;
+    }
+
+    const destinationDupliquee = destinations.find(
+      (destination, index) => destinations.indexOf(destination) !== index
+    );
+
+    if (destinationDupliquee) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} contient deux boutons pour ${destinationDupliquee}.`
+      );
+      return false;
+    }
+
+    const destinationManquante = destinationsNavigationPrincipale.find(
+      (destination) => !destinations.includes(destination)
+    );
+
+    if (destinationManquante) {
+      console.error(
+        `Application de recettes : la navigation ${navigation.nom} ne contient pas la destination ${destinationManquante}.`
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  const navigationEstValide = navigationsPrincipales.every(
+    validerNavigationPrincipale
+  );
+
+  if (!navigationEstValide) {
+    console.error(
+      "Application de recettes : la navigation des vues est incomplète ou invalide."
+    );
+    return;
+  }
+
+  const boutonsNavigation = navigationsPrincipales.flatMap((navigation) =>
+    Array.from(navigation.element.querySelectorAll(".bouton-navigation"))
+  );
 
   // Constantes et état interne
   const cleStockage = "livreRecettes.recettes";
@@ -169,6 +330,43 @@
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
     zoneMessage.className = `message ${type}`;
+  }
+
+  function afficherVue(nomVue, deplacerFocus = false) {
+    const vueDemandee = vues.get(nomVue);
+
+    if (!vueDemandee) {
+      console.error(
+        "Application de recettes : la vue demandée est inconnue."
+      );
+      return false;
+    }
+
+    vues.forEach((vue, identifiantVue) => {
+      vue.hidden = identifiantVue !== nomVue;
+    });
+
+    boutonsNavigation.forEach((bouton) => {
+      const estActive = bouton.dataset.vue === nomVue;
+
+      bouton.classList.toggle("actif", estActive);
+
+      if (estActive) {
+        bouton.setAttribute("aria-current", "page");
+      } else {
+        bouton.removeAttribute("aria-current");
+      }
+    });
+
+    if (deplacerFocus) {
+      const titre = vueDemandee.querySelector("h2[tabindex='-1']");
+
+      if (titre && typeof titre.focus === "function") {
+        titre.focus();
+      }
+    }
+
+    return true;
   }
 
   // Menu de la semaine
@@ -617,6 +815,7 @@
     champHistoriqueDate.value = obtenirDateLocaleAujourdhui();
     menuHistoriqueAppreciation.value = "";
     champHistoriqueNotes.value = "";
+    afficherVue("vue-plus");
     champHistoriqueDate.focus();
 
     if (typeof formulaireHistorique.scrollIntoView === "function") {
@@ -2260,6 +2459,7 @@
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
+    afficherVue("vue-formulaire");
     champNom.focus();
     afficherMessage("Modification de la recette en cours.", "succes");
     programmerSauvegardeBrouillon();
@@ -2354,6 +2554,21 @@
   afficherRecettes();
   afficherMenuSemaine();
   afficherHistorique();
+  afficherVue("vue-recettes");
+
+  boutonsNavigation.forEach((bouton) => {
+    bouton.addEventListener("click", () => {
+      afficherVue(bouton.dataset.vue, true);
+    });
+  });
+
+  boutonNouvelleRecette.addEventListener("click", () => {
+    afficherVue("vue-formulaire", true);
+  });
+
+  boutonRetourAuxRecettes.addEventListener("click", () => {
+    afficherVue("vue-recettes", true);
+  });
 
   formulaire.addEventListener("submit", (evenement) => {
     evenement.preventDefault();
@@ -2436,8 +2651,8 @@
       afficherMenuSemaine();
       afficherHistorique();
       revenirAuModeAjout(true);
+      afficherVue("vue-recettes");
       afficherMessage("Recette modifiée avec succès.", "succes");
-      champNom.focus();
       return;
     }
 
@@ -2466,15 +2681,14 @@
     afficherRecettes();
     afficherMenuSemaine();
     revenirAuModeAjout(true);
+    afficherVue("vue-recettes");
     afficherMessage("La recette a été ajoutée.", "succes");
-
-    champNom.focus();
   });
 
   boutonAnnuler.addEventListener("click", () => {
     revenirAuModeAjout(true);
+    afficherVue("vue-recettes");
     afficherMessage("Modification annulée.", "succes");
-    champNom.focus();
   });
 
   boutonAjouterIngredient.addEventListener("click", () => {

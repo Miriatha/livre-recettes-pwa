@@ -218,6 +218,50 @@
         </button>
       </section>
 
+      <section class="section" aria-labelledby="titre-historique">
+        <h2 id="titre-historique">Historique des recettes cuisinées</h2>
+        <form id="formulaire-historique" class="formulaire-historique" hidden>
+          <p id="historique-recette-nom" class="historique-recette-nom"></p>
+
+          <div class="champ-formulaire">
+            <label for="historique-date">Date</label>
+            <input id="historique-date" type="date" required>
+          </div>
+
+          <div class="champ-formulaire">
+            <label for="historique-appreciation">Appréciation</label>
+            <select id="historique-appreciation" required>
+              <option value="">Choisir une appréciation</option>
+              <option value="1">1 — Décevante</option>
+              <option value="2">2 — À améliorer</option>
+              <option value="3">3 — Correcte</option>
+              <option value="4">4 — Très bonne</option>
+              <option value="5">5 — Excellente</option>
+            </select>
+          </div>
+
+          <div class="champ-formulaire">
+            <label for="historique-notes">Notes</label>
+            <textarea
+              id="historique-notes"
+              placeholder="Résultat, modifications ou idées pour la prochaine fois…"
+            ></textarea>
+          </div>
+
+          <div class="actions-formulaire">
+            <button id="enregistrer-historique" type="submit">
+              Enregistrer dans l’historique
+            </button>
+            <button id="annuler-historique" class="bouton-annuler" type="button">
+              Annuler
+            </button>
+          </div>
+        </form>
+        <div id="liste-historique" class="liste-historique" aria-live="polite">
+          <p>Aucune recette cuisinée n’est encore enregistrée.</p>
+        </div>
+      </section>
+
       <section class="section" aria-labelledby="titre-liste-courses">
         <h2 id="titre-liste-courses">Liste de courses</h2>
         <div id="liste-courses" class="liste-courses" aria-live="polite"><p>Sélectionnez des recettes puis générez la liste de courses.</p></div>

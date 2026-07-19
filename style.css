@@ -271,6 +271,75 @@ button:focus-visible {
   background: #d2bfa1;
 }
 
+.formulaire-historique {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #c7b99f;
+  border-radius: 0.5rem;
+  background: #faf6ed;
+}
+
+.historique-recette-nom {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #dfd3bb;
+  color: #40563b;
+  font-weight: bold;
+}
+
+.liste-historique {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.liste-historique > p {
+  margin: 0;
+}
+
+.entree-historique {
+  padding: 0.9rem;
+  border-left: 0.3rem solid #8fa58a;
+  border-radius: 0.4rem;
+  background: #f7f1e5;
+}
+
+.entree-historique h3,
+.entree-historique p {
+  margin: 0;
+}
+
+.entree-historique h3 {
+  color: #51654e;
+  font-size: 1rem;
+}
+
+.entree-historique p + p {
+  margin-top: 0.45rem;
+}
+
+.notes-historique {
+  padding: 0.65rem 0.75rem;
+  border-left: 0.2rem solid #a9b89d;
+  background: #fffdf7;
+  white-space: pre-wrap;
+}
+
+.recette-historique-supprimee {
+  color: #6c6252;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.bouton-ajouter-historique {
+  background: #d5e0c9;
+  color: #344731;
+}
+
+.bouton-ajouter-historique:hover,
+.bouton-ajouter-historique:focus-visible {
+  background: #bdceb0;
+}
+
 .filtre-categorie {
   display: grid;
   gap: 0.4rem;
@@ -586,6 +655,10 @@ button:focus-visible {
 
   .menu-semaine {
     grid-template-columns: 1fr;
+  }
+
+  .formulaire-historique {
+    padding: 0.85rem;
   }
 
   .actions-adaptation-portions {

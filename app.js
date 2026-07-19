@@ -21,6 +21,17 @@
   const boutonEffacerMenuSemaine = document.getElementById(
     "effacer-menu-semaine"
   );
+  const formulaireHistorique = document.getElementById("formulaire-historique");
+  const historiqueRecetteNom = document.getElementById(
+    "historique-recette-nom"
+  );
+  const champHistoriqueDate = document.getElementById("historique-date");
+  const menuHistoriqueAppreciation = document.getElementById(
+    "historique-appreciation"
+  );
+  const champHistoriqueNotes = document.getElementById("historique-notes");
+  const boutonAnnulerHistorique = document.getElementById("annuler-historique");
+  const zoneListeHistorique = document.getElementById("liste-historique");
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
@@ -49,6 +60,13 @@
     ["#liste-courses", zoneListeCourses],
     ["#menu-semaine", zoneMenuSemaine],
     ["#effacer-menu-semaine", boutonEffacerMenuSemaine],
+    ["#formulaire-historique", formulaireHistorique],
+    ["#historique-recette-nom", historiqueRecetteNom],
+    ["#historique-date", champHistoriqueDate],
+    ["#historique-appreciation", menuHistoriqueAppreciation],
+    ["#historique-notes", champHistoriqueNotes],
+    ["#annuler-historique", boutonAnnulerHistorique],
+    ["#liste-historique", zoneListeHistorique],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#effacer-brouillon", boutonEffacerBrouillon],
@@ -80,6 +98,7 @@
   const cleStockage = "livreRecettes.recettes";
   const cleStockageBrouillon = "livreRecettes.brouillon";
   const cleStockageMenuSemaine = "livreRecettes.menuSemaine";
+  const cleStockageHistorique = "livreRecettes.historique";
   const difficultes = ["Facile", "Moyenne", "Difficile"];
   const joursSemaine = [
     { cle: "lundi", libelle: "Lundi" },
@@ -132,11 +151,14 @@
 
   let recettes = [];
   let menuSemaine = creerMenuSemaineVide();
+  let historique = [];
   const recettesSelectionnees = new Set();
   const portionsSouhaitees = new Map();
   let prochainIdentifiant = 1;
   let idRecetteEnModification = null;
   let prochainIdentifiantIngredient = 1;
+  let prochainIdentifiantHistorique = 1;
+  let idRecetteHistorique = null;
   let temporisationSauvegardeBrouillon = null;
 
   // Fonctions génériques
@@ -399,6 +421,286 @@
     afficherMessage("Menu de la semaine effacé.", "succes");
   }
 
+  // Historique des recettes cuisinées
+  function obtenirDateLocaleAujourdhui() {
+    const date = new Date();
+    const annee = date.getFullYear();
+    const mois = String(date.getMonth() + 1).padStart(2, "0");
+    const jour = String(date.getDate()).padStart(2, "0");
+
+    return `${annee}-${mois}-${jour}`;
+  }
+
+  function dateHistoriqueEstValide(date) {
+    if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return false;
+    }
+
+    const [annee, mois, jour] = date.split("-").map(Number);
+    const dateVerifiee = new Date(annee, mois - 1, jour);
+
+    return (
+      dateVerifiee.getFullYear() === annee &&
+      dateVerifiee.getMonth() === mois - 1 &&
+      dateVerifiee.getDate() === jour
+    );
+  }
+
+  function appreciationHistoriqueEstValide(appreciation) {
+    return (
+      typeof appreciation === "number" &&
+      Number.isInteger(appreciation) &&
+      appreciation >= 1 &&
+      appreciation <= 5
+    );
+  }
+
+  function dateHeureHistoriqueEstValide(dateHeure) {
+    return (
+      typeof dateHeure === "string" &&
+      dateHeure.trim() !== "" &&
+      Number.isFinite(Date.parse(dateHeure))
+    );
+  }
+
+  function creerIdentifiantHistorique(identifiantsUtilises) {
+    let identifiant;
+
+    do {
+      identifiant = `historique-${Date.now()}-${prochainIdentifiantHistorique}`;
+      prochainIdentifiantHistorique += 1;
+    } while (identifiantsUtilises.has(identifiant));
+
+    return identifiant;
+  }
+
+  function entreeHistoriqueEstExploitable(entree) {
+    return (
+      entree &&
+      typeof entree === "object" &&
+      !Array.isArray(entree) &&
+      dateHistoriqueEstValide(entree.date) &&
+      appreciationHistoriqueEstValide(entree.appreciation)
+    );
+  }
+
+  function obtenirTexteHistorique(texte) {
+    return typeof texte === "string" ? texte : "";
+  }
+
+  function chargerHistorique() {
+    let donneesEnregistrees;
+
+    try {
+      donneesEnregistrees = localStorage.getItem(cleStockageHistorique);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : l’historique enregistré est inaccessible. Un historique vide est utilisé."
+      );
+      return [];
+    }
+
+    if (donneesEnregistrees === null) {
+      return [];
+    }
+
+    let donneesAnalysees;
+
+    try {
+      donneesAnalysees = JSON.parse(donneesEnregistrees);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : l’historique enregistré est illisible. Un historique vide est utilisé."
+      );
+      return [];
+    }
+
+    if (!Array.isArray(donneesAnalysees)) {
+      console.warn(
+        "Application de recettes : l’historique enregistré ne forme pas une liste. Un historique vide est utilisé."
+      );
+      return [];
+    }
+
+    const identifiantsUtilises = new Set();
+    let nombreEntreesIgnorees = 0;
+    let nombreIdentifiantsRepares = 0;
+    const entreesValides = donneesAnalysees.reduce((entrees, entree) => {
+      if (!entreeHistoriqueEstExploitable(entree)) {
+        nombreEntreesIgnorees += 1;
+        return entrees;
+      }
+
+      let identifiant = entree.id;
+
+      if (
+        !identifiantRecetteEstValide(identifiant) ||
+        identifiantsUtilises.has(identifiant)
+      ) {
+        identifiant = creerIdentifiantHistorique(identifiantsUtilises);
+        nombreIdentifiantsRepares += 1;
+      }
+
+      identifiantsUtilises.add(identifiant);
+      entrees.push({
+        id: identifiant,
+        recetteId: identifiantRecetteEstValide(entree.recetteId)
+          ? entree.recetteId
+          : "",
+        recetteNom: obtenirTexteHistorique(entree.recetteNom),
+        recetteCategorie: obtenirTexteHistorique(entree.recetteCategorie),
+        date: entree.date,
+        appreciation: entree.appreciation,
+        notes: obtenirTexteHistorique(entree.notes),
+        creeLe: dateHeureHistoriqueEstValide(entree.creeLe)
+          ? entree.creeLe
+          : `${entree.date}T00:00:00.000Z`
+      });
+
+      return entrees;
+    }, []);
+
+    if (nombreEntreesIgnorees > 0) {
+      console.warn(
+        `Application de recettes : ${nombreEntreesIgnorees} entrée(s) d’historique invalide(s) ont été ignorée(s).`
+      );
+    }
+
+    if (nombreIdentifiantsRepares > 0) {
+      console.warn(
+        `Application de recettes : ${nombreIdentifiantsRepares} identifiant(s) d’historique ont été réparé(s).`
+      );
+    }
+
+    return entreesValides;
+  }
+
+  function enregistrerHistorique(historiqueAEnregistrer) {
+    try {
+      localStorage.setItem(
+        cleStockageHistorique,
+        JSON.stringify(historiqueAEnregistrer)
+      );
+      return true;
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : l’historique n’a pas pu être sauvegardé localement."
+      );
+      return false;
+    }
+  }
+
+  function fermerFormulaireHistorique() {
+    formulaireHistorique.reset();
+    formulaireHistorique.hidden = true;
+    historiqueRecetteNom.textContent = "";
+    idRecetteHistorique = null;
+  }
+
+  function ouvrirFormulaireHistorique(idRecette) {
+    const recette = recettes.find((recetteActuelle) => recetteActuelle.id === idRecette);
+
+    if (!recette) {
+      console.error(
+        "Application de recettes : la recette à ajouter à l’historique est introuvable."
+      );
+      return;
+    }
+
+    idRecetteHistorique = recette.id;
+    formulaireHistorique.hidden = false;
+    historiqueRecetteNom.textContent = `Recette sélectionnée : ${recette.nom}`;
+    champHistoriqueDate.value = obtenirDateLocaleAujourdhui();
+    menuHistoriqueAppreciation.value = "";
+    champHistoriqueNotes.value = "";
+    champHistoriqueDate.focus();
+
+    if (typeof formulaireHistorique.scrollIntoView === "function") {
+      formulaireHistorique.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
+  function formaterDateHistorique(date) {
+    const [annee, mois, jour] = date.split("-").map(Number);
+
+    return new Date(annee, mois - 1, jour).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+  }
+
+  function afficherHistorique() {
+    zoneListeHistorique.textContent = "";
+
+    if (historique.length === 0) {
+      const messageVide = document.createElement("p");
+
+      messageVide.textContent = "Aucune recette cuisinée n’est encore enregistrée.";
+      zoneListeHistorique.append(messageVide);
+      return;
+    }
+
+    const entreesTriees = [...historique].sort((entreeA, entreeB) => {
+      const comparaisonDate = entreeB.date.localeCompare(entreeA.date);
+
+      if (comparaisonDate !== 0) {
+        return comparaisonDate;
+      }
+
+      return Date.parse(entreeB.creeLe) - Date.parse(entreeA.creeLe);
+    });
+
+    entreesTriees.forEach((entree) => {
+      const carte = document.createElement("article");
+      const titre = document.createElement("h3");
+      const recetteActuelle = recettes.find(
+        (recette) => recette.id === entree.recetteId
+      );
+      const nom = recetteActuelle
+        ? obtenirTexteHistorique(recetteActuelle.nom) || "Recette sans nom"
+        : obtenirTexteHistorique(entree.recetteNom) || "Recette sans nom";
+      const categorie = recetteActuelle
+        ? obtenirTexteHistorique(recetteActuelle.categorie)
+        : obtenirTexteHistorique(entree.recetteCategorie);
+      const date = document.createElement("p");
+      const appreciation = document.createElement("p");
+
+      carte.className = "entree-historique";
+      titre.textContent = nom;
+      date.textContent = `Préparée le ${formaterDateHistorique(entree.date)}`;
+      appreciation.textContent = `Appréciation : ${entree.appreciation}/5`;
+      carte.append(titre);
+
+      if (categorie) {
+        const texteCategorie = document.createElement("p");
+
+        texteCategorie.textContent = `Catégorie : ${categorie}`;
+        carte.append(texteCategorie);
+      }
+
+      carte.append(date, appreciation);
+
+      if (entree.notes) {
+        const notes = document.createElement("p");
+
+        notes.className = "notes-historique";
+        notes.textContent = entree.notes;
+        carte.append(notes);
+      }
+
+      if (!recetteActuelle) {
+        const recetteSupprimee = document.createElement("p");
+
+        recetteSupprimee.className = "recette-historique-supprimee";
+        recetteSupprimee.textContent = "Recette supprimée du livre";
+        carte.append(recetteSupprimee);
+      }
+
+      zoneListeHistorique.append(carte);
+    });
+  }
+
   // Affichage des recettes, filtres et sélection
   function mettreAJourResumeSelection() {
     const identifiantsRecettes = new Set(recettes.map((recette) => recette.id));
@@ -472,6 +774,7 @@
       const libelleSelection = document.createElement("label");
       const actions = document.createElement("div");
       const boutonFavori = document.createElement("button");
+      const boutonAjouterHistorique = document.createElement("button");
       const boutonModifier = document.createElement("button");
       const boutonSuppression = document.createElement("button");
 
@@ -510,6 +813,10 @@
       boutonFavori.textContent = estFavorite
         ? "Retirer des favoris"
         : "Ajouter aux favoris";
+      boutonAjouterHistorique.type = "button";
+      boutonAjouterHistorique.className = "bouton-ajouter-historique";
+      boutonAjouterHistorique.dataset.recetteId = recette.id;
+      boutonAjouterHistorique.textContent = "Ajouter à l’historique";
       boutonModifier.type = "button";
       boutonModifier.className = "bouton-modifier";
       boutonModifier.dataset.recetteId = recette.id;
@@ -528,6 +835,10 @@
 
       boutonFavori.addEventListener("click", () => {
         basculerFavori(boutonFavori.dataset.recetteId);
+      });
+
+      boutonAjouterHistorique.addEventListener("click", () => {
+        ouvrirFormulaireHistorique(boutonAjouterHistorique.dataset.recetteId);
       });
 
       boutonModifier.addEventListener("click", () => {
@@ -563,7 +874,12 @@
         mettreAJourResumeSelection();
       });
 
-      actions.append(boutonFavori, boutonModifier, boutonSuppression);
+      actions.append(
+        boutonFavori,
+        boutonAjouterHistorique,
+        boutonModifier,
+        boutonSuppression
+      );
       selection.append(caseSelection, libelleSelection);
       carte.append(nom, categorie, selection);
 
@@ -1787,9 +2103,18 @@
     mettreAJourResumeSelection();
     afficherRecettes();
     afficherMenuSemaine();
+    afficherHistorique();
+
+    const formulaireHistoriqueOuvert = idRecetteHistorique === idRecette;
 
     if (idRecetteEnModification === idRecette) {
       revenirAuModeAjout(true);
+    }
+
+    if (formulaireHistoriqueOuvert) {
+      fermerFormulaireHistorique();
+      afficherMessage("La recette sélectionnée n’existe plus.", "erreur");
+      return;
     }
 
     afficherMessage("Recette supprimée avec succès.", "succes");
@@ -1798,6 +2123,7 @@
   // Écouteurs d’événements et initialisation
   recettes = chargerRecettes();
   menuSemaine = nettoyerMenuSemaine(chargerMenuSemaine(), recettes);
+  historique = chargerHistorique();
 
   const brouillon = chargerBrouillon();
 
@@ -1810,6 +2136,7 @@
   mettreAJourResumeSelection();
   afficherRecettes();
   afficherMenuSemaine();
+  afficherHistorique();
 
   formulaire.addEventListener("submit", (evenement) => {
     evenement.preventDefault();
@@ -1890,6 +2217,7 @@
       portionsSouhaitees.delete(recetteProposee.id);
       afficherRecettes();
       afficherMenuSemaine();
+      afficherHistorique();
       revenirAuModeAjout(true);
       afficherMessage("Recette modifiée avec succès.", "succes");
       champNom.focus();
@@ -1968,6 +2296,66 @@
 
   boutonEffacerMenuSemaine.addEventListener("click", () => {
     effacerMenuSemaine();
+  });
+
+  formulaireHistorique.addEventListener("submit", (evenement) => {
+    evenement.preventDefault();
+
+    const recette = recettes.find(
+      (recetteActuelle) => recetteActuelle.id === idRecetteHistorique
+    );
+    const date = champHistoriqueDate.value;
+    const appreciation = Number(menuHistoriqueAppreciation.value);
+    const notes = champHistoriqueNotes.value.trim();
+
+    if (!recette) {
+      fermerFormulaireHistorique();
+      afficherMessage("La recette sélectionnée n’existe plus.", "erreur");
+      return;
+    }
+
+    if (!dateHistoriqueEstValide(date)) {
+      afficherMessage("Veuillez indiquer une date valide.", "erreur");
+      return;
+    }
+
+    if (!appreciationHistoriqueEstValide(appreciation)) {
+      afficherMessage("Veuillez choisir une appréciation entre 1 et 5.", "erreur");
+      return;
+    }
+
+    const identifiantsUtilises = new Set(
+      historique.map((entree) => entree.id)
+    );
+    const entree = {
+      id: creerIdentifiantHistorique(identifiantsUtilises),
+      recetteId: recette.id,
+      recetteNom: recette.nom,
+      recetteCategorie: recette.categorie,
+      date,
+      appreciation,
+      notes,
+      creeLe: new Date().toISOString()
+    };
+    const historiquePropose = [...historique, entree];
+
+    if (!enregistrerHistorique(historiquePropose)) {
+      afficherMessage(
+        "Impossible d’enregistrer l’historique sur cet appareil.",
+        "erreur"
+      );
+      return;
+    }
+
+    historique = historiquePropose;
+    fermerFormulaireHistorique();
+    afficherHistorique();
+    afficherMessage("Recette ajoutée à l’historique.", "succes");
+  });
+
+  boutonAnnulerHistorique.addEventListener("click", () => {
+    fermerFormulaireHistorique();
+    afficherMessage("Ajout à l’historique annulé.", "succes");
   });
 
   filtreCategorie.addEventListener("change", () => {

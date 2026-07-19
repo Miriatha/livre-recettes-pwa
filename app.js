@@ -17,6 +17,10 @@
     "generer-liste-courses"
   );
   const zoneListeCourses = document.getElementById("liste-courses");
+  const zoneMenuSemaine = document.getElementById("menu-semaine");
+  const boutonEffacerMenuSemaine = document.getElementById(
+    "effacer-menu-semaine"
+  );
   const boutonPrincipal = document.getElementById("bouton-enregistrer");
   const boutonAnnuler = document.getElementById("bouton-annuler-modification");
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
@@ -43,6 +47,8 @@
     ["#resume-selection-recettes", resumeSelectionRecettes],
     ["#generer-liste-courses", boutonGenererListeCourses],
     ["#liste-courses", zoneListeCourses],
+    ["#menu-semaine", zoneMenuSemaine],
+    ["#effacer-menu-semaine", boutonEffacerMenuSemaine],
     ["#bouton-enregistrer", boutonPrincipal],
     ["#bouton-annuler-modification", boutonAnnuler],
     ["#effacer-brouillon", boutonEffacerBrouillon],
@@ -73,7 +79,21 @@
   // Constantes et état interne
   const cleStockage = "livreRecettes.recettes";
   const cleStockageBrouillon = "livreRecettes.brouillon";
+  const cleStockageMenuSemaine = "livreRecettes.menuSemaine";
   const difficultes = ["Facile", "Moyenne", "Difficile"];
+  const joursSemaine = [
+    { cle: "lundi", libelle: "Lundi" },
+    { cle: "mardi", libelle: "Mardi" },
+    { cle: "mercredi", libelle: "Mercredi" },
+    { cle: "jeudi", libelle: "Jeudi" },
+    { cle: "vendredi", libelle: "Vendredi" },
+    { cle: "samedi", libelle: "Samedi" },
+    { cle: "dimanche", libelle: "Dimanche" }
+  ];
+  const repasSemaine = [
+    { cle: "midi", libelle: "Midi" },
+    { cle: "soir", libelle: "Soir" }
+  ];
   const unitesIngredient = [
     "mg",
     "g",
@@ -111,6 +131,7 @@
   };
 
   let recettes = [];
+  let menuSemaine = creerMenuSemaineVide();
   const recettesSelectionnees = new Set();
   const portionsSouhaitees = new Map();
   let prochainIdentifiant = 1;
@@ -122,6 +143,260 @@
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
     zoneMessage.className = `message ${type}`;
+  }
+
+  // Menu de la semaine
+  function creerMenuSemaineVide() {
+    const menu = { version: 1 };
+
+    joursSemaine.forEach((jour) => {
+      menu[jour.cle] = { midi: null, soir: null };
+    });
+
+    return menu;
+  }
+
+  function emplacementMenuSemaineEstValide(identifiant) {
+    return identifiant === null || identifiantRecetteEstValide(identifiant);
+  }
+
+  function menuSemaineEstValide(menu) {
+    return (
+      menu &&
+      typeof menu === "object" &&
+      !Array.isArray(menu) &&
+      menu.version === 1 &&
+      joursSemaine.every((jour) => {
+        const repasDuJour = menu[jour.cle];
+
+        return (
+          repasDuJour &&
+          typeof repasDuJour === "object" &&
+          !Array.isArray(repasDuJour) &&
+          repasSemaine.every((repas) =>
+            emplacementMenuSemaineEstValide(repasDuJour[repas.cle])
+          )
+        );
+      })
+    );
+  }
+
+  function copierMenuSemaine(menu) {
+    const copie = creerMenuSemaineVide();
+
+    joursSemaine.forEach((jour) => {
+      repasSemaine.forEach((repas) => {
+        copie[jour.cle][repas.cle] = menu[jour.cle][repas.cle];
+      });
+    });
+
+    return copie;
+  }
+
+  function chargerMenuSemaine() {
+    let donneesEnregistrees;
+
+    try {
+      donneesEnregistrees = localStorage.getItem(cleStockageMenuSemaine);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le menu de la semaine enregistré est inaccessible. Un menu vide est utilisé."
+      );
+      return creerMenuSemaineVide();
+    }
+
+    if (donneesEnregistrees === null) {
+      return creerMenuSemaineVide();
+    }
+
+    let menu;
+
+    try {
+      menu = JSON.parse(donneesEnregistrees);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le menu de la semaine enregistré est illisible. Un menu vide est utilisé."
+      );
+      return creerMenuSemaineVide();
+    }
+
+    if (!menuSemaineEstValide(menu)) {
+      console.warn(
+        "Application de recettes : le menu de la semaine enregistré est invalide. Un menu vide est utilisé."
+      );
+      return creerMenuSemaineVide();
+    }
+
+    return copierMenuSemaine(menu);
+  }
+
+  function enregistrerMenuSemaine(menuAEnregistrer) {
+    try {
+      localStorage.setItem(
+        cleStockageMenuSemaine,
+        JSON.stringify(menuAEnregistrer)
+      );
+      return true;
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : le menu de la semaine n’a pas pu être sauvegardé localement."
+      );
+      return false;
+    }
+  }
+
+  function menuSemaineEstIdentique(menuA, menuB) {
+    return joursSemaine.every((jour) =>
+      repasSemaine.every(
+        (repas) =>
+          menuA[jour.cle][repas.cle] === menuB[jour.cle][repas.cle]
+      )
+    );
+  }
+
+  function nettoyerMenuSemaine(menu, recettesDisponibles) {
+    const recettesParIdentifiant = new Set(
+      recettesDisponibles.map((recette) => recette.id)
+    );
+    const menuNettoye = creerMenuSemaineVide();
+
+    joursSemaine.forEach((jour) => {
+      repasSemaine.forEach((repas) => {
+        const identifiant = menu[jour.cle][repas.cle];
+
+        menuNettoye[jour.cle][repas.cle] = recettesParIdentifiant.has(
+          identifiant
+        )
+          ? identifiant
+          : null;
+      });
+    });
+
+    return menuNettoye;
+  }
+
+  function obtenirLibelleRecettePourMenu(recette) {
+    const nom =
+      typeof recette.nom === "string" && recette.nom.trim()
+        ? recette.nom.trim()
+        : "Recette sans nom";
+    const categorie =
+      typeof recette.categorie === "string" && recette.categorie.trim()
+        ? recette.categorie.trim()
+        : "Catégorie non renseignée";
+
+    return `${nom} — ${categorie}`;
+  }
+
+  function modifierEmplacementMenuSemaine(jour, repas, identifiant) {
+    const menuPropose = copierMenuSemaine(menuSemaine);
+    const valeurPrecedente = menuSemaine[jour][repas];
+
+    menuPropose[jour][repas] = identifiant;
+
+    if (!enregistrerMenuSemaine(menuPropose)) {
+      afficherMessage(
+        "Impossible d’enregistrer le menu sur cet appareil. Le changement n’a pas été appliqué.",
+        "erreur"
+      );
+      return false;
+    }
+
+    menuSemaine = menuPropose;
+    return valeurPrecedente !== identifiant;
+  }
+
+  function creerSelecteurRepasMenu(jour, repas) {
+    const groupe = document.createElement("div");
+    const libelle = document.createElement("label");
+    const menu = document.createElement("select");
+    const optionVide = document.createElement("option");
+
+    groupe.className = "repas-menu-semaine";
+    menu.id = `menu-semaine-${jour.cle}-${repas.cle}`;
+    menu.dataset.jour = jour.cle;
+    menu.dataset.repas = repas.cle;
+    libelle.htmlFor = menu.id;
+    libelle.textContent = repas.libelle;
+    optionVide.value = "";
+    optionVide.textContent = "Aucune recette";
+    menu.append(optionVide);
+
+    recettes.forEach((recette) => {
+      const option = document.createElement("option");
+
+      option.value = recette.id;
+      option.textContent = obtenirLibelleRecettePourMenu(recette);
+      menu.append(option);
+    });
+
+    menu.value = menuSemaine[jour.cle][repas.cle] || "";
+    menu.addEventListener("change", () => {
+      const identifiant = menu.value || null;
+      const recetteExiste =
+        identifiant === null ||
+        recettes.some((recette) => recette.id === identifiant);
+
+      if (!recetteExiste) {
+        menu.value = menuSemaine[jour.cle][repas.cle] || "";
+        return;
+      }
+
+      const changementApplique = modifierEmplacementMenuSemaine(
+        jour.cle,
+        repas.cle,
+        identifiant
+      );
+
+      if (!changementApplique) {
+        menu.value = menuSemaine[jour.cle][repas.cle] || "";
+        return;
+      }
+
+      afficherMessage("Menu de la semaine mis à jour.", "succes");
+    });
+
+    groupe.append(libelle, menu);
+    return groupe;
+  }
+
+  function afficherMenuSemaine() {
+    zoneMenuSemaine.textContent = "";
+
+    joursSemaine.forEach((jour) => {
+      const blocJour = document.createElement("section");
+      const titreJour = document.createElement("h3");
+
+      blocJour.className = "jour-menu-semaine";
+      titreJour.textContent = jour.libelle;
+      blocJour.append(titreJour);
+
+      repasSemaine.forEach((repas) => {
+        blocJour.append(creerSelecteurRepasMenu(jour, repas));
+      });
+
+      zoneMenuSemaine.append(blocJour);
+    });
+  }
+
+  function effacerMenuSemaine() {
+    if (!window.confirm("Effacer tous les repas du menu de la semaine ?")) {
+      return;
+    }
+
+    const menuVide = creerMenuSemaineVide();
+
+    if (!enregistrerMenuSemaine(menuVide)) {
+      afficherMessage(
+        "Impossible d’enregistrer le menu sur cet appareil. Le changement n’a pas été appliqué.",
+        "erreur"
+      );
+      return;
+    }
+
+    menuSemaine = menuVide;
+    afficherMenuSemaine();
+    afficherMessage("Menu de la semaine effacé.", "succes");
   }
 
   // Affichage des recettes, filtres et sélection
@@ -1497,8 +1772,21 @@
 
     portionsSouhaitees.delete(idRecette);
     recettesSelectionnees.delete(idRecette);
+    const menuNettoye = nettoyerMenuSemaine(menuSemaine, recettesProposees);
+
+    if (!menuSemaineEstIdentique(menuSemaine, menuNettoye)) {
+      menuSemaine = menuNettoye;
+
+      if (!enregistrerMenuSemaine(menuSemaine)) {
+        console.warn(
+          "Application de recettes : le menu de la semaine nettoyé après la suppression n’a pas pu être sauvegardé."
+        );
+      }
+    }
+
     mettreAJourResumeSelection();
     afficherRecettes();
+    afficherMenuSemaine();
 
     if (idRecetteEnModification === idRecette) {
       revenirAuModeAjout(true);
@@ -1509,6 +1797,7 @@
 
   // Écouteurs d’événements et initialisation
   recettes = chargerRecettes();
+  menuSemaine = nettoyerMenuSemaine(chargerMenuSemaine(), recettes);
 
   const brouillon = chargerBrouillon();
 
@@ -1520,6 +1809,7 @@
 
   mettreAJourResumeSelection();
   afficherRecettes();
+  afficherMenuSemaine();
 
   formulaire.addEventListener("submit", (evenement) => {
     evenement.preventDefault();
@@ -1599,6 +1889,7 @@
 
       portionsSouhaitees.delete(recetteProposee.id);
       afficherRecettes();
+      afficherMenuSemaine();
       revenirAuModeAjout(true);
       afficherMessage("Recette modifiée avec succès.", "succes");
       champNom.focus();
@@ -1628,6 +1919,7 @@
     }
 
     afficherRecettes();
+    afficherMenuSemaine();
     revenirAuModeAjout(true);
     afficherMessage("La recette a été ajoutée.", "succes");
 
@@ -1672,6 +1964,10 @@
 
   boutonGenererListeCourses.addEventListener("click", () => {
     genererListeCourses();
+  });
+
+  boutonEffacerMenuSemaine.addEventListener("click", () => {
+    effacerMenuSemaine();
   });
 
   filtreCategorie.addEventListener("change", () => {

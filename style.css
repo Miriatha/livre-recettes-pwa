@@ -1801,13 +1801,458 @@ body.selecteur-recette-menu-ouvert {
   }
 }
 
+.reprise-cuisine-guidee {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 2px solid #8fa58a;
+  border-radius: 0.6rem;
+  background: #edf3e9;
+}
+
+.reprise-cuisine-guidee[hidden] {
+  display: none;
+}
+
+.reprise-cuisine-guidee p {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-weight: bold;
+}
+
+.actions-reprise-cuisine-guidee,
+.actions-rapides-emplacement-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions-rapides-emplacement-menu {
+  justify-content: space-between;
+}
+
+.bouton-lancer-recette-menu {
+  width: auto;
+  min-width: 5.5rem;
+}
+
+.actions-fiche-recette-principales .bouton-lancer-recette {
+  grid-column: 1 / -1;
+  min-height: 3.25rem;
+  font-size: 1.05rem;
+}
+
+.information-cuisine-guidee-indisponible {
+  margin: 0;
+  padding: 0.75rem;
+  border-left: 0.25rem solid #c7b99f;
+  background: #faf6ed;
+}
+
+.bouton-secondaire {
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.bouton-secondaire:hover,
+.bouton-secondaire:focus-visible {
+  background: #d2bfa1;
+}
+
+.bouton-danger {
+  background: #a94f43;
+  color: #fff;
+}
+
+.bouton-danger:hover,
+.bouton-danger:focus-visible {
+  background: #873a31;
+}
+
+body.cuisine-guidee-ouverte {
+  overflow: hidden;
+}
+
+#cuisine-guidee-dialogue {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+}
+
+#cuisine-guidee-dialogue:not([open]),
+#quitter-cuisine-guidee-dialogue:not([open]) {
+  display: none;
+}
+
+#cuisine-guidee-dialogue[open] {
+  display: grid;
+  place-items: center;
+}
+
+#cuisine-guidee-dialogue::backdrop,
+#quitter-cuisine-guidee-dialogue::backdrop {
+  background: rgba(39, 47, 38, 0.7);
+}
+
+#cuisine-guidee-panneau {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 62rem);
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #c7b99f;
+  border-radius: 0.75rem;
+  background: #fffdf7;
+  box-shadow: 0 0.5rem 1.5rem rgba(39, 47, 38, 0.3);
+}
+
+.entete-cuisine-guidee {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #dfd3bb;
+  background: #faf6ed;
+}
+
+.entete-cuisine-guidee h2,
+.entete-cuisine-guidee p {
+  margin: 0;
+}
+
+.entete-cuisine-guidee #quitter-cuisine-guidee {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.entete-cuisine-guidee h2 {
+  overflow-wrap: anywhere;
+}
+
+.entete-cuisine-guidee p {
+  margin-top: 0.25rem;
+  color: #5c6758;
+  font-weight: bold;
+}
+
+.minuteur-cuisine-guidee-permanent {
+  flex: 0 0 auto;
+  padding: 0.7rem 1.25rem;
+  border-bottom: 1px solid #d5b77b;
+  background: #fff2c9;
+  color: #4a4034;
+  text-align: center;
+}
+
+.minuteur-cuisine-guidee-permanent.minuteur-termine {
+  border-color: #a94f43;
+  background: #f8ddd8;
+  color: #713128;
+}
+
+.cuisine-guidee-contenu {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.etape-cuisine-guidee {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: min(100%, 48rem);
+  margin: auto;
+}
+
+.progression-cuisine-guidee {
+  margin: 0;
+  color: #5c6758;
+  font-size: 1.05rem;
+  font-weight: bold;
+}
+
+.type-cuisine-guidee {
+  display: inline-block;
+  margin: 0.65rem 0 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #dfe8d8;
+  color: #344731;
+  font-weight: bold;
+}
+
+#instruction-cuisine-guidee {
+  margin: 1.25rem 0;
+  color: #283526;
+  font-size: clamp(1.55rem, 4vw, 2.35rem);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.duree-cuisine-guidee {
+  margin: 0 0 1rem;
+  color: #4a4034;
+  font-size: 1.15rem;
+  font-weight: bold;
+}
+
+.commandes-minuteur-cuisine-guidee {
+  display: grid;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+.bouton-lancer-minuteur-cuisine-guidee {
+  width: 100%;
+  min-height: 3.5rem;
+}
+
+.compte-rebours-cuisine-guidee {
+  margin: 0;
+  padding: 0.8rem;
+  border: 2px solid #8fa58a;
+  border-radius: 0.55rem;
+  background: #edf3e9;
+  text-align: center;
+}
+
+.compte-rebours-cuisine-guidee strong {
+  font-size: clamp(2rem, 7vw, 3.5rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.compte-rebours-cuisine-guidee.compte-rebours-termine {
+  border-color: #a94f43;
+  background: #f8ddd8;
+  color: #713128;
+}
+
+.actions-minuteur-cuisine-guidee,
+.actions-fin-cuisine-guidee {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.navigation-cuisine-guidee {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom));
+  border-top: 1px solid #dfd3bb;
+  background: #faf6ed;
+}
+
+.navigation-cuisine-guidee[hidden],
+.etape-cuisine-guidee[hidden],
+.fin-cuisine-guidee[hidden] {
+  display: none;
+}
+
+.boutons-etapes-cuisine-guidee {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.navigation-cuisine-guidee button {
+  min-height: 3.25rem;
+}
+
+.navigation-cuisine-guidee button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ingredients-cuisine-guidee {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.25rem;
+  background: #fffdf7;
+}
+
+.ingredients-cuisine-guidee[hidden] {
+  display: none;
+}
+
+.ingredients-cuisine-guidee header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dfd3bb;
+}
+
+.ingredients-cuisine-guidee h3,
+.ingredients-cuisine-guidee p {
+  margin: 0;
+}
+
+.ingredients-cuisine-guidee p {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.ingredients-cuisine-guidee ul {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  padding-left: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.ingredients-cuisine-guidee li {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #dfd3bb;
+}
+
+.fin-cuisine-guidee {
+  align-self: center;
+  width: min(100%, 38rem);
+  margin: auto;
+  text-align: center;
+}
+
+.fin-cuisine-guidee h3 {
+  margin: 0;
+  color: #51654e;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.fin-cuisine-guidee p {
+  margin: 1rem 0 1.5rem;
+  font-size: 1.15rem;
+}
+
+#quitter-cuisine-guidee-dialogue {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  background: transparent;
+}
+
+#quitter-cuisine-guidee-dialogue[open] {
+  display: grid;
+  place-items: center;
+}
+
+.confirmation-cuisine-guidee {
+  width: min(100%, 32rem);
+  padding: 1.25rem;
+  border: 1px solid #c7b99f;
+  border-radius: 0.75rem;
+  background: #fffdf7;
+  box-shadow: 0 0.5rem 1.5rem rgba(39, 47, 38, 0.3);
+}
+
+.confirmation-cuisine-guidee h2 {
+  margin-bottom: 0.75rem;
+}
+
+.actions-confirmation-cuisine-guidee {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 40rem) {
+  #cuisine-guidee-dialogue {
+    padding: 0;
+  }
+
+  #cuisine-guidee-panneau {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .entete-cuisine-guidee {
+    padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
+  }
+
+  .entete-cuisine-guidee h2 {
+    font-size: 1.25rem;
+  }
+
+  .cuisine-guidee-contenu {
+    padding: 1.25rem 1rem;
+  }
+
+  .navigation-cuisine-guidee {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  .navigation-cuisine-guidee > #voir-ingredients-cuisine-guidee {
+    min-height: 2.75rem;
+  }
+
+  .actions-minuteur-cuisine-guidee,
+  .actions-fin-cuisine-guidee {
+    grid-template-columns: 1fr;
+  }
+
+  .ingredients-cuisine-guidee {
+    padding: max(1rem, env(safe-area-inset-top)) 1rem
+      calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  #quitter-cuisine-guidee-dialogue {
+    padding: 1rem;
+  }
+}
+
 @page {
   size: A4;
   margin: 1.5cm;
 }
 
 @media print {
-  #fiche-recette-dialogue {
+  #fiche-recette-dialogue,
+  #cuisine-guidee-dialogue,
+  #quitter-cuisine-guidee-dialogue,
+  .reprise-cuisine-guidee {
     display: none !important;
   }
 

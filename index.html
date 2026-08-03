@@ -28,6 +28,14 @@
 
       <p id="message-formulaire" class="message" aria-live="polite"></p>
 
+      <aside id="reprise-cuisine-guidee" class="reprise-cuisine-guidee" aria-live="polite" hidden>
+        <p id="reprise-cuisine-guidee-texte"></p>
+        <div class="actions-reprise-cuisine-guidee">
+          <button id="reprendre-cuisine-guidee" type="button">Reprendre</button>
+          <button id="abandonner-cuisine-guidee" class="bouton-secondaire" type="button">Abandonner</button>
+        </div>
+      </aside>
+
       <section id="vue-formulaire" class="section vue" aria-labelledby="titre-ajout" hidden>
         <div class="entete-vue">
           <h2 id="titre-ajout" tabindex="-1">Ajouter une recette</h2>
@@ -379,6 +387,65 @@
           <div id="resultats-recettes-menu" aria-live="polite"></div>
         </div>
       </article>
+    </dialog>
+
+    <dialog id="cuisine-guidee-dialogue" aria-labelledby="cuisine-guidee-titre">
+      <article id="cuisine-guidee-panneau">
+        <header class="entete-cuisine-guidee">
+          <div>
+            <h2 id="cuisine-guidee-titre" tabindex="-1"></h2>
+            <p id="cuisine-guidee-portions"></p>
+          </div>
+          <button id="quitter-cuisine-guidee" class="bouton-secondaire" type="button">Quitter</button>
+        </header>
+
+        <div id="minuteur-cuisine-guidee-permanent" class="minuteur-cuisine-guidee-permanent" aria-live="polite" hidden></div>
+
+        <main id="cuisine-guidee-contenu" class="cuisine-guidee-contenu">
+          <section id="etape-cuisine-guidee" class="etape-cuisine-guidee" aria-labelledby="instruction-cuisine-guidee">
+            <p id="progression-cuisine-guidee" class="progression-cuisine-guidee"></p>
+            <p id="type-cuisine-guidee" class="type-cuisine-guidee"></p>
+            <h3 id="instruction-cuisine-guidee" tabindex="-1"></h3>
+            <p id="duree-cuisine-guidee" class="duree-cuisine-guidee" hidden></p>
+            <div id="commandes-minuteur-cuisine-guidee" class="commandes-minuteur-cuisine-guidee"></div>
+          </section>
+
+          <section id="fin-cuisine-guidee" class="fin-cuisine-guidee" tabindex="-1" hidden>
+            <h3>Recette terminée</h3>
+            <p id="resume-fin-cuisine-guidee"></p>
+            <div id="actions-fin-cuisine-guidee" class="actions-fin-cuisine-guidee"></div>
+          </section>
+        </main>
+
+        <footer id="navigation-cuisine-guidee" class="navigation-cuisine-guidee">
+          <button id="voir-ingredients-cuisine-guidee" class="bouton-secondaire" type="button">Voir les ingrédients</button>
+          <div class="boutons-etapes-cuisine-guidee">
+            <button id="etape-precedente-cuisine-guidee" class="bouton-secondaire" type="button">Précédent</button>
+            <button id="etape-suivante-cuisine-guidee" type="button">Suivant</button>
+          </div>
+        </footer>
+
+        <aside id="ingredients-cuisine-guidee" class="ingredients-cuisine-guidee" aria-labelledby="ingredients-cuisine-guidee-titre" hidden>
+          <header>
+            <h3 id="ingredients-cuisine-guidee-titre" tabindex="-1">Ingrédients</h3>
+            <button id="fermer-ingredients-cuisine-guidee" class="bouton-secondaire" type="button">Fermer</button>
+          </header>
+          <p id="ingredients-cuisine-guidee-portions"></p>
+          <ul id="liste-ingredients-cuisine-guidee"></ul>
+        </aside>
+      </article>
+    </dialog>
+
+    <dialog id="quitter-cuisine-guidee-dialogue" aria-labelledby="quitter-cuisine-guidee-titre">
+      <section class="confirmation-cuisine-guidee">
+        <h2 id="quitter-cuisine-guidee-titre">Quitter la recette ?</h2>
+        <p>Voulez-vous conserver votre progression pour reprendre plus tard ?</p>
+        <div class="actions-confirmation-cuisine-guidee">
+          <button id="conserver-quitter-cuisine-guidee" type="button">Conserver et quitter</button>
+          <button id="confirmer-abandon-cuisine-guidee" class="bouton-danger" type="button">Abandonner la recette</button>
+          <button id="annuler-quitter-cuisine-guidee" class="bouton-secondaire" type="button">Annuler</button>
+        </div>
+      </section>
     </dialog>
 
     <div id="zone-impression" aria-hidden="true"></div>

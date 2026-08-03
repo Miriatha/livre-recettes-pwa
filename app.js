@@ -128,6 +128,94 @@
   const menuDifficulte = document.getElementById("difficulte");
   const champNotes = document.getElementById("notes");
   const champConseils = document.getElementById("conseils");
+  const zoneRepriseCuisineGuidee = document.getElementById(
+    "reprise-cuisine-guidee"
+  );
+  const texteRepriseCuisineGuidee = document.getElementById(
+    "reprise-cuisine-guidee-texte"
+  );
+  const boutonReprendreCuisineGuidee = document.getElementById(
+    "reprendre-cuisine-guidee"
+  );
+  const boutonAbandonnerCuisineGuidee = document.getElementById(
+    "abandonner-cuisine-guidee"
+  );
+  const cuisineGuideeDialogue = document.getElementById(
+    "cuisine-guidee-dialogue"
+  );
+  const cuisineGuideePanneau = document.getElementById(
+    "cuisine-guidee-panneau"
+  );
+  const cuisineGuideeTitre = document.getElementById("cuisine-guidee-titre");
+  const cuisineGuideePortions = document.getElementById(
+    "cuisine-guidee-portions"
+  );
+  const boutonQuitterCuisineGuidee = document.getElementById(
+    "quitter-cuisine-guidee"
+  );
+  const minuteurCuisineGuideePermanent = document.getElementById(
+    "minuteur-cuisine-guidee-permanent"
+  );
+  const etapeCuisineGuidee = document.getElementById("etape-cuisine-guidee");
+  const progressionCuisineGuidee = document.getElementById(
+    "progression-cuisine-guidee"
+  );
+  const typeCuisineGuidee = document.getElementById("type-cuisine-guidee");
+  const instructionCuisineGuidee = document.getElementById(
+    "instruction-cuisine-guidee"
+  );
+  const dureeCuisineGuidee = document.getElementById(
+    "duree-cuisine-guidee"
+  );
+  const commandesMinuteurCuisineGuidee = document.getElementById(
+    "commandes-minuteur-cuisine-guidee"
+  );
+  const finCuisineGuidee = document.getElementById("fin-cuisine-guidee");
+  const resumeFinCuisineGuidee = document.getElementById(
+    "resume-fin-cuisine-guidee"
+  );
+  const actionsFinCuisineGuidee = document.getElementById(
+    "actions-fin-cuisine-guidee"
+  );
+  const navigationCuisineGuidee = document.getElementById(
+    "navigation-cuisine-guidee"
+  );
+  const boutonVoirIngredientsCuisineGuidee = document.getElementById(
+    "voir-ingredients-cuisine-guidee"
+  );
+  const boutonEtapePrecedenteCuisineGuidee = document.getElementById(
+    "etape-precedente-cuisine-guidee"
+  );
+  const boutonEtapeSuivanteCuisineGuidee = document.getElementById(
+    "etape-suivante-cuisine-guidee"
+  );
+  const panneauIngredientsCuisineGuidee = document.getElementById(
+    "ingredients-cuisine-guidee"
+  );
+  const titreIngredientsCuisineGuidee = document.getElementById(
+    "ingredients-cuisine-guidee-titre"
+  );
+  const portionsIngredientsCuisineGuidee = document.getElementById(
+    "ingredients-cuisine-guidee-portions"
+  );
+  const listeIngredientsCuisineGuidee = document.getElementById(
+    "liste-ingredients-cuisine-guidee"
+  );
+  const boutonFermerIngredientsCuisineGuidee = document.getElementById(
+    "fermer-ingredients-cuisine-guidee"
+  );
+  const quitterCuisineGuideeDialogue = document.getElementById(
+    "quitter-cuisine-guidee-dialogue"
+  );
+  const boutonConserverQuitterCuisineGuidee = document.getElementById(
+    "conserver-quitter-cuisine-guidee"
+  );
+  const boutonConfirmerAbandonCuisineGuidee = document.getElementById(
+    "confirmer-abandon-cuisine-guidee"
+  );
+  const boutonAnnulerQuitterCuisineGuidee = document.getElementById(
+    "annuler-quitter-cuisine-guidee"
+  );
 
   const identifiantsVuesConnues = [
     "vue-recettes",
@@ -217,7 +305,39 @@
     ["#portions", champPortions],
     ["#difficulte", menuDifficulte],
     ["#notes", champNotes],
-    ["#conseils", champConseils]
+    ["#conseils", champConseils],
+    ["#reprise-cuisine-guidee", zoneRepriseCuisineGuidee],
+    ["#reprise-cuisine-guidee-texte", texteRepriseCuisineGuidee],
+    ["#reprendre-cuisine-guidee", boutonReprendreCuisineGuidee],
+    ["#abandonner-cuisine-guidee", boutonAbandonnerCuisineGuidee],
+    ["#cuisine-guidee-dialogue", cuisineGuideeDialogue],
+    ["#cuisine-guidee-panneau", cuisineGuideePanneau],
+    ["#cuisine-guidee-titre", cuisineGuideeTitre],
+    ["#cuisine-guidee-portions", cuisineGuideePortions],
+    ["#quitter-cuisine-guidee", boutonQuitterCuisineGuidee],
+    ["#minuteur-cuisine-guidee-permanent", minuteurCuisineGuideePermanent],
+    ["#etape-cuisine-guidee", etapeCuisineGuidee],
+    ["#progression-cuisine-guidee", progressionCuisineGuidee],
+    ["#type-cuisine-guidee", typeCuisineGuidee],
+    ["#instruction-cuisine-guidee", instructionCuisineGuidee],
+    ["#duree-cuisine-guidee", dureeCuisineGuidee],
+    ["#commandes-minuteur-cuisine-guidee", commandesMinuteurCuisineGuidee],
+    ["#fin-cuisine-guidee", finCuisineGuidee],
+    ["#resume-fin-cuisine-guidee", resumeFinCuisineGuidee],
+    ["#actions-fin-cuisine-guidee", actionsFinCuisineGuidee],
+    ["#navigation-cuisine-guidee", navigationCuisineGuidee],
+    ["#voir-ingredients-cuisine-guidee", boutonVoirIngredientsCuisineGuidee],
+    ["#etape-precedente-cuisine-guidee", boutonEtapePrecedenteCuisineGuidee],
+    ["#etape-suivante-cuisine-guidee", boutonEtapeSuivanteCuisineGuidee],
+    ["#ingredients-cuisine-guidee", panneauIngredientsCuisineGuidee],
+    ["#ingredients-cuisine-guidee-titre", titreIngredientsCuisineGuidee],
+    ["#ingredients-cuisine-guidee-portions", portionsIngredientsCuisineGuidee],
+    ["#liste-ingredients-cuisine-guidee", listeIngredientsCuisineGuidee],
+    ["#fermer-ingredients-cuisine-guidee", boutonFermerIngredientsCuisineGuidee],
+    ["#quitter-cuisine-guidee-dialogue", quitterCuisineGuideeDialogue],
+    ["#conserver-quitter-cuisine-guidee", boutonConserverQuitterCuisineGuidee],
+    ["#confirmer-abandon-cuisine-guidee", boutonConfirmerAbandonCuisineGuidee],
+    ["#annuler-quitter-cuisine-guidee", boutonAnnulerQuitterCuisineGuidee]
   ];
   const elementsManquants = elementsNecessaires
     .filter(([, element]) => !element)
@@ -379,6 +499,7 @@
   const cleStockageHistorique = "livreRecettes.historique";
   const cleStockageCatalogueIngredients =
     "livreRecettes.catalogueIngredients";
+  const cleStockageCuisineGuidee = "livreRecettes.cuisineGuidee";
   const categoriesIngredients = Object.freeze([
     { id: "fruits-legumes", libelle: "Fruits et légumes" },
     { id: "viandes-charcuteries", libelle: "Viandes et charcuteries" },
@@ -520,6 +641,13 @@
   let elementDeclencheurSelecteurMenu = null;
   let restaurerFocusSelecteurMenuALaFermeture = true;
   let listeCoursesEstAffichee = false;
+  let sessionCuisineGuidee = null;
+  let intervalleMinuteurCuisineGuidee = null;
+  let verrouEcranCuisineGuidee = null;
+  let elementDeclencheurCuisineGuidee = null;
+  let contexteFinCuisineGuidee = null;
+  let contexteAudioCuisineGuidee = null;
+  let restaurerFocusCuisineGuideeALaFermeture = true;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
@@ -1077,8 +1205,10 @@
     const contenu = document.createElement("div");
     const nom = document.createElement(recette ? "button" : "p");
     const zonePortions = document.createElement("div");
+    const actionsRapides = document.createElement("div");
     const libellePortions = document.createElement("label");
     const champPortionsMenu = document.createElement("input");
+    const boutonLancer = document.createElement("button");
     const actions = document.createElement("details");
     const resumeActions = document.createElement("summary");
     const contenuActions = document.createElement("div");
@@ -1112,6 +1242,33 @@
     });
     zonePortions.append(libellePortions, champPortionsMenu);
 
+    actionsRapides.className = "actions-rapides-emplacement-menu";
+    boutonLancer.type = "button";
+    boutonLancer.className = "bouton-lancer-recette-menu";
+    boutonLancer.textContent = "Lancer";
+    boutonLancer.setAttribute(
+      "aria-label",
+      `Lancer ${nom.textContent} en mode cuisine guidée`
+    );
+    boutonLancer.disabled = !recette;
+    if (recette) {
+      boutonLancer.addEventListener("click", () => {
+        lancerCuisineGuidee(
+          recette.id,
+          convertirNombreEntier(champPortionsMenu.value, 1) ||
+            convertirNombreEntier(emplacement.portions, 1) ||
+            1,
+          {
+            type: "menu",
+            date: jour.date,
+            emplacement: definition.cle
+          },
+          boutonLancer
+        );
+      });
+    }
+    actionsRapides.append(zonePortions, boutonLancer);
+
     actions.className = "actions-emplacement-menu";
     resumeActions.textContent = "Actions";
     contenuActions.className = "contenu-actions-emplacement-menu";
@@ -1137,7 +1294,7 @@
       )
     );
     actions.append(resumeActions, contenuActions);
-    contenu.append(nom, zonePortions, actions);
+    contenu.append(nom, actionsRapides, actions);
     ligne.append(contenu);
     return ligne;
   }
@@ -2379,6 +2536,8 @@
     const quantitesSontAdaptees =
       portionsOriginales !== null &&
       portionsAffichees !== portionsOriginales;
+    const etapesCuisineGuidee = obtenirEtapesValidesCuisineGuidee(recette);
+    const boutonLancerRecette = document.createElement("button");
     const boutonFavori = document.createElement("button");
     const boutonModifier = document.createElement("button");
     const actionsPrincipales = document.createElement("div");
@@ -2414,6 +2573,15 @@
       portionsAffichees
     );
     ficheRecetteContenu.append(actionsPrincipales);
+
+    if (etapesCuisineGuidee.length === 0) {
+      const informationEtapesManquantes = document.createElement("p");
+
+      informationEtapesManquantes.className = "information-cuisine-guidee-indisponible";
+      informationEtapesManquantes.textContent =
+        "Ajoutez au moins une étape pour lancer la recette en mode guidé.";
+      ficheRecetteContenu.append(informationEtapesManquantes);
+    }
 
     if (quantitesSontAdaptees) {
       const indicationPortions = document.createElement("p");
@@ -2453,6 +2621,9 @@
     }
 
     actionsPrincipales.className = "actions-fiche-recette-principales";
+    boutonLancerRecette.type = "button";
+    boutonLancerRecette.className = "bouton-lancer-recette";
+    boutonLancerRecette.textContent = "Lancer la recette";
     boutonFavori.type = "button";
     boutonFavori.className = "bouton-favori";
     boutonFavori.textContent =
@@ -2460,6 +2631,9 @@
     boutonModifier.type = "button";
     boutonModifier.className = "bouton-modifier";
     boutonModifier.textContent = "Modifier";
+    if (etapesCuisineGuidee.length > 0) {
+      actionsPrincipales.append(boutonLancerRecette);
+    }
     actionsPrincipales.append(boutonModifier, boutonFavori);
 
     actionsSecondaires.className = "fiche-recette-actions-secondaires";
@@ -2484,6 +2658,15 @@
 
     boutonFavori.addEventListener("click", () => {
       basculerFavori(recette.id);
+    });
+
+    boutonLancerRecette.addEventListener("click", () => {
+      lancerCuisineGuidee(
+        recette.id,
+        obtenirPortionsOriginales(recette) || 1,
+        { type: "fiche" },
+        boutonLancerRecette
+      );
     });
 
     boutonModifier.addEventListener("click", () => {
@@ -3048,6 +3231,1134 @@
     return obtenirEtapesUtilisablesRecette(recette)
       .map((etape) => etape.instruction)
       .join("\n");
+  }
+
+  // Mode cuisine guidée
+  function obtenirEtapesValidesCuisineGuidee(recette) {
+    return recette ? obtenirEtapesUtilisablesRecette(recette) : [];
+  }
+
+  function obtenirRecetteCuisineGuidee() {
+    if (!sessionCuisineGuidee) {
+      return null;
+    }
+
+    return recettes.find(
+      (recette) => recette.id === sessionCuisineGuidee.recetteId
+    ) || null;
+  }
+
+  function sourceCuisineGuideeEstValide(source) {
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+      return false;
+    }
+
+    if (source.type === "fiche") {
+      return true;
+    }
+
+    return (
+      source.type === "menu" &&
+      dateHistoriqueEstValide(source.date) &&
+      emplacementsMenu.some(
+        (emplacement) => emplacement.cle === source.emplacement
+      )
+    );
+  }
+
+  function normaliserMinuteurCuisineGuidee(minuteur, etapes) {
+    if (minuteur === null || minuteur === undefined) {
+      return null;
+    }
+
+    if (!minuteur || typeof minuteur !== "object" || Array.isArray(minuteur)) {
+      return null;
+    }
+
+    const etapeIndex = etapes.findIndex(
+      (etape) => etape.id === minuteur.etapeId
+    );
+    const dureeInitialeSecondes = normaliserDureeEtape(
+      minuteur.dureeInitialeSecondes
+    );
+    const etatsValides = ["en_cours", "pause", "termine"];
+
+    if (
+      etapeIndex === -1 ||
+      dureeInitialeSecondes === null ||
+      !etatsValides.includes(minuteur.etat)
+    ) {
+      return null;
+    }
+
+    if (minuteur.etat === "en_cours") {
+      const finPrevue = Number(minuteur.finPrevue);
+
+      if (!Number.isFinite(finPrevue) || finPrevue <= 0) {
+        return null;
+      }
+
+      const secondesCalculees = Math.max(
+        0,
+        Math.ceil((finPrevue - Date.now()) / 1000)
+      );
+      const secondesRestantes = Math.min(
+        dureeInitialeSecondes,
+        secondesCalculees
+      );
+
+      return {
+        etapeId: etapes[etapeIndex].id,
+        etapeIndex,
+        dureeInitialeSecondes,
+        finPrevue:
+          secondesRestantes > 0
+            ? secondesCalculees > dureeInitialeSecondes
+              ? Date.now() + dureeInitialeSecondes * 1000
+              : finPrevue
+            : null,
+        secondesRestantes,
+        etat: secondesRestantes > 0 ? "en_cours" : "termine"
+      };
+    }
+
+    const secondesRestantes = convertirNombreEntier(
+      minuteur.secondesRestantes,
+      0
+    );
+
+    if (secondesRestantes === null) {
+      return null;
+    }
+
+    return {
+      etapeId: etapes[etapeIndex].id,
+      etapeIndex,
+      dureeInitialeSecondes,
+      finPrevue: null,
+      secondesRestantes:
+        minuteur.etat === "termine"
+          ? 0
+          : Math.min(secondesRestantes, dureeInitialeSecondes),
+      etat:
+        minuteur.etat === "pause" && secondesRestantes === 0
+          ? "termine"
+          : minuteur.etat
+    };
+  }
+
+  function normaliserSessionCuisineGuidee(donnees) {
+    if (
+      !donnees ||
+      typeof donnees !== "object" ||
+      Array.isArray(donnees) ||
+      donnees.version !== 1 ||
+      !identifiantRecetteEstValide(donnees.recetteId)
+    ) {
+      return null;
+    }
+
+    const recette = recettes.find(
+      (element) => element.id === donnees.recetteId
+    );
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+    const portions = convertirNombreEntier(donnees.portions, 1);
+
+    if (
+      !recette ||
+      etapes.length === 0 ||
+      portions === null ||
+      !sourceCuisineGuideeEstValide(donnees.source)
+    ) {
+      return null;
+    }
+
+    const indexEnregistre = convertirNombreEntier(donnees.etapeIndex, 0);
+    const indexParIdentifiant = etapes.findIndex(
+      (etape) => etape.id === donnees.etapeId
+    );
+    const etapeIndex = indexParIdentifiant >= 0
+      ? indexParIdentifiant
+      : Math.min(indexEnregistre === null ? 0 : indexEnregistre, etapes.length - 1);
+    const minuteur = normaliserMinuteurCuisineGuidee(donnees.minuteur, etapes);
+    const maintenant = new Date().toISOString();
+
+    return {
+      version: 1,
+      recetteId: recette.id,
+      etapeId: etapes[etapeIndex].id,
+      etapeIndex,
+      portions,
+      source: {
+        type: donnees.source.type,
+        ...(donnees.source.type === "menu"
+          ? {
+              date: donnees.source.date,
+              emplacement: donnees.source.emplacement
+            }
+          : {})
+      },
+      demarreeLe:
+        typeof donnees.demarreeLe === "string"
+          ? donnees.demarreeLe
+          : maintenant,
+      miseAJourLe:
+        typeof donnees.miseAJourLe === "string"
+          ? donnees.miseAJourLe
+          : maintenant,
+      minuteur
+    };
+  }
+
+  function supprimerDonneesSessionCuisineGuidee() {
+    try {
+      localStorage.removeItem(cleStockageCuisineGuidee);
+      return true;
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : la session de cuisine guidée n’a pas pu être supprimée localement."
+      );
+      return false;
+    }
+  }
+
+  function chargerSessionCuisineGuidee() {
+    let valeurEnregistree;
+
+    try {
+      valeurEnregistree = localStorage.getItem(cleStockageCuisineGuidee);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : la session de cuisine guidée est inaccessible."
+      );
+      return null;
+    }
+
+    if (valeurEnregistree === null) {
+      return null;
+    }
+
+    let donnees;
+
+    try {
+      donnees = JSON.parse(valeurEnregistree);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : la session de cuisine guidée est illisible et a été supprimée."
+      );
+      supprimerDonneesSessionCuisineGuidee();
+      return null;
+    }
+
+    const session = normaliserSessionCuisineGuidee(donnees);
+
+    if (!session) {
+      console.warn(
+        "Application de recettes : la session de cuisine guidée est invalide et a été supprimée."
+      );
+      supprimerDonneesSessionCuisineGuidee();
+      return null;
+    }
+
+    return session;
+  }
+
+  function sauvegarderSessionCuisineGuidee() {
+    if (!sessionCuisineGuidee) {
+      return false;
+    }
+
+    sessionCuisineGuidee.miseAJourLe = new Date().toISOString();
+
+    try {
+      localStorage.setItem(
+        cleStockageCuisineGuidee,
+        JSON.stringify(sessionCuisineGuidee)
+      );
+      afficherInvitationRepriseCuisineGuidee();
+      return true;
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : la progression de cuisine guidée n’a pas pu être sauvegardée."
+      );
+      return false;
+    }
+  }
+
+  function arreterIntervalleMinuteurCuisineGuidee() {
+    if (intervalleMinuteurCuisineGuidee !== null) {
+      clearInterval(intervalleMinuteurCuisineGuidee);
+      intervalleMinuteurCuisineGuidee = null;
+    }
+  }
+
+  function afficherInvitationRepriseCuisineGuidee() {
+    if (!sessionCuisineGuidee || cuisineGuideeDialogue.open) {
+      zoneRepriseCuisineGuidee.hidden = true;
+      texteRepriseCuisineGuidee.textContent = "";
+      return;
+    }
+
+    const recette = obtenirRecetteCuisineGuidee();
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+
+    if (!recette || etapes.length === 0) {
+      zoneRepriseCuisineGuidee.hidden = true;
+      texteRepriseCuisineGuidee.textContent = "";
+      return;
+    }
+
+    texteRepriseCuisineGuidee.textContent =
+      `Une recette est en cours : ${obtenirTexteRecette(recette.nom).trim() || "Recette"}` +
+      ` — étape ${sessionCuisineGuidee.etapeIndex + 1} sur ${etapes.length}`;
+    zoneRepriseCuisineGuidee.hidden = false;
+  }
+
+  function supprimerSessionCuisineGuidee() {
+    arreterIntervalleMinuteurCuisineGuidee();
+    sessionCuisineGuidee = null;
+    supprimerDonneesSessionCuisineGuidee();
+    afficherInvitationRepriseCuisineGuidee();
+  }
+
+  function recalculerTempsRestantCuisineGuidee() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    if (!minuteur) {
+      return null;
+    }
+
+    if (minuteur.etat !== "en_cours") {
+      return minuteur.secondesRestantes;
+    }
+
+    minuteur.secondesRestantes = Math.max(
+      0,
+      Math.ceil((minuteur.finPrevue - Date.now()) / 1000)
+    );
+    return minuteur.secondesRestantes;
+  }
+
+  function formaterCompteAReboursCuisineGuidee(secondes) {
+    const valeur = convertirNombreEntier(secondes, 0) || 0;
+    const heures = Math.floor(valeur / 3600);
+    const minutes = Math.floor((valeur % 3600) / 60);
+    const secondesRestantes = valeur % 60;
+
+    if (heures > 0) {
+      return [heures, minutes, secondesRestantes]
+        .map((partie) => String(partie).padStart(2, "0"))
+        .join(":");
+    }
+
+    return [minutes, secondesRestantes]
+      .map((partie) => String(partie).padStart(2, "0"))
+      .join(":");
+  }
+
+  function mettreAJourAffichagesCompteARebours() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    if (!minuteur) {
+      return;
+    }
+
+    const texte = minuteur.etat === "termine"
+      ? "Temps écoulé"
+      : formaterCompteAReboursCuisineGuidee(
+          recalculerTempsRestantCuisineGuidee()
+        );
+
+    cuisineGuideeDialogue
+      .querySelectorAll("[data-affichage-compte-rebours]")
+      .forEach((element) => {
+        element.textContent = texte;
+      });
+  }
+
+  function preparerSignalSonoreCuisineGuidee() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContext) {
+      return;
+    }
+
+    try {
+      contexteAudioCuisineGuidee =
+        contexteAudioCuisineGuidee || new AudioContext();
+      if (contexteAudioCuisineGuidee.state === "suspended") {
+        contexteAudioCuisineGuidee.resume().catch(() => {});
+      }
+    } catch (erreur) {
+      contexteAudioCuisineGuidee = null;
+    }
+  }
+
+  function produireSignalFinMinuteurCuisineGuidee() {
+    try {
+      if (typeof navigator.vibrate === "function") {
+        navigator.vibrate([180, 100, 180]);
+      }
+    } catch (erreur) {
+      // La vibration est facultative et peut être refusée par le navigateur.
+    }
+
+    preparerSignalSonoreCuisineGuidee();
+
+    if (!contexteAudioCuisineGuidee) {
+      return;
+    }
+
+    const jouerTonalite = () => {
+      try {
+        const oscillateur = contexteAudioCuisineGuidee.createOscillator();
+        const volume = contexteAudioCuisineGuidee.createGain();
+        const debut = contexteAudioCuisineGuidee.currentTime;
+
+        oscillateur.frequency.value = 880;
+        volume.gain.setValueAtTime(0.0001, debut);
+        volume.gain.exponentialRampToValueAtTime(0.18, debut + 0.03);
+        volume.gain.exponentialRampToValueAtTime(0.0001, debut + 0.7);
+        oscillateur.connect(volume);
+        volume.connect(contexteAudioCuisineGuidee.destination);
+        oscillateur.start(debut);
+        oscillateur.stop(debut + 0.72);
+      } catch (erreur) {
+        // L’alerte visuelle reste disponible si l’audio est refusé.
+      }
+    };
+
+    if (contexteAudioCuisineGuidee.state === "suspended") {
+      contexteAudioCuisineGuidee.resume().then(jouerTonalite).catch(() => {});
+    } else {
+      jouerTonalite();
+    }
+  }
+
+  function creerBoutonCuisineGuidee(libelle, action, classe = "") {
+    const bouton = document.createElement("button");
+
+    bouton.type = "button";
+    bouton.textContent = libelle;
+    bouton.className = classe;
+    bouton.addEventListener("click", action);
+    return bouton;
+  }
+
+  function afficherMinuteurPermanentCuisineGuidee() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    minuteurCuisineGuideePermanent.textContent = "";
+    minuteurCuisineGuideePermanent.hidden = !minuteur;
+    minuteurCuisineGuideePermanent.className =
+      "minuteur-cuisine-guidee-permanent";
+
+    if (!minuteur) {
+      return;
+    }
+
+    const etiquette = document.createElement("span");
+    const compteARebours = document.createElement("strong");
+    const etapes = obtenirEtapesValidesCuisineGuidee(
+      obtenirRecetteCuisineGuidee()
+    );
+
+    etiquette.textContent = `Minuteur de l’étape ${minuteur.etapeIndex + 1} : `;
+    compteARebours.dataset.affichageCompteRebours = "";
+    compteARebours.textContent = minuteur.etat === "termine"
+      ? "Temps écoulé"
+      : formaterCompteAReboursCuisineGuidee(
+          recalculerTempsRestantCuisineGuidee()
+        );
+    minuteurCuisineGuideePermanent.classList.toggle(
+      "minuteur-termine",
+      minuteur.etat === "termine"
+    );
+    minuteurCuisineGuideePermanent.append(etiquette, compteARebours);
+
+    if (etapes[minuteur.etapeIndex]) {
+      minuteurCuisineGuideePermanent.title =
+        etapes[minuteur.etapeIndex].instruction;
+    }
+  }
+
+  function afficherCommandesMinuteurCuisineGuidee(etape, etapeIndex) {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+    const duree = normaliserDureeEtape(etape.dureeSecondes);
+
+    commandesMinuteurCuisineGuidee.textContent = "";
+
+    if (duree === null) {
+      return;
+    }
+
+    if (!minuteur || minuteur.etapeId !== etape.id) {
+      const boutonLancer = creerBoutonCuisineGuidee(
+        `Lancer le minuteur — ${formaterDureeEtape(duree)}`,
+        () => lancerMinuteurCuisineGuidee(etapeIndex)
+      );
+
+      boutonLancer.className = "bouton-lancer-minuteur-cuisine-guidee";
+      commandesMinuteurCuisineGuidee.append(boutonLancer);
+      return;
+    }
+
+    const zoneCompteARebours = document.createElement("p");
+    const compteARebours = document.createElement("strong");
+    const actions = document.createElement("div");
+
+    zoneCompteARebours.className = "compte-rebours-cuisine-guidee";
+    compteARebours.dataset.affichageCompteRebours = "";
+    compteARebours.textContent = minuteur.etat === "termine"
+      ? "Temps écoulé"
+      : formaterCompteAReboursCuisineGuidee(
+          recalculerTempsRestantCuisineGuidee()
+        );
+    actions.className = "actions-minuteur-cuisine-guidee";
+    zoneCompteARebours.append(compteARebours);
+
+    if (minuteur.etat === "en_cours") {
+      actions.append(
+        creerBoutonCuisineGuidee(
+          "Pause",
+          mettreEnPauseMinuteurCuisineGuidee,
+          "bouton-secondaire"
+        )
+      );
+    } else if (minuteur.etat === "pause") {
+      actions.append(
+        creerBoutonCuisineGuidee("Reprendre", reprendreMinuteurCuisineGuidee)
+      );
+    } else {
+      zoneCompteARebours.classList.add("compte-rebours-termine");
+      actions.append(
+        creerBoutonCuisineGuidee("OK", arreterMinuteurCuisineGuidee)
+      );
+    }
+
+    if (minuteur.etat !== "termine") {
+      actions.append(
+        creerBoutonCuisineGuidee(
+          "Annuler le minuteur",
+          arreterMinuteurCuisineGuidee,
+          "bouton-secondaire"
+        )
+      );
+    }
+
+    commandesMinuteurCuisineGuidee.append(zoneCompteARebours, actions);
+  }
+
+  function afficherEtapeCuisineGuidee(deplacerFocus = false) {
+    const recette = obtenirRecetteCuisineGuidee();
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+
+    if (!sessionCuisineGuidee || !recette || etapes.length === 0) {
+      fermerLecteurCuisineGuidee(false);
+      supprimerSessionCuisineGuidee();
+      afficherMessage(
+        "Cette recette ne contient plus d’étapes utilisables.",
+        "erreur"
+      );
+      return;
+    }
+
+    const index = Math.min(
+      Math.max(sessionCuisineGuidee.etapeIndex, 0),
+      etapes.length - 1
+    );
+    const etape = etapes[index];
+    const dureeFormatee = formaterDureeEtape(etape.dureeSecondes);
+
+    sessionCuisineGuidee.etapeIndex = index;
+    sessionCuisineGuidee.etapeId = etape.id;
+    cuisineGuideeTitre.textContent =
+      obtenirTexteRecette(recette.nom).trim() || "Recette";
+    cuisineGuideePortions.textContent =
+      `${sessionCuisineGuidee.portions} ` +
+      (sessionCuisineGuidee.portions === 1 ? "portion" : "portions");
+    progressionCuisineGuidee.textContent =
+      `Étape ${index + 1} sur ${etapes.length}`;
+    typeCuisineGuidee.textContent = obtenirLibelleTypeEtape(etape.type);
+    typeCuisineGuidee.className =
+      `type-cuisine-guidee type-etape-${obtenirTypeEtape(etape.type)}`;
+    instructionCuisineGuidee.textContent = etape.instruction;
+    dureeCuisineGuidee.hidden = !dureeFormatee;
+    dureeCuisineGuidee.textContent = dureeFormatee
+      ? `Durée : ${dureeFormatee}`
+      : "";
+    boutonEtapePrecedenteCuisineGuidee.disabled = index === 0;
+    boutonEtapeSuivanteCuisineGuidee.textContent =
+      index === etapes.length - 1 ? "Terminer" : "Suivant";
+    etapeCuisineGuidee.hidden = false;
+    finCuisineGuidee.hidden = true;
+    navigationCuisineGuidee.hidden = false;
+    panneauIngredientsCuisineGuidee.hidden = true;
+    afficherMinuteurPermanentCuisineGuidee();
+    afficherCommandesMinuteurCuisineGuidee(etape, index);
+
+    if (deplacerFocus && typeof instructionCuisineGuidee.focus === "function") {
+      instructionCuisineGuidee.focus();
+    }
+  }
+
+  function changerEtapeCuisineGuidee(decalage) {
+    if (!sessionCuisineGuidee) {
+      return;
+    }
+
+    const etapes = obtenirEtapesValidesCuisineGuidee(
+      obtenirRecetteCuisineGuidee()
+    );
+    const nouvelIndex = sessionCuisineGuidee.etapeIndex + decalage;
+
+    if (nouvelIndex < 0 || nouvelIndex >= etapes.length) {
+      return;
+    }
+
+    sessionCuisineGuidee.etapeIndex = nouvelIndex;
+    sessionCuisineGuidee.etapeId = etapes[nouvelIndex].id;
+    sauvegarderSessionCuisineGuidee();
+    cuisineGuideePanneau.scrollTop = 0;
+    afficherEtapeCuisineGuidee(true);
+  }
+
+  function actualiserMinuteurCuisineGuidee() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    if (!minuteur || minuteur.etat !== "en_cours") {
+      arreterIntervalleMinuteurCuisineGuidee();
+      return;
+    }
+
+    if (recalculerTempsRestantCuisineGuidee() > 0) {
+      mettreAJourAffichagesCompteARebours();
+      return;
+    }
+
+    minuteur.etat = "termine";
+    minuteur.finPrevue = null;
+    minuteur.secondesRestantes = 0;
+    arreterIntervalleMinuteurCuisineGuidee();
+    sauvegarderSessionCuisineGuidee();
+    afficherEtapeCuisineGuidee();
+    produireSignalFinMinuteurCuisineGuidee();
+  }
+
+  function demarrerIntervalleMinuteurCuisineGuidee() {
+    arreterIntervalleMinuteurCuisineGuidee();
+
+    if (
+      !cuisineGuideeDialogue.open ||
+      !sessionCuisineGuidee ||
+      !sessionCuisineGuidee.minuteur ||
+      sessionCuisineGuidee.minuteur.etat !== "en_cours"
+    ) {
+      return;
+    }
+
+    actualiserMinuteurCuisineGuidee();
+
+    if (
+      sessionCuisineGuidee &&
+      sessionCuisineGuidee.minuteur &&
+      sessionCuisineGuidee.minuteur.etat === "en_cours"
+    ) {
+      intervalleMinuteurCuisineGuidee = setInterval(
+        actualiserMinuteurCuisineGuidee,
+        1000
+      );
+    }
+  }
+
+  function lancerMinuteurCuisineGuidee(etapeIndex) {
+    if (!sessionCuisineGuidee) {
+      return;
+    }
+
+    const etapes = obtenirEtapesValidesCuisineGuidee(
+      obtenirRecetteCuisineGuidee()
+    );
+    const etape = etapes[etapeIndex];
+    const duree = etape && normaliserDureeEtape(etape.dureeSecondes);
+    const minuteurExistant = sessionCuisineGuidee.minuteur;
+
+    if (!etape || duree === null) {
+      return;
+    }
+
+    if (
+      minuteurExistant &&
+      minuteurExistant.etapeId !== etape.id &&
+      !window.confirm(
+        `Un minuteur est déjà actif pour l’étape ${minuteurExistant.etapeIndex + 1}. ` +
+        `Voulez-vous l’arrêter et lancer celui de l’étape ${etapeIndex + 1} ?`
+      )
+    ) {
+      return;
+    }
+
+    preparerSignalSonoreCuisineGuidee();
+    sessionCuisineGuidee.minuteur = {
+      etapeId: etape.id,
+      etapeIndex,
+      dureeInitialeSecondes: duree,
+      finPrevue: Date.now() + duree * 1000,
+      secondesRestantes: duree,
+      etat: "en_cours"
+    };
+    sauvegarderSessionCuisineGuidee();
+    afficherEtapeCuisineGuidee();
+    demarrerIntervalleMinuteurCuisineGuidee();
+  }
+
+  function mettreEnPauseMinuteurCuisineGuidee() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    if (!minuteur || minuteur.etat !== "en_cours") {
+      return;
+    }
+
+    recalculerTempsRestantCuisineGuidee();
+    minuteur.finPrevue = null;
+    minuteur.etat = minuteur.secondesRestantes > 0 ? "pause" : "termine";
+    arreterIntervalleMinuteurCuisineGuidee();
+    sauvegarderSessionCuisineGuidee();
+    afficherEtapeCuisineGuidee();
+  }
+
+  function reprendreMinuteurCuisineGuidee() {
+    const minuteur = sessionCuisineGuidee && sessionCuisineGuidee.minuteur;
+
+    if (!minuteur || minuteur.etat !== "pause") {
+      return;
+    }
+
+    minuteur.finPrevue = Date.now() + minuteur.secondesRestantes * 1000;
+    minuteur.etat = "en_cours";
+    preparerSignalSonoreCuisineGuidee();
+    sauvegarderSessionCuisineGuidee();
+    afficherEtapeCuisineGuidee();
+    demarrerIntervalleMinuteurCuisineGuidee();
+  }
+
+  function arreterMinuteurCuisineGuidee() {
+    if (!sessionCuisineGuidee || !sessionCuisineGuidee.minuteur) {
+      return;
+    }
+
+    arreterIntervalleMinuteurCuisineGuidee();
+    sessionCuisineGuidee.minuteur = null;
+    sauvegarderSessionCuisineGuidee();
+    afficherEtapeCuisineGuidee();
+  }
+
+  function afficherIngredientsCuisineGuidee() {
+    const recette = obtenirRecetteCuisineGuidee();
+
+    if (!recette || !sessionCuisineGuidee) {
+      return;
+    }
+
+    const portionsReference = obtenirPortionsOriginales(recette) || 1;
+    const coefficient = calculerCoefficientPortions(
+      portionsReference,
+      sessionCuisineGuidee.portions
+    );
+    const ingredients = Array.isArray(recette.ingredients)
+      ? recette.ingredients.filter(
+          (ingredient) =>
+            ingredient &&
+            typeof ingredient === "object" &&
+            typeof ingredient.nom === "string" &&
+            ingredient.nom.trim() !== ""
+        )
+      : [];
+
+    portionsIngredientsCuisineGuidee.textContent =
+      `Quantités pour ${sessionCuisineGuidee.portions} ` +
+      (sessionCuisineGuidee.portions === 1 ? "portion" : "portions");
+    listeIngredientsCuisineGuidee.textContent = "";
+
+    if (ingredients.length === 0) {
+      const element = document.createElement("li");
+
+      element.textContent = "Aucun ingrédient renseigné.";
+      listeIngredientsCuisineGuidee.append(element);
+    } else {
+      ingredients.forEach((ingredient) => {
+        const element = document.createElement("li");
+        const quantite = typeof ingredient.quantite === "number" &&
+          Number.isFinite(ingredient.quantite)
+          ? formaterQuantitePourListe(
+              calculerQuantiteAdaptee(ingredient.quantite, coefficient)
+            )
+          : obtenirTexteRecette(ingredient.quantite).trim();
+        const parties = [quantite, ingredient.unite, ingredient.nom]
+          .filter((partie) => typeof partie === "string" && partie.trim());
+
+        element.textContent = parties.join(" ");
+        listeIngredientsCuisineGuidee.append(element);
+      });
+    }
+
+    panneauIngredientsCuisineGuidee.hidden = false;
+    titreIngredientsCuisineGuidee.focus();
+  }
+
+  function fermerIngredientsCuisineGuidee() {
+    panneauIngredientsCuisineGuidee.hidden = true;
+    boutonVoirIngredientsCuisineGuidee.focus();
+  }
+
+  async function demanderVerrouEcranCuisineGuidee() {
+    if (
+      !cuisineGuideeDialogue.open ||
+      document.visibilityState !== "visible" ||
+      verrouEcranCuisineGuidee ||
+      !navigator.wakeLock ||
+      typeof navigator.wakeLock.request !== "function"
+    ) {
+      return;
+    }
+
+    try {
+      verrouEcranCuisineGuidee = await navigator.wakeLock.request("screen");
+      verrouEcranCuisineGuidee.addEventListener("release", () => {
+        verrouEcranCuisineGuidee = null;
+      });
+    } catch (erreur) {
+      verrouEcranCuisineGuidee = null;
+    }
+  }
+
+  async function libererVerrouEcranCuisineGuidee() {
+    const verrou = verrouEcranCuisineGuidee;
+
+    verrouEcranCuisineGuidee = null;
+
+    if (!verrou || typeof verrou.release !== "function") {
+      return;
+    }
+
+    try {
+      await verrou.release();
+    } catch (erreur) {
+      // Le navigateur peut avoir déjà libéré le verrou.
+    }
+  }
+
+  function nettoyerLecteurCuisineGuidee(restaurerFocus = true) {
+    const declencheur = elementDeclencheurCuisineGuidee;
+
+    arreterIntervalleMinuteurCuisineGuidee();
+    libererVerrouEcranCuisineGuidee();
+    document.body.classList.remove("cuisine-guidee-ouverte");
+    panneauIngredientsCuisineGuidee.hidden = true;
+    minuteurCuisineGuideePermanent.textContent = "";
+    minuteurCuisineGuideePermanent.hidden = true;
+    elementDeclencheurCuisineGuidee = null;
+    afficherInvitationRepriseCuisineGuidee();
+
+    if (
+      restaurerFocus &&
+      declencheur &&
+      declencheur.isConnected &&
+      !declencheur.disabled &&
+      typeof declencheur.focus === "function"
+    ) {
+      declencheur.focus();
+    }
+  }
+
+  function fermerLecteurCuisineGuidee(restaurerFocus = true) {
+    restaurerFocusCuisineGuideeALaFermeture = restaurerFocus;
+
+    if (quitterCuisineGuideeDialogue.open) {
+      quitterCuisineGuideeDialogue.close();
+    }
+
+    if (
+      cuisineGuideeDialogue.open &&
+      typeof cuisineGuideeDialogue.close === "function"
+    ) {
+      cuisineGuideeDialogue.close();
+    } else {
+      cuisineGuideeDialogue.removeAttribute("open");
+      nettoyerLecteurCuisineGuidee(restaurerFocus);
+      restaurerFocusCuisineGuideeALaFermeture = true;
+    }
+  }
+
+  function ouvrirConfirmationQuitterCuisineGuidee() {
+    if (!sessionCuisineGuidee) {
+      fermerLecteurCuisineGuidee();
+      return;
+    }
+
+    try {
+      if (!quitterCuisineGuideeDialogue.open) {
+        if (typeof quitterCuisineGuideeDialogue.showModal === "function") {
+          quitterCuisineGuideeDialogue.showModal();
+        } else {
+          quitterCuisineGuideeDialogue.setAttribute("open", "");
+        }
+      }
+      boutonConserverQuitterCuisineGuidee.focus();
+    } catch (erreur) {
+      afficherMessage(
+        "Impossible d’ouvrir les choix de fermeture de la recette.",
+        "erreur"
+      );
+    }
+  }
+
+  function conserverEtQuitterCuisineGuidee() {
+    if (sessionCuisineGuidee) {
+      recalculerTempsRestantCuisineGuidee();
+      sauvegarderSessionCuisineGuidee();
+    }
+
+    fermerLecteurCuisineGuidee();
+  }
+
+  function abandonnerCuisineGuidee(restaurerFocus = true) {
+    supprimerSessionCuisineGuidee();
+    contexteFinCuisineGuidee = null;
+    fermerLecteurCuisineGuidee(restaurerFocus);
+  }
+
+  function quitterApresFinCuisineGuidee(destination) {
+    const contexte = contexteFinCuisineGuidee;
+
+    contexteFinCuisineGuidee = null;
+    fermerLecteurCuisineGuidee(false);
+
+    if (!contexte) {
+      return;
+    }
+
+    if (destination === "menu") {
+      afficherVue("vue-menu", true);
+      return;
+    }
+
+    const recetteExiste = recettes.some(
+      (recette) => recette.id === contexte.recetteId
+    );
+
+    afficherVue("vue-recettes", !recetteExiste);
+
+    if (recetteExiste) {
+      ouvrirFicheRecette(contexte.recetteId, null);
+    }
+  }
+
+  function afficherFinCuisineGuidee() {
+    if (!contexteFinCuisineGuidee) {
+      return;
+    }
+
+    const contexte = contexteFinCuisineGuidee;
+
+    etapeCuisineGuidee.hidden = true;
+    navigationCuisineGuidee.hidden = true;
+    panneauIngredientsCuisineGuidee.hidden = true;
+    minuteurCuisineGuideePermanent.hidden = true;
+    minuteurCuisineGuideePermanent.textContent = "";
+    finCuisineGuidee.hidden = false;
+    cuisineGuideeTitre.textContent = contexte.nom;
+    cuisineGuideePortions.textContent =
+      `${contexte.portions} ${contexte.portions === 1 ? "portion" : "portions"}`;
+    resumeFinCuisineGuidee.textContent =
+      `${contexte.nom} : ${contexte.nombreEtapes} ` +
+      (contexte.nombreEtapes === 1 ? "étape réalisée." : "étapes réalisées.");
+    actionsFinCuisineGuidee.textContent = "";
+
+    if (contexte.source.type === "menu") {
+      actionsFinCuisineGuidee.append(
+        creerBoutonCuisineGuidee("Retour au menu", () =>
+          quitterApresFinCuisineGuidee("menu")
+        )
+      );
+    }
+
+    actionsFinCuisineGuidee.append(
+      creerBoutonCuisineGuidee(
+        contexte.source.type === "fiche"
+          ? "Retour à la fiche recette"
+          : "Voir la fiche recette",
+        () => quitterApresFinCuisineGuidee("fiche"),
+        contexte.source.type === "menu" ? "bouton-secondaire" : ""
+      )
+    );
+    finCuisineGuidee.focus();
+  }
+
+  function terminerCuisineGuidee() {
+    const recette = obtenirRecetteCuisineGuidee();
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+
+    if (!sessionCuisineGuidee || !recette || etapes.length === 0) {
+      abandonnerCuisineGuidee();
+      return;
+    }
+
+    contexteFinCuisineGuidee = {
+      recetteId: recette.id,
+      nom: obtenirTexteRecette(recette.nom).trim() || "Recette",
+      portions: sessionCuisineGuidee.portions,
+      nombreEtapes: etapes.length,
+      source: { ...sessionCuisineGuidee.source }
+    };
+    supprimerSessionCuisineGuidee();
+    afficherFinCuisineGuidee();
+  }
+
+  function ouvrirLecteurCuisineGuidee(declencheur = null) {
+    const recette = obtenirRecetteCuisineGuidee();
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+
+    if (!sessionCuisineGuidee || !recette || etapes.length === 0) {
+      supprimerSessionCuisineGuidee();
+      afficherMessage(
+        "La recette doit d’abord contenir au moins une étape.",
+        "erreur"
+      );
+      return false;
+    }
+
+    if (ficheRecetteDialogue.open) {
+      fermerFicheRecette(false);
+    }
+
+    if (selecteurRecetteMenuDialogue.open) {
+      fermerSelecteurRecetteMenu(false);
+    }
+
+    const sessionNormalisee = normaliserSessionCuisineGuidee(
+      sessionCuisineGuidee
+    );
+
+    if (!sessionNormalisee) {
+      supprimerSessionCuisineGuidee();
+      afficherMessage(
+        "La progression enregistrée n’est plus utilisable.",
+        "erreur"
+      );
+      return false;
+    }
+
+    sessionCuisineGuidee = sessionNormalisee;
+    sauvegarderSessionCuisineGuidee();
+    contexteFinCuisineGuidee = null;
+    elementDeclencheurCuisineGuidee =
+      declencheur && typeof declencheur.focus === "function"
+        ? declencheur
+        : null;
+    document.body.classList.add("cuisine-guidee-ouverte");
+    afficherEtapeCuisineGuidee();
+
+    try {
+      if (!cuisineGuideeDialogue.open) {
+        if (typeof cuisineGuideeDialogue.showModal === "function") {
+          cuisineGuideeDialogue.showModal();
+        } else {
+          cuisineGuideeDialogue.setAttribute("open", "");
+        }
+      }
+    } catch (erreur) {
+      nettoyerLecteurCuisineGuidee(false);
+      afficherMessage(
+        "Le lecteur de cuisine guidée n’a pas pu être ouvert.",
+        "erreur"
+      );
+      return false;
+    }
+
+    zoneRepriseCuisineGuidee.hidden = true;
+    afficherEtapeCuisineGuidee(true);
+    demanderVerrouEcranCuisineGuidee();
+    demarrerIntervalleMinuteurCuisineGuidee();
+    return true;
+  }
+
+  function lancerCuisineGuidee(recetteId, portions, source, declencheur) {
+    const recette = recettes.find((element) => element.id === recetteId);
+    const etapes = obtenirEtapesValidesCuisineGuidee(recette);
+    const portionsValides = convertirNombreEntier(portions, 1) || 1;
+
+    if (!recette || etapes.length === 0) {
+      afficherMessage(
+        "La recette doit d’abord contenir au moins une étape.",
+        "erreur"
+      );
+      return false;
+    }
+
+    if (!sourceCuisineGuideeEstValide(source)) {
+      afficherMessage(
+        "Impossible de déterminer l’origine de cette recette.",
+        "erreur"
+      );
+      return false;
+    }
+
+    if (
+      sessionCuisineGuidee &&
+      !window.confirm(
+        "Une recette est déjà en cours. Voulez-vous l’abandonner et lancer celle-ci ?"
+      )
+    ) {
+      return false;
+    }
+
+    supprimerSessionCuisineGuidee();
+    const maintenant = new Date().toISOString();
+
+    sessionCuisineGuidee = {
+      version: 1,
+      recetteId: recette.id,
+      etapeId: etapes[0].id,
+      etapeIndex: 0,
+      portions: portionsValides,
+      source: { ...source },
+      demarreeLe: maintenant,
+      miseAJourLe: maintenant,
+      minuteur: null
+    };
+
+    if (!sauvegarderSessionCuisineGuidee()) {
+      afficherMessage(
+        "La recette peut être suivie, mais sa progression ne pourra peut-être pas être reprise après fermeture.",
+        "erreur"
+      );
+    }
+
+    return ouvrirLecteurCuisineGuidee(declencheur);
+  }
+
+  function reconcilierSessionCuisineGuidee() {
+    if (!sessionCuisineGuidee) {
+      return;
+    }
+
+    const sessionNormalisee = normaliserSessionCuisineGuidee(
+      sessionCuisineGuidee
+    );
+
+    if (!sessionNormalisee) {
+      abandonnerCuisineGuidee(false);
+      return;
+    }
+
+    sessionCuisineGuidee = sessionNormalisee;
+    sauvegarderSessionCuisineGuidee();
+
+    if (cuisineGuideeDialogue.open) {
+      afficherEtapeCuisineGuidee();
+      demarrerIntervalleMinuteurCuisineGuidee();
+    }
   }
 
   function copierRecettePourHistorique(recette) {
@@ -5039,6 +6350,13 @@
       return;
     }
 
+    if (
+      sessionCuisineGuidee &&
+      sessionCuisineGuidee.recetteId === idRecette
+    ) {
+      abandonnerCuisineGuidee(false);
+    }
+
     portionsSouhaitees.delete(idRecette);
     recettesSelectionneesManuellement.delete(idRecette);
     const menusNettoyes = copierStockageMenus(menusHebdomadaires);
@@ -5092,6 +6410,10 @@
   catalogueIngredients = chargerCatalogueIngredients();
   menusHebdomadaires = chargerMenusHebdomadaires();
   historique = chargerHistorique();
+  sessionCuisineGuidee = chargerSessionCuisineGuidee();
+  if (sessionCuisineGuidee) {
+    sauvegarderSessionCuisineGuidee();
+  }
   actualiserSelectionProvenantDuMenu();
 
   const brouillon = chargerBrouillon();
@@ -5110,6 +6432,7 @@
   remplirOptionsCategories(filtreCategorieCatalogue, true, "Toutes les catégories");
   afficherCatalogueIngredients();
   afficherVue("vue-menu");
+  afficherInvitationRepriseCuisineGuidee();
 
   boutonsNavigation.forEach((bouton) => {
     bouton.addEventListener("click", () => {
@@ -5197,6 +6520,121 @@
     if (evenement.target === ficheRecetteDialogue) {
       fermerFicheRecette();
     }
+  });
+
+  boutonReprendreCuisineGuidee.addEventListener("click", () => {
+    ouvrirLecteurCuisineGuidee(boutonReprendreCuisineGuidee);
+  });
+
+  boutonAbandonnerCuisineGuidee.addEventListener("click", () => {
+    if (
+      window.confirm(
+        "Abandonner définitivement cette recette et supprimer sa progression ?"
+      )
+    ) {
+      abandonnerCuisineGuidee();
+      afficherMessage("Recette guidée abandonnée.", "succes");
+    }
+  });
+
+  boutonQuitterCuisineGuidee.addEventListener("click", () => {
+    if (sessionCuisineGuidee) {
+      ouvrirConfirmationQuitterCuisineGuidee();
+    } else {
+      quitterApresFinCuisineGuidee(
+        contexteFinCuisineGuidee && contexteFinCuisineGuidee.source.type === "menu"
+          ? "menu"
+          : "fiche"
+      );
+    }
+  });
+
+  boutonEtapePrecedenteCuisineGuidee.addEventListener("click", () => {
+    changerEtapeCuisineGuidee(-1);
+  });
+
+  boutonEtapeSuivanteCuisineGuidee.addEventListener("click", () => {
+    if (!sessionCuisineGuidee) {
+      return;
+    }
+
+    const etapes = obtenirEtapesValidesCuisineGuidee(
+      obtenirRecetteCuisineGuidee()
+    );
+
+    if (sessionCuisineGuidee.etapeIndex === etapes.length - 1) {
+      terminerCuisineGuidee();
+    } else {
+      changerEtapeCuisineGuidee(1);
+    }
+  });
+
+  boutonVoirIngredientsCuisineGuidee.addEventListener(
+    "click",
+    afficherIngredientsCuisineGuidee
+  );
+  boutonFermerIngredientsCuisineGuidee.addEventListener(
+    "click",
+    fermerIngredientsCuisineGuidee
+  );
+
+  boutonConserverQuitterCuisineGuidee.addEventListener(
+    "click",
+    conserverEtQuitterCuisineGuidee
+  );
+  boutonConfirmerAbandonCuisineGuidee.addEventListener("click", () => {
+    abandonnerCuisineGuidee();
+    afficherMessage("Recette guidée abandonnée.", "succes");
+  });
+  boutonAnnulerQuitterCuisineGuidee.addEventListener("click", () => {
+    quitterCuisineGuideeDialogue.close();
+    boutonQuitterCuisineGuidee.focus();
+  });
+
+  cuisineGuideeDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    ouvrirConfirmationQuitterCuisineGuidee();
+  });
+
+  cuisineGuideeDialogue.addEventListener("close", () => {
+    nettoyerLecteurCuisineGuidee(
+      restaurerFocusCuisineGuideeALaFermeture
+    );
+    restaurerFocusCuisineGuideeALaFermeture = true;
+  });
+
+  cuisineGuideeDialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === cuisineGuideeDialogue) {
+      ouvrirConfirmationQuitterCuisineGuidee();
+    }
+  });
+
+  quitterCuisineGuideeDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    quitterCuisineGuideeDialogue.close();
+    boutonQuitterCuisineGuidee.focus();
+  });
+
+  quitterCuisineGuideeDialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === quitterCuisineGuideeDialogue) {
+      quitterCuisineGuideeDialogue.close();
+      boutonQuitterCuisineGuidee.focus();
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (!cuisineGuideeDialogue.open || document.visibilityState !== "visible") {
+      return;
+    }
+
+    demanderVerrouEcranCuisineGuidee();
+    actualiserMinuteurCuisineGuidee();
+    demarrerIntervalleMinuteurCuisineGuidee();
+  });
+
+  window.addEventListener("pagehide", () => {
+    arreterIntervalleMinuteurCuisineGuidee();
+    libererVerrouEcranCuisineGuidee();
   });
 
   boutonFermerSelecteurRecetteMenu.addEventListener("click", () => {
@@ -5328,6 +6766,7 @@
         return;
       }
 
+      reconcilierSessionCuisineGuidee();
       portionsSouhaitees.delete(recetteProposee.id);
       afficherRecettes();
       afficherMenuSemaine();

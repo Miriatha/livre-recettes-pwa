@@ -424,6 +424,112 @@ form {
   margin-top: 0.75rem;
 }
 
+.information-etapes {
+  margin: 0;
+  color: #5c6758;
+  font-size: 0.9rem;
+}
+
+.liste-etapes-formulaire {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.ligne-etape-recette {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.5rem;
+  background: #fffdf7;
+}
+
+.entete-ligne-etape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.titre-etape {
+  margin: 0;
+  color: #51654e;
+  font-size: 1rem;
+}
+
+.champs-etape {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.65fr) minmax(16rem, 2fr) minmax(12rem, 0.85fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.champ-instruction-etape textarea {
+  min-height: 7rem;
+}
+
+.duree-etape-formulaire {
+  min-width: 0;
+  margin: 0;
+  padding: 0.65rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.4rem;
+}
+
+.duree-etape-formulaire legend {
+  padding: 0 0.25rem;
+  font-weight: bold;
+}
+
+.champs-duree-etape {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.champs-duree-etape input,
+.etape-type {
+  width: 100%;
+  min-width: 0;
+}
+
+.actions-etape-recette {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.actions-etape-recette button {
+  min-width: 0;
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.actions-etape-recette button:hover,
+.actions-etape-recette button:focus-visible {
+  background: #d2bfa1;
+}
+
+.actions-etape-recette .supprimer-etape {
+  background: #c9957b;
+  color: #3e2a20;
+}
+
+.actions-etape-recette .supprimer-etape:hover,
+.actions-etape-recette .supprimer-etape:focus-visible {
+  background: #b87e63;
+}
+
+.actions-etape-recette button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bouton-ajouter-etape {
+  justify-self: start;
+}
+
 label {
   font-weight: bold;
 }
@@ -769,6 +875,12 @@ button:focus-visible {
   color: #6c6252;
   font-size: 0.9rem;
   font-style: italic;
+}
+
+.bouton-restaurer-recette {
+  margin-top: 0.75rem;
+  background: #d5e0c9;
+  color: #344731;
 }
 
 .bouton-ajouter-historique {
@@ -1436,6 +1548,53 @@ body.selecteur-recette-menu-ouvert {
   border-bottom: 0;
 }
 
+.liste-etapes-recette {
+  display: grid;
+  gap: 0.8rem;
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.liste-etapes-recette li {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.4rem;
+  background: #faf6ed;
+}
+
+.informations-etape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.type-etape,
+.duree-etape {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.type-etape {
+  background: #dfe8d8;
+  color: #344731;
+}
+
+.duree-etape {
+  background: #e8dfcc;
+  color: #4a4034;
+}
+
+.instruction-etape {
+  margin: 0.55rem 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .actions-fiche-recette-principales {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1523,6 +1682,10 @@ body.selecteur-recette-menu-ouvert {
 
   .grille-formulaire-informations,
   .grille-formulaire-textes {
+    grid-template-columns: 1fr;
+  }
+
+  .champs-etape {
     grid-template-columns: 1fr;
   }
 
@@ -1691,14 +1854,35 @@ body.selecteur-recette-menu-ouvert {
     margin: 0.45rem 0 0;
   }
 
-  .fiche-impression ul {
+  .fiche-impression ul,
+  .fiche-impression ol {
     margin: 0.45rem 0 0;
     padding-left: 1.3rem;
+  }
+
+  .fiche-impression ul {
     break-inside: avoid;
   }
 
   .fiche-impression li {
     margin-bottom: 0.2rem;
+  }
+
+  .liste-etapes-impression {
+    display: block;
+  }
+
+  .liste-etapes-impression li {
+    margin-bottom: 0.7rem;
+    break-inside: avoid;
+  }
+
+  .entete-etape-impression {
+    font-weight: bold;
+  }
+
+  .instruction-etape-impression {
+    white-space: pre-wrap;
   }
 
   .informations-impression {

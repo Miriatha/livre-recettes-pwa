@@ -118,8 +118,10 @@
   const boutonEffacerBrouillon = document.getElementById("effacer-brouillon");
   const listeIngredients = document.getElementById("liste-ingredients");
   const boutonAjouterIngredient = document.getElementById("ajouter-ingredient");
-  const champPreparation = document.getElementById("instructions-preparation");
-  const champCuisson = document.getElementById("instructions-cuisson");
+  const listeEtapesRecette = document.getElementById("liste-etapes-recette");
+  const boutonAjouterEtapeRecette = document.getElementById(
+    "ajouter-etape-recette"
+  );
   const champTempsPreparation = document.getElementById("temps-preparation");
   const champTempsCuisson = document.getElementById("temps-cuisson");
   const champPortions = document.getElementById("portions");
@@ -208,8 +210,8 @@
     ["#effacer-brouillon", boutonEffacerBrouillon],
     ["#liste-ingredients", listeIngredients],
     ["#ajouter-ingredient", boutonAjouterIngredient],
-    ["#instructions-preparation", champPreparation],
-    ["#instructions-cuisson", champCuisson],
+    ["#liste-etapes-recette", listeEtapesRecette],
+    ["#ajouter-etape-recette", boutonAjouterEtapeRecette],
     ["#temps-preparation", champTempsPreparation],
     ["#temps-cuisson", champTempsCuisson],
     ["#portions", champPortions],
@@ -414,6 +416,13 @@
     )
   );
   const difficultes = ["Facile", "Moyenne", "Difficile"];
+  const typesEtapes = Object.freeze([
+    { valeur: "preparation", libelle: "Préparation" },
+    { valeur: "cuisson", libelle: "Cuisson" },
+    { valeur: "repos", libelle: "Repos" },
+    { valeur: "service", libelle: "Service" }
+  ]);
+  const dureeMaximaleEtapeSecondes = 7 * 24 * 60 * 60;
   const joursSemaine = [
     { cle: "lundi", libelle: "Lundi" },
     { cle: "mardi", libelle: "Mardi" },
@@ -498,6 +507,7 @@
   let prochainIdentifiantIngredient = 1;
   let prochainIdentifiantCatalogue = 1;
   let prochainIdentifiantHistorique = 1;
+  let prochainIdentifiantEtape = 1;
   let idRecetteHistorique = null;
   let temporisationSauvegardeBrouillon = null;
   let titreDocumentAvantImpression = null;
@@ -1748,6 +1758,9 @@
       }
 
       identifiantsUtilises.add(identifiant);
+      const recetteSnapshot = recetteEstValide(entree.recetteSnapshot)
+        ? copierRecettePourHistorique(entree.recetteSnapshot)
+        : null;
       entrees.push({
         id: identifiant,
         recetteId: identifiantRecetteEstValide(entree.recetteId)
@@ -1758,6 +1771,7 @@
         date: entree.date,
         appreciation: entree.appreciation,
         notes: obtenirTexteHistorique(entree.notes),
+        recetteSnapshot,
         creeLe: dateHeureHistoriqueEstValide(entree.creeLe)
           ? entree.creeLe
           : `${entree.date}T00:00:00.000Z`
@@ -1837,6 +1851,68 @@
     });
   }
 
+  function restaurerRecetteDepuisHistorique(entree) {
+    if (!entree || !recetteEstValide(entree.recetteSnapshot)) {
+      afficherMessage(
+        "Cette ancienne entrée d’historique ne contient pas de version restaurable.",
+        "erreur"
+      );
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Restaurer la version historique de « ${entree.recetteSnapshot.nom} » ?`
+      )
+    ) {
+      return;
+    }
+
+    const recetteActuelleIndex = recettes.findIndex(
+      (recette) => recette.id === entree.recetteId
+    );
+    const identifiantsUtilises = new Set(recettes.map((recette) => recette.id));
+    const identifiantSnapshot = obtenirTexteRecette(
+      entree.recetteSnapshot.id
+    ).trim();
+    const identifiant =
+      recetteActuelleIndex !== -1
+        ? entree.recetteId
+        : identifiantSnapshot && !identifiantsUtilises.has(identifiantSnapshot)
+          ? identifiantSnapshot
+          : creerIdentifiantRecette(identifiantsUtilises);
+    const recetteRestauree = {
+      ...copierRecetteSansAnciennesInstructions(
+        copierRecettePourHistorique(entree.recetteSnapshot)
+      ),
+      id: identifiant,
+      ingredients: obtenirIngredientsValides(entree.recetteSnapshot).map(
+        (ingredient) => ({ ...ingredient })
+      ),
+      etapes: copierEtapes(
+        obtenirEtapesUtilisablesRecette(entree.recetteSnapshot)
+      )
+    };
+    const recettesProposees = [...recettes];
+
+    if (recetteActuelleIndex === -1) {
+      recettesProposees.push(recetteRestauree);
+    } else {
+      recettesProposees[recetteActuelleIndex] = recetteRestauree;
+    }
+
+    if (!appliquerRecettes(recettesProposees)) {
+      return;
+    }
+
+    portionsSouhaitees.delete(identifiant);
+    afficherRecettes();
+    afficherMenuSemaine();
+    actualiserListeCoursesSiAffichee();
+    afficherHistorique();
+    afficherMessage("Version historique restaurée.", "succes");
+  }
+
   function afficherHistorique() {
     zoneListeHistorique.textContent = "";
 
@@ -1904,6 +1980,18 @@
         carte.append(recetteSupprimee);
       }
 
+      if (entree.recetteSnapshot) {
+        const boutonRestaurer = document.createElement("button");
+
+        boutonRestaurer.type = "button";
+        boutonRestaurer.className = "bouton-restaurer-recette";
+        boutonRestaurer.textContent = "Restaurer cette version";
+        boutonRestaurer.addEventListener("click", () => {
+          restaurerRecetteDepuisHistorique(entree);
+        });
+        carte.append(boutonRestaurer);
+      }
+
       zoneListeHistorique.append(carte);
     });
   }
@@ -1917,6 +2005,38 @@
     contenu.className = "texte-impression";
     contenu.textContent = texte;
     fiche.append(titreSection, contenu);
+  }
+
+  function ajouterEtapesImpression(fiche, recette) {
+    const etapes = obtenirEtapesUtilisablesRecette(recette);
+
+    if (etapes.length === 0) {
+      return;
+    }
+
+    const titreSection = document.createElement("h2");
+    const liste = document.createElement("ol");
+
+    titreSection.textContent = "Étapes de la recette";
+    liste.className = "liste-etapes-impression";
+
+    etapes.forEach((etape) => {
+      const element = document.createElement("li");
+      const enTete = document.createElement("p");
+      const instruction = document.createElement("p");
+      const duree = formaterDureeEtape(etape.dureeSecondes);
+
+      enTete.className = "entete-etape-impression";
+      enTete.textContent = duree
+        ? `${obtenirLibelleTypeEtape(etape.type)} · ${duree}`
+        : obtenirLibelleTypeEtape(etape.type);
+      instruction.className = "instruction-etape-impression";
+      instruction.textContent = etape.instruction;
+      element.append(enTete, instruction);
+      liste.append(element);
+    });
+
+    fiche.append(titreSection, liste);
   }
 
   function construireFicheImpression(recette) {
@@ -2022,18 +2142,10 @@
       fiche.append(titreIngredients, listeIngredients);
     }
 
-    const preparation = obtenirTexteRecette(recette.preparation);
-    const cuisson = obtenirTexteRecette(recette.cuisson);
     const notes = obtenirTexteRecette(recette.notes);
     const conseils = obtenirTexteRecette(recette.conseils);
 
-    if (preparation) {
-      ajouterSectionImpression(fiche, "Préparation", preparation);
-    }
-
-    if (cuisson) {
-      ajouterSectionImpression(fiche, "Cuisson", cuisson);
-    }
+    ajouterEtapesImpression(fiche, recette);
 
     if (notes) {
       ajouterSectionImpression(fiche, "Notes personnelles", notes);
@@ -2212,10 +2324,53 @@
     ficheRecetteContenu.append(section);
   }
 
+  function ajouterEtapesFicheRecette(recette) {
+    const etapes = obtenirEtapesUtilisablesRecette(recette);
+
+    if (etapes.length === 0) {
+      return;
+    }
+
+    const section = document.createElement("section");
+    const titre = document.createElement("h3");
+    const liste = document.createElement("ol");
+
+    section.className = "section-fiche-recette";
+    titre.textContent = "Étapes de la recette";
+    liste.className = "liste-etapes-recette";
+
+    etapes.forEach((etape) => {
+      const element = document.createElement("li");
+      const informations = document.createElement("div");
+      const type = document.createElement("span");
+      const instruction = document.createElement("p");
+      const dureeFormatee = formaterDureeEtape(etape.dureeSecondes);
+
+      informations.className = "informations-etape";
+      type.className = `type-etape type-etape-${obtenirTypeEtape(etape.type)}`;
+      type.textContent = obtenirLibelleTypeEtape(etape.type);
+      informations.append(type);
+
+      if (dureeFormatee) {
+        const duree = document.createElement("span");
+
+        duree.className = "duree-etape";
+        duree.textContent = dureeFormatee;
+        informations.append(duree);
+      }
+
+      instruction.className = "instruction-etape";
+      instruction.textContent = etape.instruction;
+      element.append(informations, instruction);
+      liste.append(element);
+    });
+
+    section.append(titre, liste);
+    ficheRecetteContenu.append(section);
+  }
+
   function rendreFicheRecette(recette) {
     const categorie = obtenirTexteRecette(recette.categorie).trim();
-    const preparation = obtenirTexteRecette(recette.preparation).trim();
-    const cuisson = obtenirTexteRecette(recette.cuisson).trim();
     const notes = obtenirTexteRecette(recette.notes).trim();
     const conseils = obtenirTexteRecette(recette.conseils).trim();
     const portionsOriginales = obtenirPortionsOriginales(recette);
@@ -2279,22 +2434,7 @@
     }
 
     ajouterIngredientsFicheRecette(recette, coefficientPortions);
-
-    if (preparation) {
-      ajouterSectionTexteFicheRecette(
-        "Préparation",
-        preparation,
-        "instructions-recette"
-      );
-    }
-
-    if (cuisson) {
-      ajouterSectionTexteFicheRecette(
-        "Cuisson",
-        cuisson,
-        "instructions-recette"
-      );
-    }
+    ajouterEtapesFicheRecette(recette);
 
     if (notes) {
       ajouterSectionTexteFicheRecette(
@@ -2739,6 +2879,193 @@
 
   function obtenirTexteRecette(texte) {
     return typeof texte === "string" ? texte : "";
+  }
+
+  function typeEtapeEstValide(type) {
+    return typesEtapes.some((typeEtape) => typeEtape.valeur === type);
+  }
+
+  function obtenirTypeEtape(type) {
+    return typeEtapeEstValide(type) ? type : "preparation";
+  }
+
+  function obtenirLibelleTypeEtape(type) {
+    const typeTrouve = typesEtapes.find(
+      (typeEtape) => typeEtape.valeur === obtenirTypeEtape(type)
+    );
+
+    return typeTrouve.libelle;
+  }
+
+  function creerIdentifiantEtape(identifiantsUtilises = new Set()) {
+    let identifiant;
+
+    do {
+      try {
+        identifiant =
+          globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
+            ? globalThis.crypto.randomUUID()
+            : "";
+      } catch (erreur) {
+        identifiant = "";
+      }
+
+      if (!identifiant) {
+        identifiant = `etape-${Date.now()}-${prochainIdentifiantEtape}`;
+        prochainIdentifiantEtape += 1;
+      }
+    } while (identifiantsUtilises.has(identifiant));
+
+    return identifiant;
+  }
+
+  function normaliserDureeEtape(dureeSecondes) {
+    if (
+      typeof dureeSecondes !== "number" ||
+      !Number.isInteger(dureeSecondes) ||
+      dureeSecondes <= 0 ||
+      dureeSecondes > dureeMaximaleEtapeSecondes
+    ) {
+      return null;
+    }
+
+    return dureeSecondes;
+  }
+
+  function normaliserEtapes(etapes) {
+    if (!Array.isArray(etapes)) {
+      return [];
+    }
+
+    const identifiantsUtilises = new Set();
+    const etapesNormalisees = [];
+
+    etapes.forEach((etape) => {
+      if (!etape || typeof etape !== "object" || Array.isArray(etape)) {
+        return;
+      }
+
+      const instruction = obtenirTexteRecette(etape.instruction).trim();
+
+      if (!instruction) {
+        return;
+      }
+
+      let identifiant = obtenirTexteRecette(etape.id).trim();
+
+      if (!identifiant || identifiantsUtilises.has(identifiant)) {
+        identifiant = creerIdentifiantEtape(identifiantsUtilises);
+      }
+
+      identifiantsUtilises.add(identifiant);
+      etapesNormalisees.push({
+        id: identifiant,
+        ordre: etapesNormalisees.length + 1,
+        type: obtenirTypeEtape(etape.type),
+        instruction,
+        dureeSecondes: normaliserDureeEtape(etape.dureeSecondes)
+      });
+    });
+
+    return etapesNormalisees;
+  }
+
+  function convertirAnciennesInstructionsEnEtapes(recette) {
+    const etapes = [];
+    const preparation = obtenirTexteRecette(recette.preparation);
+    const cuisson = obtenirTexteRecette(recette.cuisson);
+    const suffixe = identifiantRecetteEstValide(recette.id)
+      ? recette.id.replace(/[^a-zA-Z0-9_-]/g, "-")
+      : "recette";
+
+    if (preparation.trim()) {
+      etapes.push({
+        id: `etape-ancienne-${suffixe}-preparation`,
+        ordre: etapes.length + 1,
+        type: "preparation",
+        instruction: preparation,
+        dureeSecondes: null
+      });
+    }
+
+    if (cuisson.trim()) {
+      etapes.push({
+        id: `etape-ancienne-${suffixe}-cuisson`,
+        ordre: etapes.length + 1,
+        type: "cuisson",
+        instruction: cuisson,
+        dureeSecondes: null
+      });
+    }
+
+    return etapes;
+  }
+
+  function obtenirEtapesUtilisablesRecette(recette) {
+    if (Array.isArray(recette.etapes)) {
+      const etapesNormalisees = normaliserEtapes(recette.etapes);
+
+      if (etapesNormalisees.length > 0) {
+        return etapesNormalisees;
+      }
+    }
+
+    return convertirAnciennesInstructionsEnEtapes(recette);
+  }
+
+  function copierEtapes(etapes) {
+    return etapes.map((etape) => ({ ...etape }));
+  }
+
+  function formaterDureeEtape(dureeSecondes) {
+    const duree = normaliserDureeEtape(dureeSecondes);
+
+    if (duree === null) {
+      return "";
+    }
+
+    const heures = Math.floor(duree / 3600);
+    const minutes = Math.floor((duree % 3600) / 60);
+    const secondes = duree % 60;
+    const parties = [];
+
+    if (heures > 0) {
+      parties.push(`${heures} h`);
+    }
+
+    if (minutes > 0) {
+      parties.push(`${minutes} min`);
+    }
+
+    if (secondes > 0) {
+      parties.push(`${secondes} s`);
+    }
+
+    return parties.join(" ");
+  }
+
+  function obtenirTexteCompletEtapes(recette) {
+    return obtenirEtapesUtilisablesRecette(recette)
+      .map((etape) => etape.instruction)
+      .join("\n");
+  }
+
+  function copierRecettePourHistorique(recette) {
+    return {
+      ...recette,
+      ingredients: obtenirIngredientsValides(recette).map((ingredient) => ({
+        ...ingredient
+      })),
+      etapes: copierEtapes(obtenirEtapesUtilisablesRecette(recette))
+    };
+  }
+
+  function copierRecetteSansAnciennesInstructions(recette) {
+    const recetteCopiee = { ...recette };
+
+    delete recetteCopiee.preparation;
+    delete recetteCopiee.cuisson;
+    return recetteCopiee;
   }
 
   function normaliserRecherche(texte) {
@@ -3430,6 +3757,10 @@
       return true;
     }
 
+    if (normaliserRecherche(obtenirTexteCompletEtapes(recette)).includes(recherche)) {
+      return true;
+    }
+
     return obtenirIngredientsValides(recette).some((ingredient) =>
       normaliserRecherche(ingredient.nom).includes(recherche)
     );
@@ -3766,8 +4097,306 @@
     }));
   }
 
+  function renumeroterEtapesFormulaire() {
+    const lignes = Array.from(
+      listeEtapesRecette.querySelectorAll(".ligne-etape-recette")
+    );
+
+    lignes.forEach((ligne, index) => {
+      const numero = index + 1;
+      const titre = ligne.querySelector(".titre-etape");
+      const menuType = ligne.querySelector(".etape-type");
+      const instruction = ligne.querySelector(".etape-instruction");
+      const heures = ligne.querySelector(".etape-duree-heures");
+      const minutes = ligne.querySelector(".etape-duree-minutes");
+
+      ligne.dataset.ordre = String(numero);
+      titre.textContent = `Étape ${numero}`;
+      menuType.id = `etape-${numero}-type`;
+      instruction.id = `etape-${numero}-instruction`;
+      heures.id = `etape-${numero}-heures`;
+      minutes.id = `etape-${numero}-minutes`;
+      ligne.querySelector(".label-etape-type").htmlFor = menuType.id;
+      ligne.querySelector(".label-etape-instruction").htmlFor = instruction.id;
+      ligne.querySelector(".label-etape-heures").htmlFor = heures.id;
+      ligne.querySelector(".label-etape-minutes").htmlFor = minutes.id;
+      ligne.querySelector(".monter-etape").disabled = index === 0;
+      ligne.querySelector(".descendre-etape").disabled = index === lignes.length - 1;
+    });
+  }
+
+  function creerLigneEtape(etape = {}) {
+    const ligne = document.createElement("article");
+    const entete = document.createElement("div");
+    const titre = document.createElement("h4");
+    const champs = document.createElement("div");
+    const groupeType = document.createElement("div");
+    const labelType = document.createElement("label");
+    const menuType = document.createElement("select");
+    const groupeInstruction = document.createElement("div");
+    const labelInstruction = document.createElement("label");
+    const instruction = document.createElement("textarea");
+    const groupeDuree = document.createElement("fieldset");
+    const legendeDuree = document.createElement("legend");
+    const champsDuree = document.createElement("div");
+    const groupeHeures = document.createElement("div");
+    const labelHeures = document.createElement("label");
+    const heures = document.createElement("input");
+    const groupeMinutes = document.createElement("div");
+    const labelMinutes = document.createElement("label");
+    const minutes = document.createElement("input");
+    const actions = document.createElement("div");
+    const boutonMonter = document.createElement("button");
+    const boutonDescendre = document.createElement("button");
+    const boutonSupprimer = document.createElement("button");
+    const identifiantsUtilises = new Set(
+      Array.from(listeEtapesRecette.children).map(
+        (element) => element.dataset.etapeId
+      )
+    );
+    const identifiantPropose = obtenirTexteRecette(etape.id).trim();
+    const identifiant =
+      identifiantPropose && !identifiantsUtilises.has(identifiantPropose)
+        ? identifiantPropose
+        : creerIdentifiantEtape(identifiantsUtilises);
+    const duree = normaliserDureeEtape(etape.dureeSecondes);
+
+    ligne.className = "ligne-etape-recette";
+    ligne.dataset.etapeId = identifiant;
+    entete.className = "entete-ligne-etape";
+    titre.className = "titre-etape";
+    entete.append(titre);
+
+    champs.className = "champs-etape";
+    groupeType.className = "champ-formulaire champ-type-etape";
+    labelType.className = "label-etape-type";
+    labelType.textContent = "Type";
+    menuType.className = "etape-type";
+    typesEtapes.forEach((typeEtape) => {
+      const option = document.createElement("option");
+
+      option.value = typeEtape.valeur;
+      option.textContent = typeEtape.libelle;
+      menuType.append(option);
+    });
+    menuType.value = obtenirTypeEtape(etape.type);
+    groupeType.append(labelType, menuType);
+
+    groupeInstruction.className = "champ-formulaire champ-instruction-etape";
+    labelInstruction.className = "label-etape-instruction";
+    labelInstruction.textContent = "Instruction";
+    instruction.className = "etape-instruction";
+    instruction.placeholder = "Ex. : Mélanger doucement les ingrédients…";
+    instruction.value = obtenirTexteRecette(etape.instruction);
+    groupeInstruction.append(labelInstruction, instruction);
+
+    groupeDuree.className = "duree-etape-formulaire";
+    legendeDuree.textContent = "Durée facultative pour le futur minuteur";
+    champsDuree.className = "champs-duree-etape";
+    groupeHeures.className = "champ-formulaire";
+    labelHeures.className = "label-etape-heures";
+    labelHeures.textContent = "Heures";
+    heures.className = "etape-duree-heures";
+    heures.type = "number";
+    heures.min = "0";
+    heures.max = "168";
+    heures.step = "1";
+    heures.inputMode = "numeric";
+    heures.value =
+      typeof etape.heures === "string"
+        ? etape.heures
+        : duree === null
+          ? ""
+          : String(Math.floor(duree / 3600));
+    groupeHeures.append(labelHeures, heures);
+    groupeMinutes.className = "champ-formulaire";
+    labelMinutes.className = "label-etape-minutes";
+    labelMinutes.textContent = "Minutes";
+    minutes.className = "etape-duree-minutes";
+    minutes.type = "number";
+    minutes.min = "0";
+    minutes.max = "59";
+    minutes.step = "1";
+    minutes.inputMode = "numeric";
+    minutes.value =
+      typeof etape.minutes === "string"
+        ? etape.minutes
+        : duree === null
+          ? ""
+          : String(Math.floor((duree % 3600) / 60));
+    groupeMinutes.append(labelMinutes, minutes);
+    champsDuree.append(groupeHeures, groupeMinutes);
+    groupeDuree.append(legendeDuree, champsDuree);
+
+    actions.className = "actions-etape-recette";
+    boutonMonter.type = "button";
+    boutonMonter.className = "monter-etape";
+    boutonMonter.textContent = "Monter";
+    boutonMonter.setAttribute("aria-label", "Monter cette étape");
+    boutonDescendre.type = "button";
+    boutonDescendre.className = "descendre-etape";
+    boutonDescendre.textContent = "Descendre";
+    boutonDescendre.setAttribute("aria-label", "Descendre cette étape");
+    boutonSupprimer.type = "button";
+    boutonSupprimer.className = "supprimer-etape";
+    boutonSupprimer.textContent = "Supprimer";
+    boutonSupprimer.setAttribute("aria-label", "Supprimer cette étape");
+    actions.append(boutonMonter, boutonDescendre, boutonSupprimer);
+    champs.append(groupeType, groupeInstruction, groupeDuree);
+    ligne.append(entete, champs, actions);
+
+    boutonMonter.addEventListener("click", () => {
+      const lignePrecedente = ligne.previousElementSibling;
+
+      if (lignePrecedente) {
+        listeEtapesRecette.insertBefore(ligne, lignePrecedente);
+        renumeroterEtapesFormulaire();
+        programmerSauvegardeBrouillon();
+        boutonMonter.focus();
+      }
+    });
+    boutonDescendre.addEventListener("click", () => {
+      const ligneSuivante = ligne.nextElementSibling;
+
+      if (ligneSuivante) {
+        listeEtapesRecette.insertBefore(ligneSuivante, ligne);
+        renumeroterEtapesFormulaire();
+        programmerSauvegardeBrouillon();
+        boutonDescendre.focus();
+      }
+    });
+    boutonSupprimer.addEventListener("click", () => {
+      ligne.remove();
+      renumeroterEtapesFormulaire();
+      programmerSauvegardeBrouillon();
+    });
+
+    return ligne;
+  }
+
+  function ajouterLigneEtape(etape) {
+    const ligne = creerLigneEtape(etape);
+
+    listeEtapesRecette.append(ligne);
+    renumeroterEtapesFormulaire();
+    return ligne;
+  }
+
+  function reinitialiserEtapesFormulaire(etapes) {
+    listeEtapesRecette.textContent = "";
+    const etapesAAfficher = Array.isArray(etapes) ? etapes : [];
+
+    if (etapesAAfficher.length === 0) {
+      ajouterLigneEtape();
+      return;
+    }
+
+    etapesAAfficher.forEach((etape) => ajouterLigneEtape(etape));
+  }
+
+  function collecterEtapesBrouillon() {
+    return Array.from(
+      listeEtapesRecette.querySelectorAll(".ligne-etape-recette")
+    ).map((ligne) => ({
+      id: ligne.dataset.etapeId,
+      type: ligne.querySelector(".etape-type").value,
+      instruction: ligne.querySelector(".etape-instruction").value,
+      heures: ligne.querySelector(".etape-duree-heures").value,
+      minutes: ligne.querySelector(".etape-duree-minutes").value
+    }));
+  }
+
+  function lireEtapesFormulaire() {
+    const etapes = [];
+    const identifiantsUtilises = new Set();
+    const lignes = listeEtapesRecette.querySelectorAll(".ligne-etape-recette");
+
+    for (const ligne of lignes) {
+      const champInstruction = ligne.querySelector(".etape-instruction");
+      const champHeures = ligne.querySelector(".etape-duree-heures");
+      const champMinutes = ligne.querySelector(".etape-duree-minutes");
+      const instruction = champInstruction.value.trim();
+      const heuresTexte = champHeures.value.trim();
+      const minutesTexte = champMinutes.value.trim();
+      const dureeEstRenseignee = heuresTexte !== "" || minutesTexte !== "";
+
+      if (!instruction && !dureeEstRenseignee) {
+        continue;
+      }
+
+      if (!instruction) {
+        return {
+          estValide: false,
+          message: "Ajoutez une instruction à toute étape qui possède une durée.",
+          champ: champInstruction
+        };
+      }
+
+      let dureeSecondes = null;
+
+      if (dureeEstRenseignee) {
+        const heures = heuresTexte === "" ? 0 : Number(heuresTexte);
+        const minutes = minutesTexte === "" ? 0 : Number(minutesTexte);
+
+        if (
+          !Number.isInteger(heures) ||
+          !Number.isInteger(minutes) ||
+          heures < 0 ||
+          minutes < 0 ||
+          minutes > 59
+        ) {
+          return {
+            estValide: false,
+            message: "La durée d’une étape doit utiliser des heures et minutes entières positives.",
+            champ: !Number.isInteger(heures) || heures < 0 ? champHeures : champMinutes
+          };
+        }
+
+        dureeSecondes = heures * 3600 + minutes * 60;
+
+        if (
+          dureeSecondes <= 0 ||
+          dureeSecondes > dureeMaximaleEtapeSecondes
+        ) {
+          return {
+            estValide: false,
+            message: "La durée d’une étape doit être comprise entre 1 minute et 7 jours.",
+            champ: champHeures
+          };
+        }
+      }
+
+      let identifiant = obtenirTexteRecette(ligne.dataset.etapeId).trim();
+
+      if (!identifiant || identifiantsUtilises.has(identifiant)) {
+        identifiant = creerIdentifiantEtape(identifiantsUtilises);
+        ligne.dataset.etapeId = identifiant;
+      }
+
+      identifiantsUtilises.add(identifiant);
+      etapes.push({
+        id: identifiant,
+        ordre: etapes.length + 1,
+        type: obtenirTypeEtape(ligne.querySelector(".etape-type").value),
+        instruction,
+        dureeSecondes
+      });
+    }
+
+    if (etapes.length === 0) {
+      return {
+        estValide: false,
+        message: "Ajoutez au moins une étape avec une instruction.",
+        champ: listeEtapesRecette.querySelector(".etape-instruction")
+      };
+    }
+
+    return { estValide: true, etapes };
+  }
+
   function formulaireEstVide() {
     const ingredients = collecterIngredientsBrouillon();
+    const etapes = collecterEtapesBrouillon();
 
     return (
       champNom.value === "" &&
@@ -3776,10 +4405,14 @@
       champTempsCuisson.value === "" &&
       champPortions.value === "" &&
       menuDifficulte.value === "" &&
-      champPreparation.value === "" &&
-      champCuisson.value === "" &&
       champNotes.value === "" &&
       champConseils.value === "" &&
+      etapes.every(
+        (etape) =>
+          etape.instruction === "" &&
+          etape.heures === "" &&
+          etape.minutes === ""
+      ) &&
       ingredients.every(
         (ingredient) =>
           ingredient.nom === "" &&
@@ -3791,7 +4424,7 @@
 
   function collecterBrouillon() {
     return {
-      version: 1,
+      version: 2,
       mode: idRecetteEnModification === null ? "ajout" : "modification",
       recetteId: idRecetteEnModification,
       nom: champNom.value,
@@ -3801,8 +4434,7 @@
       portions: champPortions.value,
       difficulte: menuDifficulte.value,
       ingredients: collecterIngredientsBrouillon(),
-      preparation: champPreparation.value,
-      cuisson: champCuisson.value,
+      etapes: collecterEtapesBrouillon(),
       notes: champNotes.value,
       conseils: champConseils.value
     };
@@ -3969,8 +4601,6 @@
       "tempsCuisson",
       "portions",
       "difficulte",
-      "preparation",
-      "cuisson",
       "notes",
       "conseils"
     ];
@@ -3985,16 +4615,49 @@
           typeof ingredient.unite === "string"
       );
 
+    const etapesValides =
+      brouillon.version === 1
+        ? typeof brouillon.preparation === "string" &&
+          typeof brouillon.cuisson === "string"
+        : brouillon.version === 2 &&
+          Array.isArray(brouillon.etapes) &&
+          brouillon.etapes.every(
+            (etape) =>
+              etape &&
+              typeof etape === "object" &&
+              typeof etape.id === "string" &&
+              typeof etape.type === "string" &&
+              typeof etape.instruction === "string" &&
+              typeof etape.heures === "string" &&
+              typeof etape.minutes === "string"
+          );
+
     return (
-      brouillon.version === 1 &&
+      (brouillon.version === 1 || brouillon.version === 2) &&
       (brouillon.mode === "ajout" || brouillon.mode === "modification") &&
       ((brouillon.mode === "ajout" && brouillon.recetteId === null) ||
         (brouillon.mode === "modification" &&
           typeof brouillon.recetteId === "string" &&
           brouillon.recetteId.trim() !== "")) &&
       champsTexte.every((champ) => typeof brouillon[champ] === "string") &&
-      ingredientsValides
+      ingredientsValides &&
+      etapesValides
     );
+  }
+
+  function convertirEtapesPourBrouillon(etapes) {
+    return etapes.map((etape) => {
+      const duree = normaliserDureeEtape(etape.dureeSecondes);
+
+      return {
+        id: etape.id,
+        type: obtenirTypeEtape(etape.type),
+        instruction: obtenirTexteRecette(etape.instruction),
+        heures: duree === null ? "" : String(Math.floor(duree / 3600)),
+        minutes:
+          duree === null ? "" : String(Math.floor((duree % 3600) / 60))
+      };
+    });
   }
 
   function chargerBrouillon() {
@@ -4029,6 +4692,16 @@
         "Application de recettes : le brouillon enregistré est invalide. Le formulaire démarre vide."
       );
       return null;
+    }
+
+    if (brouillon.version === 1) {
+      return {
+        ...brouillon,
+        version: 2,
+        etapes: convertirEtapesPourBrouillon(
+          convertirAnciennesInstructionsEnEtapes(brouillon)
+        )
+      };
     }
 
     return brouillon;
@@ -4122,6 +4795,9 @@
           ...recette,
           id: identifiant,
           ingredients: obtenirIngredientsValides(recette),
+          ...(Array.isArray(recette.etapes)
+            ? { etapes: normaliserEtapes(recette.etapes) }
+            : {}),
           preparation: obtenirTexteRecette(recette.preparation),
           cuisson: obtenirTexteRecette(recette.cuisson),
           notes: obtenirTexteRecette(recette.notes),
@@ -4227,8 +4903,6 @@
   function remplirChampsPrincipaux(donnees) {
     champNom.value = obtenirTexteRecette(donnees.nom);
     menuCategorie.value = obtenirTexteRecette(donnees.categorie);
-    champPreparation.value = obtenirTexteRecette(donnees.preparation);
-    champCuisson.value = obtenirTexteRecette(donnees.cuisson);
     champNotes.value = obtenirTexteRecette(donnees.notes);
     champConseils.value = obtenirTexteRecette(donnees.conseils);
     champTempsPreparation.value = obtenirValeurChamp(donnees.tempsPreparation);
@@ -4251,6 +4925,7 @@
     activerModeAjout();
     viderChampsPrincipaux();
     reinitialiserLignesIngredient();
+    reinitialiserEtapesFormulaire();
 
     if (supprimerLeBrouillon) {
       supprimerBrouillon();
@@ -4260,6 +4935,7 @@
   function restaurerBrouillon(brouillon) {
     remplirChampsPrincipaux(brouillon);
     reinitialiserLignesIngredient(brouillon.ingredients);
+    reinitialiserEtapesFormulaire(brouillon.etapes);
 
     if (brouillon.mode === "modification") {
       const recetteExiste = recettes.some(
@@ -4316,6 +4992,7 @@
       difficulte: obtenirDifficulte(recette.difficulte)
     });
     reinitialiserLignesIngredient(obtenirIngredientsValides(recette));
+    reinitialiserEtapesFormulaire(obtenirEtapesUtilisablesRecette(recette));
     boutonPrincipal.textContent = "Enregistrer les modifications";
     boutonAnnuler.hidden = false;
     afficherVue("vue-formulaire");
@@ -4559,8 +5236,6 @@
 
     const nom = champNom.value.trim();
     const categorie = menuCategorie.value;
-    const preparation = champPreparation.value.trim();
-    const cuisson = champCuisson.value.trim();
     const notes = champNotes.value.trim();
     const conseils = champConseils.value.trim();
     const resultatInformations = lireInformationsPratiques();
@@ -4573,16 +5248,20 @@
       return;
     }
 
-    if (!preparation) {
-      afficherMessage(
-        "Veuillez indiquer les instructions de préparation.",
-        "erreur"
-      );
+    if (!resultatInformations.estValide) {
+      afficherMessage(resultatInformations.message, "erreur");
       return;
     }
 
-    if (!resultatInformations.estValide) {
-      afficherMessage(resultatInformations.message, "erreur");
+    const resultatEtapes = lireEtapesFormulaire();
+
+    if (!resultatEtapes.estValide) {
+      afficherMessage(resultatEtapes.message, "erreur");
+
+      if (resultatEtapes.champ) {
+        resultatEtapes.champ.focus();
+      }
+
       return;
     }
 
@@ -4627,12 +5306,11 @@
       }
 
       const recetteProposee = {
-        ...recette,
+        ...copierRecetteSansAnciennesInstructions(recette),
         nom,
         categorie,
         ingredients: ingredientsEnregistres,
-        preparation,
-        cuisson,
+        etapes: copierEtapes(resultatEtapes.etapes),
         notes,
         conseils,
         tempsPreparation: resultatInformations.tempsPreparation,
@@ -4670,8 +5348,7 @@
       nom,
       categorie,
       ingredients: ingredientsEnregistres,
-      preparation,
-      cuisson,
+      etapes: copierEtapes(resultatEtapes.etapes),
       notes,
       conseils,
       favori: false,
@@ -4710,6 +5387,29 @@
     programmerSauvegardeBrouillon();
     ligne.querySelector(".ingredient-nom").focus();
   });
+
+  boutonAjouterEtapeRecette.addEventListener("click", () => {
+    const ligne = ajouterLigneEtape();
+
+    programmerSauvegardeBrouillon();
+    ligne.querySelector(".etape-instruction").focus();
+  });
+
+  listeEtapesRecette.addEventListener(
+    "invalid",
+    (evenement) => {
+      if (
+        evenement.target.classList.contains("etape-duree-heures") ||
+        evenement.target.classList.contains("etape-duree-minutes")
+      ) {
+        afficherMessage(
+          "Veuillez vérifier la durée facultative de chaque étape.",
+          "erreur"
+        );
+      }
+    },
+    true
+  );
 
   boutonEffacerBrouillon.addEventListener("click", () => {
     const formulaireContientDesInformations =
@@ -4796,6 +5496,7 @@
       date,
       appreciation,
       notes,
+      recetteSnapshot: copierRecettePourHistorique(recette),
       creeLe: new Date().toISOString()
     };
     const historiquePropose = [...historique, entree];
@@ -4833,15 +5534,6 @@
 
   champRecherche.addEventListener("input", () => {
     afficherRecettes();
-  });
-
-  champPreparation.addEventListener("invalid", () => {
-    if (!champPreparation.value.trim()) {
-      afficherMessage(
-        "Veuillez indiquer les instructions de préparation.",
-        "erreur"
-      );
-    }
   });
 
   [champTempsPreparation, champTempsCuisson, champPortions, menuDifficulte].forEach(

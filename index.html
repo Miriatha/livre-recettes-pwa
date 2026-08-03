@@ -36,7 +36,7 @@
         <nav id="navigation-formulaire" class="navigation-formulaire" aria-label="Sections du formulaire">
           <button type="button" data-section-formulaire="section-formulaire-informations">Informations</button>
           <button type="button" data-section-formulaire="section-formulaire-ingredients">Ingrédients</button>
-          <button type="button" data-section-formulaire="section-formulaire-preparation">Préparation</button>
+          <button type="button" data-section-formulaire="section-formulaire-preparation">Étapes</button>
           <button type="button" data-section-formulaire="section-formulaire-notes">Notes</button>
         </nav>
 
@@ -131,27 +131,14 @@
           </section>
 
           <section id="section-formulaire-preparation" class="section-formulaire" aria-labelledby="titre-section-formulaire-preparation">
-            <h3 id="titre-section-formulaire-preparation" tabindex="-1">Préparation et cuisson</h3>
-            <div class="grille-formulaire-textes">
-              <div class="champ-formulaire">
-                <label for="instructions-preparation">Instructions de préparation</label>
-                <textarea
-                  id="instructions-preparation"
-                  name="preparation"
-                  required
-                  placeholder="Décrivez les différentes étapes de préparation…"
-                ></textarea>
-              </div>
-
-              <div class="champ-formulaire">
-                <label for="instructions-cuisson">Instructions de cuisson</label>
-                <textarea
-                  id="instructions-cuisson"
-                  name="cuisson"
-                  placeholder="Température, durée et méthode de cuisson…"
-                ></textarea>
-              </div>
-            </div>
+            <h3 id="titre-section-formulaire-preparation" tabindex="-1">Étapes de la recette</h3>
+            <p class="information-etapes">
+              Ajoutez les actions dans leur ordre réel. Une durée facultative pourra servir à un futur minuteur.
+            </p>
+            <div id="liste-etapes-recette" class="liste-etapes-formulaire"></div>
+            <button id="ajouter-etape-recette" class="bouton-ajouter-etape" type="button">
+              + Ajouter une étape
+            </button>
           </section>
 
           <section id="section-formulaire-notes" class="section-formulaire" aria-labelledby="titre-section-formulaire-notes">
@@ -215,11 +202,11 @@
             <option value="Encas">Encas</option>
           </select>
           <div class="champ-recherche">
-            <label for="recherche-recettes">Rechercher par nom ou ingrédient</label>
+            <label for="recherche-recettes">Rechercher par nom, ingrédient ou étape</label>
             <input
               id="recherche-recettes"
               type="search"
-              placeholder="Exemple : tarte, farine, chocolat…"
+              placeholder="Exemple : tarte, farine, mélanger…"
             >
           </div>
           <label class="filtre-favoris">
@@ -374,7 +361,7 @@
             <input
               id="recherche-recette-menu"
               type="search"
-              placeholder="Rechercher par nom ou ingrédient…"
+              placeholder="Rechercher par nom, ingrédient ou étape…"
             >
           </div>
           <div class="filtres-selecteur-recette-menu">

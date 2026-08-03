@@ -505,6 +505,34 @@ button:focus-visible {
   font-size: 0.9rem;
 }
 
+.navigation-semaine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.navigation-semaine #plage-dates-semaine {
+  margin: 0;
+  color: #40563b;
+  font-weight: bold;
+  text-align: center;
+}
+
+.navigation-semaine #revenir-aujourdhui {
+  grid-column: 1 / -1;
+  justify-self: center;
+  background: #e2d4bb;
+  color: #4a4034;
+}
+
+.actions-menu-semaine {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
 .menu-semaine {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -516,25 +544,47 @@ button:focus-visible {
   border: 1px solid #dfd3bb;
   border-radius: 0.5rem;
   background: #faf6ed;
+  scroll-margin-top: 1rem;
+}
+
+.jour-menu-semaine.jour-actuel {
+  border: 2px solid #789173;
+  background: #edf3e9;
+  box-shadow: 0 0 0 0.2rem rgba(120, 145, 115, 0.15);
+}
+
+.entete-jour-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .jour-menu-semaine h3 {
-  margin: 0 0 0.75rem;
+  margin: 0;
   color: #51654e;
   font-size: 1rem;
+}
+
+.bouton-copier-journee {
+  width: auto;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.65rem;
+  background: #e2d4bb;
+  color: #4a4034;
+  font-size: 0.85rem;
 }
 
 .repas-menu-semaine {
   display: grid;
   gap: 0.35rem;
-  padding: 0.75rem;
-  border: 1px solid #c7b99f;
-  border-radius: 0.4rem;
-  background: #fffdf7;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid #c7b99f;
 }
 
 .repas-menu-semaine + .repas-menu-semaine {
-  margin-top: 0.75rem;
+  margin-top: 0.55rem;
 }
 
 .repas-menu-semaine h4,
@@ -544,11 +594,39 @@ button:focus-visible {
 
 .repas-menu-semaine h4 {
   color: #40563b;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+.emplacement-menu {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr);
+  align-items: start;
+  gap: 0.55rem;
+  padding: 0.45rem 0;
+}
+
+.libelle-emplacement-menu {
+  margin: 0;
+  padding-top: 0.65rem;
+  color: #5c6758;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.contenu-emplacement-menu {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
 }
 
 .recette-menu-semaine {
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
   overflow-wrap: anywhere;
+  color: #40563b;
+  text-align: left;
 }
 
 .categorie-menu-semaine {
@@ -562,8 +640,54 @@ button:focus-visible {
   gap: 0.5rem;
 }
 
-.repas-menu-semaine .bouton-ajouter-recette-menu {
+.emplacement-menu .bouton-ajouter-recette-menu {
   width: 100%;
+  background: #edf0e8;
+  color: #40563b;
+}
+
+.portions-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.portions-menu label {
+  font-size: 0.85rem;
+}
+
+.portions-menu input {
+  width: 4.75rem;
+}
+
+.actions-emplacement-menu {
+  border: 1px solid #dfd3bb;
+  border-radius: 0.4rem;
+  background: #fffdf7;
+}
+
+.actions-emplacement-menu summary {
+  min-height: 2.75rem;
+  padding: 0.7rem 0.75rem;
+  color: #40563b;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.actions-emplacement-menu[open] summary {
+  border-bottom: 1px solid #dfd3bb;
+}
+
+.contenu-actions-emplacement-menu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.55rem;
+}
+
+.contenu-actions-emplacement-menu button:last-child {
+  background: #e2d4bb;
+  color: #4a4034;
 }
 
 .bouton-retirer-recette-menu {
@@ -1371,6 +1495,23 @@ body.selecteur-recette-menu-ouvert {
 }
 
 @media (max-width: 900px) {
+  .menu-semaine {
+    grid-template-columns: 1fr;
+  }
+
+  .navigation-semaine {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .navigation-semaine #plage-dates-semaine,
+  .navigation-semaine #revenir-aujourdhui {
+    grid-column: 1 / -1;
+  }
+
+  .navigation-semaine #plage-dates-semaine {
+    grid-row: 1;
+  }
+
   .navigation-formulaire {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1459,6 +1600,19 @@ body.selecteur-recette-menu-ouvert {
 
   button {
     width: 100%;
+  }
+
+  .entete-jour-menu .bouton-copier-journee,
+  .navigation-semaine #revenir-aujourdhui {
+    width: auto;
+  }
+
+  .entete-jour-menu {
+    align-items: flex-start;
+  }
+
+  .contenu-actions-emplacement-menu {
+    grid-template-columns: 1fr;
   }
 
   .champ-recherche input {

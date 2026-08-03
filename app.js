@@ -21,6 +21,13 @@
   const boutonEffacerMenuSemaine = document.getElementById(
     "effacer-menu-semaine"
   );
+  const boutonSemainePrecedente = document.getElementById("semaine-precedente");
+  const boutonSemaineSuivante = document.getElementById("semaine-suivante");
+  const boutonRevenirAujourdhui = document.getElementById("revenir-aujourdhui");
+  const plageDatesSemaine = document.getElementById("plage-dates-semaine");
+  const boutonDupliquerSemainePrecedente = document.getElementById(
+    "dupliquer-semaine-precedente"
+  );
   const formulaireHistorique = document.getElementById("formulaire-historique");
   const historiqueRecetteNom = document.getElementById(
     "historique-recette-nom"
@@ -148,6 +155,11 @@
     ["#liste-courses", zoneListeCourses],
     ["#menu-semaine", zoneMenuSemaine],
     ["#effacer-menu-semaine", boutonEffacerMenuSemaine],
+    ["#semaine-precedente", boutonSemainePrecedente],
+    ["#semaine-suivante", boutonSemaineSuivante],
+    ["#revenir-aujourdhui", boutonRevenirAujourdhui],
+    ["#plage-dates-semaine", plageDatesSemaine],
+    ["#dupliquer-semaine-precedente", boutonDupliquerSemainePrecedente],
     ["#formulaire-historique", formulaireHistorique],
     ["#historique-recette-nom", historiqueRecetteNom],
     ["#historique-date", champHistoriqueDate],
@@ -411,10 +423,32 @@
     { cle: "samedi", libelle: "Samedi" },
     { cle: "dimanche", libelle: "Dimanche" }
   ];
-  const repasSemaine = [
-    { cle: "midi", libelle: "Midi" },
-    { cle: "soir", libelle: "Soir" }
+  const groupesRepasMenu = [
+    {
+      cle: "midi",
+      libelle: "Midi",
+      emplacements: [
+        { cle: "midi.plat", libelle: "Plat" },
+        { cle: "midi.dessert", libelle: "Dessert" }
+      ]
+    },
+    {
+      cle: "soir",
+      libelle: "Soir",
+      emplacements: [
+        { cle: "soir.plat", libelle: "Plat" },
+        { cle: "soir.dessert", libelle: "Dessert" }
+      ]
+    },
+    {
+      cle: "encas",
+      libelle: "En-cas",
+      emplacements: [{ cle: "encas", libelle: "En-cas" }]
+    }
   ];
+  const emplacementsMenu = groupesRepasMenu.flatMap(
+    (groupe) => groupe.emplacements
+  );
   const unitesIngredient = [
     "mg",
     "g",
@@ -452,7 +486,8 @@
   };
 
   let recettes = [];
-  let menuSemaine = creerMenuSemaineVide();
+  let debutSemaineAffichee = obtenirDebutSemaine(obtenirDateLocaleAujourdhui());
+  let menusHebdomadaires = creerStockageMenusVide();
   let historique = [];
   let catalogueIngredients = { version: 1, ingredients: [] };
   const recettesSelectionneesManuellement = new Set();
@@ -470,8 +505,8 @@
   let idRecetteFicheOuverte = null;
   let elementDeclencheurFiche = null;
   let restaurerFocusFicheALaFermeture = true;
-  let jourMenuCible = null;
-  let repasMenuCible = null;
+  let dateMenuCible = null;
+  let emplacementMenuCible = null;
   let elementDeclencheurSelecteurMenu = null;
   let restaurerFocusSelecteurMenuALaFermeture = true;
   let listeCoursesEstAffichee = false;
@@ -552,173 +587,351 @@
   }
 
   // Menu de la semaine
-  function creerMenuSemaineVide() {
-    const menu = { version: 1 };
-
-    joursSemaine.forEach((jour) => {
-      menu[jour.cle] = { midi: null, soir: null };
-    });
-
-    return menu;
+  function creerEmplacementMenuVide() {
+    return { recetteId: null, portions: null };
   }
 
-  function emplacementMenuSemaineEstValide(identifiant) {
-    return identifiant === null || identifiantRecetteEstValide(identifiant);
+  function creerJourMenuVide(date) {
+    return {
+      date,
+      midi: {
+        plat: creerEmplacementMenuVide(),
+        dessert: creerEmplacementMenuVide()
+      },
+      soir: {
+        plat: creerEmplacementMenuVide(),
+        dessert: creerEmplacementMenuVide()
+      },
+      encas: creerEmplacementMenuVide()
+    };
   }
 
-  function menuSemaineEstValide(menu) {
-    return (
-      menu &&
-      typeof menu === "object" &&
-      !Array.isArray(menu) &&
-      menu.version === 1 &&
-      joursSemaine.every((jour) => {
-        const repasDuJour = menu[jour.cle];
-
-        return (
-          repasDuJour &&
-          typeof repasDuJour === "object" &&
-          !Array.isArray(repasDuJour) &&
-          repasSemaine.every((repas) =>
-            emplacementMenuSemaineEstValide(repasDuJour[repas.cle])
-          )
-        );
-      })
-    );
+  function creerMenuSemaineVide(debutSemaine) {
+    return {
+      debutSemaine,
+      jours: joursSemaine.map((jour, index) => ({
+        ...creerJourMenuVide(ajouterJoursDateLocale(debutSemaine, index)),
+        cleJour: jour.cle
+      }))
+    };
   }
 
-  function copierMenuSemaine(menu) {
-    const copie = creerMenuSemaineVide();
+  function creerStockageMenusVide() {
+    return { version: 2, semaines: {} };
+  }
 
-    joursSemaine.forEach((jour) => {
-      repasSemaine.forEach((repas) => {
-        copie[jour.cle][repas.cle] = menu[jour.cle][repas.cle];
-      });
-    });
+  function creerDateDepuisTexteLocal(texteDate) {
+    if (!dateHistoriqueEstValide(texteDate)) {
+      return null;
+    }
 
+    const [annee, mois, jour] = texteDate.split("-").map(Number);
+    return new Date(annee, mois - 1, jour, 12);
+  }
+
+  function formaterDateLocale(date) {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function ajouterJoursDateLocale(texteDate, nombreJours) {
+    const date = creerDateDepuisTexteLocal(texteDate);
+
+    if (!date) {
+      return texteDate;
+    }
+
+    date.setDate(date.getDate() + nombreJours);
+    return formaterDateLocale(date);
+  }
+
+  function obtenirDebutSemaine(texteDate) {
+    const date = creerDateDepuisTexteLocal(texteDate) || new Date();
+    const decalageLundi = (date.getDay() + 6) % 7;
+
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() - decalageLundi);
+    return formaterDateLocale(date);
+  }
+
+  function obtenirEmplacementMenu(jour, cleEmplacement) {
+    if (!jour || !emplacementsMenu.some((item) => item.cle === cleEmplacement)) {
+      return null;
+    }
+
+    if (cleEmplacement === "encas") {
+      return jour.encas;
+    }
+
+    const [repas, type] = cleEmplacement.split(".");
+    return jour[repas] ? jour[repas][type] : null;
+  }
+
+  function definirEmplacementMenu(jour, cleEmplacement, valeur) {
+    if (cleEmplacement === "encas") {
+      jour.encas = valeur;
+      return;
+    }
+
+    const [repas, type] = cleEmplacement.split(".");
+    jour[repas][type] = valeur;
+  }
+
+  function copierEmplacementMenu(emplacement) {
+    return emplacement && typeof emplacement === "object"
+      ? { ...emplacement }
+      : creerEmplacementMenuVide();
+  }
+
+  function copierJourMenu(jour, nouvelleDate = jour.date) {
+    const copie = { ...jour, date: nouvelleDate };
+
+    copie.midi = {
+      plat: copierEmplacementMenu(obtenirEmplacementMenu(jour, "midi.plat")),
+      dessert: copierEmplacementMenu(obtenirEmplacementMenu(jour, "midi.dessert"))
+    };
+    copie.soir = {
+      plat: copierEmplacementMenu(obtenirEmplacementMenu(jour, "soir.plat")),
+      dessert: copierEmplacementMenu(obtenirEmplacementMenu(jour, "soir.dessert"))
+    };
+    copie.encas = copierEmplacementMenu(obtenirEmplacementMenu(jour, "encas"));
     return copie;
   }
 
-  function chargerMenuSemaine() {
+  function copierMenuSemaine(menu, nouveauDebut = menu.debutSemaine) {
+    return {
+      ...menu,
+      debutSemaine: nouveauDebut,
+      jours: joursSemaine.map((jour, index) => {
+        const source = menu.jours[index] || creerJourMenuVide(
+          ajouterJoursDateLocale(menu.debutSemaine, index)
+        );
+        const copie = copierJourMenu(
+          source,
+          ajouterJoursDateLocale(nouveauDebut, index)
+        );
+        copie.cleJour = jour.cle;
+        return copie;
+      })
+    };
+  }
+
+  function copierStockageMenus(stockage) {
+    const copie = { ...stockage, version: 2, semaines: {} };
+
+    Object.entries(stockage.semaines || {}).forEach(([debut, semaine]) => {
+      copie.semaines[debut] = copierMenuSemaine(semaine, debut);
+    });
+    return copie;
+  }
+
+  function obtenirPortionsParDefautRecette(recetteId) {
+    const recette = recettes.find((item) => item.id === recetteId);
+    return convertirNombreEntier(recette && recette.portions, 1) || 1;
+  }
+
+  function normaliserEmplacementMenu(valeur, utiliserPortionsRecette = false) {
+    if (valeur === null || valeur === undefined) {
+      return creerEmplacementMenuVide();
+    }
+
+    const proprietes = valeur && typeof valeur === "object" && !Array.isArray(valeur)
+      ? { ...valeur }
+      : {};
+    const recetteId = typeof valeur === "string"
+      ? valeur
+      : proprietes.recetteId || proprietes.id || proprietes.recipeId || null;
+
+    if (!identifiantRecetteEstValide(recetteId)) {
+      return { ...proprietes, recetteId: null, portions: null };
+    }
+
+    const portionsEnregistrees = convertirNombreEntier(proprietes.portions, 1);
+    return {
+      ...proprietes,
+      recetteId,
+      portions: portionsEnregistrees ||
+        (utiliserPortionsRecette ? obtenirPortionsParDefautRecette(recetteId) : 1)
+    };
+  }
+
+  function normaliserJourMenu(jour, date) {
+    const source = jour && typeof jour === "object" && !Array.isArray(jour)
+      ? jour
+      : {};
+    const resultat = { ...source, ...creerJourMenuVide(date), date };
+
+    emplacementsMenu.forEach((emplacement) => {
+      definirEmplacementMenu(
+        resultat,
+        emplacement.cle,
+        normaliserEmplacementMenu(obtenirEmplacementMenu(source, emplacement.cle))
+      );
+    });
+    return resultat;
+  }
+
+  function normaliserMenuSemaineV2(semaine, debutSemaine) {
+    const source = semaine && typeof semaine === "object" && !Array.isArray(semaine)
+      ? semaine
+      : {};
+    const joursSource = Array.isArray(source.jours) ? source.jours : [];
+    const menu = creerMenuSemaineVide(debutSemaine);
+
+    menu.jours = menu.jours.map((jourVide, index) => {
+      const date = jourVide.date;
+      const jourSource = joursSource.find((jour) => jour && jour.date === date) ||
+        joursSource[index];
+      const jourNormalise = normaliserJourMenu(jourSource, date);
+      jourNormalise.cleJour = joursSemaine[index].cle;
+      return jourNormalise;
+    });
+    return { ...source, ...menu };
+  }
+
+  function migrerMenuVersion1(menuAncien) {
+    const stockage = creerStockageMenusVide();
+    const semaine = creerMenuSemaineVide(debutSemaineAffichee);
+
+    joursSemaine.forEach((jour, index) => {
+      const ancienJour = menuAncien[jour.cle] || {};
+      definirEmplacementMenu(
+        semaine.jours[index],
+        "midi.plat",
+        normaliserEmplacementMenu(ancienJour.midi, true)
+      );
+      definirEmplacementMenu(
+        semaine.jours[index],
+        "soir.plat",
+        normaliserEmplacementMenu(ancienJour.soir, true)
+      );
+    });
+    stockage.semaines[debutSemaineAffichee] = semaine;
+    return stockage;
+  }
+
+  function chargerMenusHebdomadaires() {
     let donneesEnregistrees;
 
     try {
       donneesEnregistrees = localStorage.getItem(cleStockageMenuSemaine);
     } catch (erreur) {
-      console.warn(
-        "Application de recettes : le menu de la semaine enregistré est inaccessible. Un menu vide est utilisé."
-      );
-      return creerMenuSemaineVide();
+      console.warn("Application de recettes : les menus enregistrés sont inaccessibles. Des menus vides sont utilisés.");
+      return creerStockageMenusVide();
     }
 
     if (donneesEnregistrees === null) {
-      return creerMenuSemaineVide();
+      return creerStockageMenusVide();
     }
 
-    let menu;
+    let donnees;
 
     try {
-      menu = JSON.parse(donneesEnregistrees);
+      donnees = JSON.parse(donneesEnregistrees);
     } catch (erreur) {
-      console.warn(
-        "Application de recettes : le menu de la semaine enregistré est illisible. Un menu vide est utilisé."
-      );
-      return creerMenuSemaineVide();
+      console.warn("Application de recettes : les menus enregistrés sont illisibles. Des menus vides sont utilisés.");
+      return creerStockageMenusVide();
     }
 
-    if (!menuSemaineEstValide(menu)) {
-      console.warn(
-        "Application de recettes : le menu de la semaine enregistré est invalide. Un menu vide est utilisé."
-      );
-      return creerMenuSemaineVide();
+    if (donnees && donnees.version === 2 && donnees.semaines && typeof donnees.semaines === "object") {
+      const stockage = creerStockageMenusVide();
+      Object.entries(donnees.semaines).forEach(([debut, semaine]) => {
+        if (obtenirDebutSemaine(debut) === debut) {
+          stockage.semaines[debut] = normaliserMenuSemaineV2(semaine, debut);
+        }
+      });
+      return stockage;
     }
 
-    return copierMenuSemaine(menu);
+    if (donnees && (donnees.version === 1 || joursSemaine.some((jour) => donnees[jour.cle]))) {
+      const stockageMigre = migrerMenuVersion1(donnees);
+      enregistrerMenusHebdomadaires(stockageMigre);
+      return stockageMigre;
+    }
+
+    console.warn("Application de recettes : les menus enregistrés sont invalides. Des menus vides sont utilisés.");
+    return creerStockageMenusVide();
   }
 
-  function enregistrerMenuSemaine(menuAEnregistrer) {
+  function enregistrerMenusHebdomadaires(stockage) {
     try {
-      localStorage.setItem(
-        cleStockageMenuSemaine,
-        JSON.stringify(menuAEnregistrer)
-      );
+      localStorage.setItem(cleStockageMenuSemaine, JSON.stringify(stockage));
       return true;
     } catch (erreur) {
-      console.error(
-        "Application de recettes : le menu de la semaine n’a pas pu être sauvegardé localement."
-      );
+      console.error("Application de recettes : les menus n’ont pas pu être sauvegardés localement.");
       return false;
     }
   }
 
-  function menuSemaineEstIdentique(menuA, menuB) {
-    return joursSemaine.every((jour) =>
-      repasSemaine.every(
-        (repas) =>
-          menuA[jour.cle][repas.cle] === menuB[jour.cle][repas.cle]
-      )
+  function obtenirMenuSemaineAffichee(stockage = menusHebdomadaires) {
+    if (!stockage.semaines[debutSemaineAffichee]) {
+      stockage.semaines[debutSemaineAffichee] = creerMenuSemaineVide(
+        debutSemaineAffichee
+      );
+    }
+
+    return stockage.semaines[debutSemaineAffichee];
+  }
+
+  function obtenirJourMenu(date, stockage = menusHebdomadaires) {
+    return obtenirMenuSemaineAffichee(stockage).jours.find((jour) => jour.date === date) || null;
+  }
+
+  function emplacementMenuEstValide(date, cleEmplacement) {
+    return Boolean(
+      dateHistoriqueEstValide(date) &&
+      obtenirJourMenu(date) &&
+      emplacementsMenu.some((emplacement) => emplacement.cle === cleEmplacement)
     );
   }
 
-  function nettoyerMenuSemaine(menu, recettesDisponibles) {
-    const recettesParIdentifiant = new Set(
-      recettesDisponibles.map((recette) => recette.id)
-    );
-    const menuNettoye = creerMenuSemaineVide();
+  function obtenirOccurrencesMenuSemaineAffichee() {
+    const occurrences = [];
 
-    joursSemaine.forEach((jour) => {
-      repasSemaine.forEach((repas) => {
-        const identifiant = menu[jour.cle][repas.cle];
-
-        menuNettoye[jour.cle][repas.cle] = recettesParIdentifiant.has(
-          identifiant
-        )
-          ? identifiant
-          : null;
-      });
-    });
-
-    return menuNettoye;
-  }
-
-  function emplacementMenuEstValide(jour, repas) {
-    return (
-      joursSemaine.some((jourSemaine) => jourSemaine.cle === jour) &&
-      repasSemaine.some((repasSemaine) => repasSemaine.cle === repas)
-    );
-  }
-
-  function obtenirSelectionProvenantDuMenu(menu, recettesDisponibles) {
-    const identifiantsDisponibles = new Set(
-      recettesDisponibles.map((recette) => recette.id)
-    );
-    const selection = new Set();
-
-    joursSemaine.forEach((jour) => {
-      repasSemaine.forEach((repas) => {
-        const identifiant = menu[jour.cle][repas.cle];
-
-        if (identifiantsDisponibles.has(identifiant)) {
-          selection.add(identifiant);
+    obtenirMenuSemaineAffichee().jours.forEach((jour) => {
+      emplacementsMenu.forEach((definition) => {
+        const emplacement = obtenirEmplacementMenu(jour, definition.cle);
+        const recette = recettes.find((item) => item.id === (emplacement && emplacement.recetteId));
+        if (recette) {
+          occurrences.push({
+            recette,
+            portions: convertirNombreEntier(emplacement.portions, 1) ||
+              obtenirPortionsParDefautRecette(recette.id)
+          });
         }
       });
     });
-
-    return selection;
+    return occurrences;
   }
 
   function actualiserSelectionProvenantDuMenu() {
-    recettesSelectionneesParMenu = obtenirSelectionProvenantDuMenu(
-      menuSemaine,
-      recettes
+    recettesSelectionneesParMenu = new Set(
+      obtenirOccurrencesMenuSemaineAffichee().map((occurrence) => occurrence.recette.id)
     );
   }
 
   function obtenirSelectionEffective() {
-    return new Set([
-      ...recettesSelectionneesManuellement,
-      ...recettesSelectionneesParMenu
-    ]);
+    return new Set([...recettesSelectionneesManuellement, ...recettesSelectionneesParMenu]);
+  }
+
+  function obtenirOccurrencesPourCourses() {
+    const occurrencesMenu = obtenirOccurrencesMenuSemaineAffichee();
+    const identifiantsMenu = new Set(
+      occurrencesMenu.map((occurrence) => occurrence.recette.id)
+    );
+    const occurrencesManuelles = recettes
+      .filter((recette) =>
+        recettesSelectionneesManuellement.has(recette.id) &&
+        !identifiantsMenu.has(recette.id)
+      )
+      .map((recette) => ({
+        recette,
+        portions: obtenirPortionsSouhaiteesRecette(recette)
+      }));
+    return [...occurrencesMenu, ...occurrencesManuelles];
   }
 
   function actualiserApresChangementMenu() {
@@ -729,102 +942,235 @@
     actualiserListeCoursesSiAffichee();
   }
 
-  function creerEmplacementRepasMenu(jour, repas) {
-    const groupe = document.createElement("section");
-    const titre = document.createElement("h4");
-    const identifiant = menuSemaine[jour.cle][repas.cle];
-    const recette = recettes.find((recetteActuelle) => {
-      return recetteActuelle.id === identifiant;
-    });
-
-    groupe.className = "repas-menu-semaine";
-    titre.textContent = repas.libelle;
-    groupe.append(titre);
-
-    if (!recette) {
-      const boutonAjouter = document.createElement("button");
-
-      boutonAjouter.type = "button";
-      boutonAjouter.className = "bouton-ajouter-recette-menu";
-      boutonAjouter.dataset.jour = jour.cle;
-      boutonAjouter.dataset.repas = repas.cle;
-      boutonAjouter.textContent = "Ajouter une recette";
-      boutonAjouter.addEventListener("click", () => {
-        ouvrirSelecteurRecetteMenu(
-          boutonAjouter.dataset.jour,
-          boutonAjouter.dataset.repas,
-          boutonAjouter
-        );
-      });
-      groupe.append(boutonAjouter);
-      return groupe;
+  function appliquerStockageMenus(stockagePropose) {
+    if (!enregistrerMenusHebdomadaires(stockagePropose)) {
+      afficherErreurSauvegardeMenu();
+      return false;
     }
 
-    const nom = document.createElement("p");
-    const categorie = obtenirTexteRecette(recette.categorie).trim();
-    const actions = document.createElement("div");
-    const boutonChanger = document.createElement("button");
-    const boutonRetirer = document.createElement("button");
+    menusHebdomadaires = stockagePropose;
+    return true;
+  }
 
-    nom.className = "recette-menu-semaine";
-    nom.textContent = obtenirTexteRecette(recette.nom).trim() || "Recette";
-    groupe.append(nom);
-
-    if (categorie) {
-      const texteCategorie = document.createElement("p");
-
-      texteCategorie.className = "categorie-menu-semaine";
-      texteCategorie.textContent = `Catégorie : ${categorie}`;
-      groupe.append(texteCategorie);
-    }
-
-    actions.className = "actions-repas-menu-semaine";
-    boutonChanger.type = "button";
-    boutonChanger.dataset.jour = jour.cle;
-    boutonChanger.dataset.repas = repas.cle;
-    boutonChanger.textContent = "Changer";
-    boutonRetirer.type = "button";
-    boutonRetirer.className = "bouton-retirer-recette-menu";
-    boutonRetirer.dataset.jour = jour.cle;
-    boutonRetirer.dataset.repas = repas.cle;
-    boutonRetirer.setAttribute(
-      "aria-label",
-      `Retirer la recette du ${repas.libelle.toLowerCase()} de ${jour.libelle}`
+  function formaterPlageSemaine() {
+    const debut = creerDateDepuisTexteLocal(debutSemaineAffichee);
+    const fin = creerDateDepuisTexteLocal(
+      ajouterJoursDateLocale(debutSemaineAffichee, 6)
     );
-    boutonRetirer.textContent = "Retirer";
-    boutonChanger.addEventListener("click", () => {
-      ouvrirSelecteurRecetteMenu(
-        boutonChanger.dataset.jour,
-        boutonChanger.dataset.repas,
-        boutonChanger
+    const memeAnnee = debut.getFullYear() === fin.getFullYear();
+    const memeMois = memeAnnee && debut.getMonth() === fin.getMonth();
+    const formatFin = new Intl.DateTimeFormat("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+
+    if (memeMois) {
+      return `${debut.getDate()} – ${formatFin.format(fin)}`;
+    }
+
+    const formatDebut = new Intl.DateTimeFormat("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: memeAnnee ? undefined : "numeric"
+    });
+    return `${formatDebut.format(debut)} – ${formatFin.format(fin)}`;
+  }
+
+  function formaterTitreJour(date) {
+    const valeur = creerDateDepuisTexteLocal(date);
+    return new Intl.DateTimeFormat("fr-FR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long"
+    }).format(valeur).toLocaleUpperCase("fr-FR");
+  }
+
+  function enregistrerPortionsEmplacement(date, cleEmplacement, valeur, champ) {
+    const portions = convertirNombreEntier(valeur, 1);
+
+    if (portions === null || !emplacementMenuEstValide(date, cleEmplacement)) {
+      const emplacementActuel = obtenirEmplacementMenu(
+        obtenirJourMenu(date),
+        cleEmplacement
+      );
+      champ.value = emplacementActuel && emplacementActuel.portions
+        ? emplacementActuel.portions
+        : 1;
+      afficherMessage("Le nombre de portions doit être un entier supérieur à zéro.", "erreur");
+      return;
+    }
+
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    const emplacement = obtenirEmplacementMenu(
+      obtenirJourMenu(date, stockagePropose),
+      cleEmplacement
+    );
+    const portionsPrecedentes = emplacement.portions;
+    emplacement.portions = portions;
+
+    if (appliquerStockageMenus(stockagePropose)) {
+      actualiserListeCoursesSiAffichee();
+      afficherMessage("Nombre de portions enregistré pour ce repas.", "succes");
+    } else {
+      champ.value = portionsPrecedentes;
+    }
+  }
+
+  function obtenirLibelleCompletEmplacement(cleEmplacement) {
+    const groupe = groupesRepasMenu.find((item) =>
+      item.emplacements.some((emplacement) => emplacement.cle === cleEmplacement)
+    );
+    const emplacement = emplacementsMenu.find((item) => item.cle === cleEmplacement);
+
+    if (!groupe || !emplacement) {
+      return "Emplacement";
+    }
+
+    return cleEmplacement === "encas"
+      ? groupe.libelle
+      : `${groupe.libelle} — ${emplacement.libelle}`;
+  }
+
+  function creerBoutonActionEmplacement(libelle, action) {
+    const bouton = document.createElement("button");
+    bouton.type = "button";
+    bouton.textContent = libelle;
+    bouton.addEventListener("click", action);
+    return bouton;
+  }
+
+  function creerEmplacementRepasMenu(jour, definition) {
+    const ligne = document.createElement("section");
+    const libelle = document.createElement("p");
+    const emplacement = obtenirEmplacementMenu(jour, definition.cle);
+    const recette = recettes.find((item) => item.id === (emplacement && emplacement.recetteId));
+
+    ligne.className = "emplacement-menu";
+    libelle.className = "libelle-emplacement-menu";
+    libelle.textContent = definition.libelle;
+    ligne.append(libelle);
+
+    if (!emplacement || !emplacement.recetteId) {
+      const boutonAjouter = creerBoutonActionEmplacement("+ Ajouter", () => {
+        ouvrirSelecteurRecetteMenu(jour.date, definition.cle, boutonAjouter);
+      });
+      boutonAjouter.className = "bouton-ajouter-recette-menu";
+      boutonAjouter.setAttribute(
+        "aria-label",
+        `Ajouter une recette à l’emplacement ${obtenirLibelleCompletEmplacement(definition.cle)} du ${formaterTitreJour(jour.date).toLowerCase()}`
+      );
+      ligne.append(boutonAjouter);
+      return ligne;
+    }
+
+    const contenu = document.createElement("div");
+    const nom = document.createElement(recette ? "button" : "p");
+    const zonePortions = document.createElement("div");
+    const libellePortions = document.createElement("label");
+    const champPortionsMenu = document.createElement("input");
+    const actions = document.createElement("details");
+    const resumeActions = document.createElement("summary");
+    const contenuActions = document.createElement("div");
+    const idPortions = `portions-menu-${jour.date}-${definition.cle.replace(".", "-")}`;
+
+    contenu.className = "contenu-emplacement-menu";
+    nom.className = "recette-menu-semaine";
+    nom.textContent = recette
+      ? obtenirTexteRecette(recette.nom).trim() || "Recette"
+      : "Recette introuvable";
+    if (recette) {
+      nom.type = "button";
+      nom.addEventListener("click", () => ouvrirFicheRecette(recette.id, nom));
+    }
+    zonePortions.className = "portions-menu";
+    libellePortions.htmlFor = idPortions;
+    libellePortions.textContent = "Portions";
+    champPortionsMenu.id = idPortions;
+    champPortionsMenu.type = "number";
+    champPortionsMenu.min = "1";
+    champPortionsMenu.step = "1";
+    champPortionsMenu.inputMode = "numeric";
+    champPortionsMenu.value = convertirNombreEntier(emplacement.portions, 1) || 1;
+    champPortionsMenu.addEventListener("change", () => {
+      enregistrerPortionsEmplacement(
+        jour.date,
+        definition.cle,
+        champPortionsMenu.value,
+        champPortionsMenu
       );
     });
-    boutonRetirer.addEventListener("click", () => {
-      retirerRecetteDuMenu(
-        boutonRetirer.dataset.jour,
-        boutonRetirer.dataset.repas
+    zonePortions.append(libellePortions, champPortionsMenu);
+
+    actions.className = "actions-emplacement-menu";
+    resumeActions.textContent = "Actions";
+    contenuActions.className = "contenu-actions-emplacement-menu";
+    if (recette) {
+      contenuActions.append(
+        creerBoutonActionEmplacement("Voir la recette", () =>
+          ouvrirFicheRecette(recette.id, resumeActions)
+        )
       );
+    }
+    contenuActions.append(
+      creerBoutonActionEmplacement("Remplacer", () =>
+        ouvrirSelecteurRecetteMenu(jour.date, definition.cle, resumeActions)
+      ),
+      creerBoutonActionEmplacement("Copier", () =>
+        transfererEmplacementMenu(jour.date, definition.cle, false)
+      ),
+      creerBoutonActionEmplacement("Déplacer", () =>
+        transfererEmplacementMenu(jour.date, definition.cle, true)
+      ),
+      creerBoutonActionEmplacement("Retirer", () =>
+        retirerRecetteDuMenu(jour.date, definition.cle)
+      )
+    );
+    actions.append(resumeActions, contenuActions);
+    contenu.append(nom, zonePortions, actions);
+    ligne.append(contenu);
+    return ligne;
+  }
+
+  function creerGroupeRepasMenu(jour, groupe) {
+    const section = document.createElement("section");
+    const titre = document.createElement("h4");
+    section.className = "repas-menu-semaine";
+    titre.textContent = groupe.libelle.toLocaleUpperCase("fr-FR");
+    section.append(titre);
+    groupe.emplacements.forEach((definition) => {
+      section.append(creerEmplacementRepasMenu(jour, definition));
     });
-    actions.append(boutonChanger, boutonRetirer);
-    groupe.append(actions);
-    return groupe;
+    return section;
   }
 
   function afficherMenuSemaine() {
+    const menu = obtenirMenuSemaineAffichee();
+    const dateAujourdhui = obtenirDateLocaleAujourdhui();
     zoneMenuSemaine.textContent = "";
+    plageDatesSemaine.textContent = formaterPlageSemaine();
 
-    joursSemaine.forEach((jour) => {
+    menu.jours.forEach((jour) => {
       const blocJour = document.createElement("section");
+      const enteteJour = document.createElement("div");
       const titreJour = document.createElement("h3");
+      const boutonCopierJour = creerBoutonActionEmplacement("Copier la journée", () =>
+        copierJourneeMenu(jour.date)
+      );
 
       blocJour.className = "jour-menu-semaine";
-      titreJour.textContent = jour.libelle;
-      blocJour.append(titreJour);
+      blocJour.id = `jour-menu-${jour.date}`;
+      blocJour.dataset.date = jour.date;
+      blocJour.classList.toggle("jour-actuel", jour.date === dateAujourdhui);
+      enteteJour.className = "entete-jour-menu";
+      titreJour.textContent = formaterTitreJour(jour.date);
+      boutonCopierJour.className = "bouton-copier-journee";
+      enteteJour.append(titreJour, boutonCopierJour);
+      blocJour.append(enteteJour);
 
-      repasSemaine.forEach((repas) => {
-        blocJour.append(creerEmplacementRepasMenu(jour, repas));
+      groupesRepasMenu.forEach((groupe) => {
+        blocJour.append(creerGroupeRepasMenu(jour, groupe));
       });
-
       zoneMenuSemaine.append(blocJour);
     });
   }
@@ -841,16 +1187,195 @@
       return;
     }
 
-    const menuVide = creerMenuSemaineVide();
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    stockagePropose.semaines[debutSemaineAffichee] = creerMenuSemaineVide(
+      debutSemaineAffichee
+    );
 
-    if (!enregistrerMenuSemaine(menuVide)) {
-      afficherErreurSauvegardeMenu();
+    if (!appliquerStockageMenus(stockagePropose)) {
       return;
     }
 
-    menuSemaine = menuVide;
     actualiserApresChangementMenu();
     afficherMessage("Menu de la semaine effacé.", "succes");
+  }
+
+  function jourMenuContientRecette(jour) {
+    return emplacementsMenu.some((definition) => {
+      const emplacement = obtenirEmplacementMenu(jour, definition.cle);
+      return Boolean(emplacement && emplacement.recetteId);
+    });
+  }
+
+  function demanderChoixMenu(message, choix) {
+    const reponse = window.prompt(
+      `${message}\n${choix.map((item, index) => `${index + 1}. ${item.libelle}`).join("\n")}`
+    );
+
+    if (reponse === null) {
+      return null;
+    }
+
+    const index = Number(reponse) - 1;
+    if (!Number.isInteger(index) || !choix[index]) {
+      afficherMessage("Choix invalide. Aucune modification n’a été effectuée.", "erreur");
+      return null;
+    }
+    return choix[index];
+  }
+
+  function demanderDestinationMenu(dateSource, cleSource, exclureJourSource = false) {
+    const semaine = obtenirMenuSemaineAffichee();
+    const joursPossibles = semaine.jours
+      .filter((jour) => !exclureJourSource || jour.date !== dateSource)
+      .map((jour) => ({ valeur: jour.date, libelle: formaterTitreJour(jour.date) }));
+    const jourChoisi = demanderChoixMenu("Choisissez le jour cible :", joursPossibles);
+
+    if (!jourChoisi) {
+      return null;
+    }
+
+    const emplacementChoisi = demanderChoixMenu(
+      "Choisissez l’emplacement cible :",
+      emplacementsMenu.map((emplacement) => ({
+        valeur: emplacement.cle,
+        libelle: obtenirLibelleCompletEmplacement(emplacement.cle)
+      }))
+    );
+
+    if (!emplacementChoisi ||
+        (jourChoisi.valeur === dateSource && emplacementChoisi.valeur === cleSource)) {
+      if (emplacementChoisi) {
+        afficherMessage("La source et la destination sont identiques.", "erreur");
+      }
+      return null;
+    }
+    return { date: jourChoisi.valeur, cle: emplacementChoisi.valeur };
+  }
+
+  function transfererEmplacementMenu(dateSource, cleSource, deplacer) {
+    if (!emplacementMenuEstValide(dateSource, cleSource)) {
+      return;
+    }
+
+    const destination = demanderDestinationMenu(dateSource, cleSource);
+    if (!destination) {
+      return;
+    }
+
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    const source = obtenirEmplacementMenu(
+      obtenirJourMenu(dateSource, stockagePropose),
+      cleSource
+    );
+    const cible = obtenirEmplacementMenu(
+      obtenirJourMenu(destination.date, stockagePropose),
+      destination.cle
+    );
+
+    if (!source || !source.recetteId) {
+      afficherMessage("La recette source n’existe plus dans le menu.", "erreur");
+      return;
+    }
+
+    if (cible && cible.recetteId &&
+        !window.confirm("L’emplacement cible contient déjà une recette. La remplacer ?")) {
+      return;
+    }
+
+    definirEmplacementMenu(
+      obtenirJourMenu(destination.date, stockagePropose),
+      destination.cle,
+      copierEmplacementMenu(source)
+    );
+    if (deplacer) {
+      definirEmplacementMenu(
+        obtenirJourMenu(dateSource, stockagePropose),
+        cleSource,
+        creerEmplacementMenuVide()
+      );
+    }
+
+    if (appliquerStockageMenus(stockagePropose)) {
+      actualiserApresChangementMenu();
+      afficherMessage(
+        deplacer ? "Recette déplacée dans le menu." : "Recette copiée dans le menu.",
+        "succes"
+      );
+    }
+  }
+
+  function copierJourneeMenu(dateSource) {
+    const menu = obtenirMenuSemaineAffichee();
+    const source = menu.jours.find((jour) => jour.date === dateSource);
+    const choixJours = menu.jours
+      .filter((jour) => jour.date !== dateSource)
+      .map((jour) => ({ valeur: jour.date, libelle: formaterTitreJour(jour.date) }));
+    const choix = demanderChoixMenu("Copier cette journée vers :", choixJours);
+
+    if (!source || !choix) {
+      return;
+    }
+
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    const cible = obtenirJourMenu(choix.valeur, stockagePropose);
+    if (jourMenuContientRecette(cible) &&
+        !window.confirm("La journée cible contient déjà une recette. Remplacer ses cinq emplacements ?")) {
+      return;
+    }
+
+    const semaineCible = obtenirMenuSemaineAffichee(stockagePropose);
+    const indexCible = semaineCible.jours.findIndex((jour) => jour.date === choix.valeur);
+    semaineCible.jours[indexCible] = copierJourMenu(source, choix.valeur);
+    semaineCible.jours[indexCible].cleJour = joursSemaine[indexCible].cle;
+
+    if (appliquerStockageMenus(stockagePropose)) {
+      actualiserApresChangementMenu();
+      afficherMessage("Journée copiée avec ses cinq emplacements.", "succes");
+    }
+  }
+
+  function dupliquerSemainePrecedente() {
+    const debutPrecedent = ajouterJoursDateLocale(debutSemaineAffichee, -7);
+    const source = menusHebdomadaires.semaines[debutPrecedent] ||
+      creerMenuSemaineVide(debutPrecedent);
+    const cible = obtenirMenuSemaineAffichee();
+
+    if (cible.jours.some(jourMenuContientRecette) &&
+        !window.confirm("La semaine affichée contient déjà des recettes. Tout remplacer par la semaine précédente ?")) {
+      return;
+    }
+
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    stockagePropose.semaines[debutSemaineAffichee] = copierMenuSemaine(
+      source,
+      debutSemaineAffichee
+    );
+    if (appliquerStockageMenus(stockagePropose)) {
+      actualiserApresChangementMenu();
+      afficherMessage("Semaine précédente dupliquée.", "succes");
+    }
+  }
+
+  function changerSemaine(nombreJours) {
+    debutSemaineAffichee = ajouterJoursDateLocale(debutSemaineAffichee, nombreJours);
+    actualiserApresChangementMenu();
+  }
+
+  function revenirAujourdhui() {
+    const aujourdHui = obtenirDateLocaleAujourdhui();
+    debutSemaineAffichee = obtenirDebutSemaine(aujourdHui);
+    actualiserApresChangementMenu();
+
+    const jourActuel = document.getElementById(`jour-menu-${aujourdHui}`);
+    if (jourActuel && window.matchMedia("(max-width: 900px)").matches) {
+      jourActuel.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start"
+      });
+    }
   }
 
   function mettreAJourCategoriesSelecteurRecetteMenu() {
@@ -956,8 +1481,8 @@
   function nettoyerSelecteurRecetteMenu(restaurerFocus = true) {
     const declencheur = elementDeclencheurSelecteurMenu;
 
-    jourMenuCible = null;
-    repasMenuCible = null;
+    dateMenuCible = null;
+    emplacementMenuCible = null;
     elementDeclencheurSelecteurMenu = null;
     champRechercheRecetteMenu.value = "";
     filtreCategorieRecetteMenu.value = "";
@@ -993,8 +1518,8 @@
     restaurerFocusSelecteurMenuALaFermeture = true;
   }
 
-  function ouvrirSelecteurRecetteMenu(jour, repas, declencheur) {
-    if (!emplacementMenuEstValide(jour, repas)) {
+  function ouvrirSelecteurRecetteMenu(date, cleEmplacement, declencheur) {
+    if (!emplacementMenuEstValide(date, cleEmplacement)) {
       console.error(
         "Application de recettes : l’emplacement du menu à modifier est invalide."
       );
@@ -1005,22 +1530,15 @@
       fermerFicheRecette(false);
     }
 
-    const jourSelectionne = joursSemaine.find(
-      (jourSemaine) => jourSemaine.cle === jour
-    );
-    const repasSelectionne = repasSemaine.find(
-      (repasSemaine) => repasSemaine.cle === repas
-    );
-
-    jourMenuCible = jour;
-    repasMenuCible = repas;
+    dateMenuCible = date;
+    emplacementMenuCible = cleEmplacement;
     elementDeclencheurSelecteurMenu = declencheur;
     champRechercheRecetteMenu.value = "";
     filtreFavorisRecetteMenu.checked = false;
     mettreAJourCategoriesSelecteurRecetteMenu();
     filtreCategorieRecetteMenu.value = "";
     selecteurRecetteMenuTitre.textContent =
-      `Choisir une recette pour ${jourSelectionne.cle} ${repasSelectionne.cle}`;
+      `Choisir une recette — ${formaterTitreJour(date)}, ${obtenirLibelleCompletEmplacement(cleEmplacement)}`;
     afficherResultatsSelecteurRecetteMenu();
     document.body.classList.add("selecteur-recette-menu-ouvert");
 
@@ -1049,7 +1567,7 @@
 
     if (
       !recette ||
-      !emplacementMenuEstValide(jourMenuCible, repasMenuCible)
+      !emplacementMenuEstValide(dateMenuCible, emplacementMenuCible)
     ) {
       console.error(
         "Application de recettes : la recette ou l’emplacement du menu est invalide."
@@ -1057,44 +1575,54 @@
       return;
     }
 
-    if (menuSemaine[jourMenuCible][repasMenuCible] === recette.id) {
+    const emplacementActuel = obtenirEmplacementMenu(
+      obtenirJourMenu(dateMenuCible),
+      emplacementMenuCible
+    );
+
+    if (emplacementActuel && emplacementActuel.recetteId === recette.id) {
       fermerSelecteurRecetteMenu();
       return;
     }
 
-    const menuPropose = copierMenuSemaine(menuSemaine);
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    definirEmplacementMenu(
+      obtenirJourMenu(dateMenuCible, stockagePropose),
+      emplacementMenuCible,
+      {
+        recetteId: recette.id,
+        portions: obtenirPortionsParDefautRecette(recette.id)
+      }
+    );
 
-    menuPropose[jourMenuCible][repasMenuCible] = recette.id;
-
-    if (!enregistrerMenuSemaine(menuPropose)) {
-      afficherErreurSauvegardeMenu();
+    if (!appliquerStockageMenus(stockagePropose)) {
       return;
     }
 
-    menuSemaine = menuPropose;
     fermerSelecteurRecetteMenu(false);
     actualiserApresChangementMenu();
     afficherMessage("Recette ajoutée au menu de la semaine.", "succes");
   }
 
-  function retirerRecetteDuMenu(jour, repas) {
-    if (!emplacementMenuEstValide(jour, repas)) {
+  function retirerRecetteDuMenu(date, cleEmplacement) {
+    if (!emplacementMenuEstValide(date, cleEmplacement)) {
       console.error(
         "Application de recettes : l’emplacement du menu à retirer est invalide."
       );
       return;
     }
 
-    const menuPropose = copierMenuSemaine(menuSemaine);
+    const stockagePropose = copierStockageMenus(menusHebdomadaires);
+    definirEmplacementMenu(
+      obtenirJourMenu(date, stockagePropose),
+      cleEmplacement,
+      creerEmplacementMenuVide()
+    );
 
-    menuPropose[jour][repas] = null;
-
-    if (!enregistrerMenuSemaine(menuPropose)) {
-      afficherErreurSauvegardeMenu();
+    if (!appliquerStockageMenus(stockagePropose)) {
       return;
     }
 
-    menuSemaine = menuPropose;
     actualiserApresChangementMenu();
     afficherMessage("Recette retirée du menu de la semaine.", "succes");
   }
@@ -1976,7 +2504,7 @@
 
     actualiserSelectionProvenantDuMenu();
     const nombreRecettesSelectionnees = obtenirSelectionEffective().size;
-    const nombreRecettesMenu = recettesSelectionneesParMenu.size;
+    const nombreOccurrencesMenu = obtenirOccurrencesMenuSemaineAffichee().length;
 
     if (nombreRecettesSelectionnees === 0) {
       resumeSelectionRecettes.textContent = "Aucune recette sélectionnée.";
@@ -1989,11 +2517,11 @@
         : `${nombreRecettesSelectionnees} recettes sélectionnées`;
 
     resumeSelectionRecettes.textContent =
-      nombreRecettesMenu === 0
+      nombreOccurrencesMenu === 0
         ? `${texteSelection}.`
-        : `${texteSelection}, dont ${nombreRecettesMenu} ${
-            nombreRecettesMenu === 1 ? "incluse" : "incluses"
-          } par le menu.`;
+        : `${texteSelection}, avec ${nombreOccurrencesMenu} ${
+            nombreOccurrencesMenu === 1 ? "occurrence incluse" : "occurrences incluses"
+          } par le menu affiché.`;
   }
 
   function creerCarteRecetteCompacte(recette) {
@@ -2737,11 +3265,15 @@
     return { quantite, unite: "" };
   }
 
-  function regrouperIngredientsPourCourses(recettesPourCourses) {
+  function regrouperIngredientsPourCourses(occurrencesPourCourses) {
     const groupesIngredients = new Map();
 
-    recettesPourCourses.forEach((recette) => {
-      const coefficientPortions = obtenirCoefficientPortionsRecette(recette);
+    occurrencesPourCourses.forEach((occurrence) => {
+      const recette = occurrence.recette;
+      const coefficientPortions = calculerCoefficientPortions(
+        obtenirPortionsOriginales(recette),
+        occurrence.portions
+      );
 
       obtenirIngredientsValides(recette).forEach((ingredient) => {
         const nomNormalise = normaliserNomIngredient(ingredient.nom);
@@ -2824,14 +3356,11 @@
 
   function rendreListeCourses(afficherErreurSiSelectionVide = false) {
     mettreAJourResumeSelection();
-    const selectionEffective = obtenirSelectionEffective();
-    const recettesPourCourses = recettes.filter((recette) =>
-      selectionEffective.has(recette.id)
-    );
+    const occurrencesPourCourses = obtenirOccurrencesPourCourses();
 
     zoneListeCourses.textContent = "";
 
-    if (recettesPourCourses.length === 0) {
+    if (occurrencesPourCourses.length === 0) {
       const messageAucuneSelection = document.createElement("p");
 
       messageAucuneSelection.textContent = "Aucune recette sélectionnée.";
@@ -2846,7 +3375,7 @@
       return;
     }
 
-    const groupesIngredients = regrouperIngredientsPourCourses(recettesPourCourses);
+    const groupesIngredients = regrouperIngredientsPourCourses(occurrencesPourCourses);
 
     if (groupesIngredients.length === 0) {
       const messageAucunIngredient = document.createElement("p");
@@ -3835,14 +4364,26 @@
 
     portionsSouhaitees.delete(idRecette);
     recettesSelectionneesManuellement.delete(idRecette);
-    const menuNettoye = nettoyerMenuSemaine(menuSemaine, recettesProposees);
+    const menusNettoyes = copierStockageMenus(menusHebdomadaires);
+    let menuModifie = false;
 
-    if (!menuSemaineEstIdentique(menuSemaine, menuNettoye)) {
-      menuSemaine = menuNettoye;
+    Object.values(menusNettoyes.semaines).forEach((semaine) => {
+      semaine.jours.forEach((jour) => {
+        emplacementsMenu.forEach((definition) => {
+          const emplacement = obtenirEmplacementMenu(jour, definition.cle);
+          if (emplacement && emplacement.recetteId === idRecette) {
+            definirEmplacementMenu(jour, definition.cle, creerEmplacementMenuVide());
+            menuModifie = true;
+          }
+        });
+      });
+    });
 
-      if (!enregistrerMenuSemaine(menuSemaine)) {
+    if (menuModifie) {
+      menusHebdomadaires = menusNettoyes;
+      if (!enregistrerMenusHebdomadaires(menusHebdomadaires)) {
         console.warn(
-          "Application de recettes : le menu de la semaine nettoyé après la suppression n’a pas pu être sauvegardé."
+          "Application de recettes : les menus nettoyés après la suppression n’ont pas pu être sauvegardés."
         );
       }
     }
@@ -3872,7 +4413,7 @@
   // Écouteurs d’événements et initialisation
   recettes = chargerRecettes();
   catalogueIngredients = chargerCatalogueIngredients();
-  menuSemaine = nettoyerMenuSemaine(chargerMenuSemaine(), recettes);
+  menusHebdomadaires = chargerMenusHebdomadaires();
   historique = chargerHistorique();
   actualiserSelectionProvenantDuMenu();
 
@@ -3891,7 +4432,7 @@
   remplirOptionsCategories(menuCategorieNouvelIngredientCatalogue);
   remplirOptionsCategories(filtreCategorieCatalogue, true, "Toutes les catégories");
   afficherCatalogueIngredients();
-  afficherVue("vue-recettes");
+  afficherVue("vue-menu");
 
   boutonsNavigation.forEach((bouton) => {
     bouton.addEventListener("click", () => {
@@ -4200,6 +4741,22 @@
 
   boutonEffacerMenuSemaine.addEventListener("click", () => {
     effacerMenuSemaine();
+  });
+
+  boutonSemainePrecedente.addEventListener("click", () => {
+    changerSemaine(-7);
+  });
+
+  boutonSemaineSuivante.addEventListener("click", () => {
+    changerSemaine(7);
+  });
+
+  boutonRevenirAujourdhui.addEventListener("click", () => {
+    revenirAujourdhui();
+  });
+
+  boutonDupliquerSemainePrecedente.addEventListener("click", () => {
+    dupliquerSemainePrecedente();
   });
 
   formulaireHistorique.addEventListener("submit", (evenement) => {

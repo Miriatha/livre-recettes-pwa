@@ -12,8 +12,8 @@
       <nav class="navigation-principale navigation-bureau" aria-label="Navigation principale">
         <p class="titre-navigation">Mon livre de recettes</p>
         <div class="liens-navigation">
-          <button class="bouton-navigation actif" type="button" data-vue="vue-recettes" aria-current="page">Recettes</button>
-          <button class="bouton-navigation" type="button" data-vue="vue-menu">Menu</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-recettes">Recettes</button>
+          <button class="bouton-navigation actif" type="button" data-vue="vue-menu" aria-current="page">Menu</button>
           <button class="bouton-navigation" type="button" data-vue="vue-courses">Courses</button>
           <button class="bouton-navigation" type="button" data-vue="vue-plus">Plus</button>
         </div>
@@ -200,7 +200,7 @@
 
       </section>
 
-      <section id="vue-recettes" class="section vue" aria-labelledby="titre-recettes">
+      <section id="vue-recettes" class="section vue" aria-labelledby="titre-recettes" hidden>
         <div class="entete-vue">
           <h2 id="titre-recettes" tabindex="-1">Mes recettes</h2>
           <button id="nouvelle-recette" type="button">Nouvelle recette</button>
@@ -232,11 +232,20 @@
         </div>
       </section>
 
-      <section id="vue-menu" class="section vue" aria-labelledby="titre-menu-semaine" hidden>
+      <section id="vue-menu" class="section vue" aria-labelledby="titre-menu-semaine">
         <h2 id="titre-menu-semaine" tabindex="-1">Menu de la semaine</h2>
         <p class="information-menu-semaine">
           Vos choix sont sauvegardés automatiquement sur cet appareil.
         </p>
+        <div class="navigation-semaine" aria-label="Navigation entre les semaines">
+          <button id="semaine-precedente" type="button">‹ Semaine précédente</button>
+          <p id="plage-dates-semaine" aria-live="polite"></p>
+          <button id="semaine-suivante" type="button">Semaine suivante ›</button>
+          <button id="revenir-aujourdhui" type="button">Aujourd’hui</button>
+        </div>
+        <div class="actions-menu-semaine">
+          <button id="dupliquer-semaine-precedente" type="button">Dupliquer la semaine précédente</button>
+        </div>
         <div id="menu-semaine" class="menu-semaine"></div>
         <button
           id="effacer-menu-semaine"
@@ -332,8 +341,8 @@
 
       <nav class="navigation-principale navigation-mobile" aria-label="Navigation principale">
         <div class="liens-navigation">
-          <button class="bouton-navigation actif" type="button" data-vue="vue-recettes" aria-current="page">Recettes</button>
-          <button class="bouton-navigation" type="button" data-vue="vue-menu">Menu</button>
+          <button class="bouton-navigation" type="button" data-vue="vue-recettes">Recettes</button>
+          <button class="bouton-navigation actif" type="button" data-vue="vue-menu" aria-current="page">Menu</button>
           <button class="bouton-navigation" type="button" data-vue="vue-courses">Courses</button>
           <button class="bouton-navigation" type="button" data-vue="vue-plus">Plus</button>
         </div>

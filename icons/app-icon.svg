@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Icône du Livre de recettes</title>
+  <desc id="desc">Un livre de cuisine ouvert sur un fond vert sauge.</desc>
+  <rect width="1024" height="1024" fill="#8fa58a"/>
+  <circle cx="512" cy="512" r="365" fill="#dfe8d8"/>
+  <path d="M175 315c118-48 232-36 337 34v430c-105-67-219-79-337-31z" fill="#fffaf0" stroke="#40563b" stroke-width="28" stroke-linejoin="round"/>
+  <path d="M849 315c-118-48-232-36-337 34v430c105-67 219-79 337-31z" fill="#fffaf0" stroke="#40563b" stroke-width="28" stroke-linejoin="round"/>
+  <path d="M512 349v430" fill="none" stroke="#40563b" stroke-width="24" stroke-linecap="round"/>
+  <path d="M258 432c76-23 139-14 190 18M258 522c76-23 139-14 190 18M576 450c51-32 114-41 190-18M576 540c51-32 114-41 190-18" fill="none" stroke="#c9957b" stroke-width="22" stroke-linecap="round"/>
+  <path d="M475 249c-36-66-88-88-145-73 18 59 61 93 145 73zM549 249c36-66 88-88 145-73-18 59-61 93-145 73z" fill="#51654e"/>
+  <path d="M512 317v-121" fill="none" stroke="#51654e" stroke-width="22" stroke-linecap="round"/>
+</svg>

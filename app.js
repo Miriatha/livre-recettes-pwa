@@ -6,6 +6,16 @@
   const champNom = document.getElementById("nom-recette");
   const menuCategorie = document.getElementById("categorie-recette");
   const zoneMessage = document.getElementById("message-formulaire");
+  const notificationMiseAJour = document.getElementById(
+    "notification-mise-a-jour"
+  );
+  const texteMiseAJour = document.getElementById("texte-mise-a-jour");
+  const boutonAppliquerMiseAJour = document.getElementById(
+    "appliquer-mise-a-jour"
+  );
+  const boutonReporterMiseAJour = document.getElementById(
+    "reporter-mise-a-jour"
+  );
   const zoneRecettes = document.getElementById("liste-recettes");
   const filtreCategorie = document.getElementById("filtre-categorie");
   const filtreFavoris = document.getElementById("filtre-favoris");
@@ -290,6 +300,10 @@
     ["#nom-recette", champNom],
     ["#categorie-recette", menuCategorie],
     ["#message-formulaire", zoneMessage],
+    ["#notification-mise-a-jour", notificationMiseAJour],
+    ["#texte-mise-a-jour", texteMiseAJour],
+    ["#appliquer-mise-a-jour", boutonAppliquerMiseAJour],
+    ["#reporter-mise-a-jour", boutonReporterMiseAJour],
     ["#liste-recettes", zoneRecettes],
     ["#filtre-categorie", filtreCategorie],
     ["#filtre-favoris", filtreFavoris],
@@ -782,11 +796,106 @@
   let resultatImportRecetteEnCours = null;
   let elementDeclencheurImportRecette = null;
   let importRecetteAppliqueAuFormulaire = false;
+  let serviceWorkerEnAttente = null;
+  let miseAJourPWAEnCours = false;
+  let rechargementPWAEffectue = false;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
     zoneMessage.className = `message ${type}`;
+  }
+
+  // Installation et mise à jour de la PWA
+  function afficherInvitationMiseAJour(serviceWorker) {
+    serviceWorkerEnAttente = serviceWorker;
+    texteMiseAJour.textContent =
+      "Une nouvelle version de l’application est disponible.";
+    boutonAppliquerMiseAJour.disabled = false;
+    boutonReporterMiseAJour.disabled = false;
+    notificationMiseAJour.hidden = false;
+  }
+
+  function detecterMiseAJourServiceWorker(enregistrement) {
+    if (enregistrement.waiting && navigator.serviceWorker.controller) {
+      afficherInvitationMiseAJour(enregistrement.waiting);
+    }
+
+    enregistrement.addEventListener("updatefound", () => {
+      const serviceWorkerEnInstallation = enregistrement.installing;
+
+      if (!serviceWorkerEnInstallation) {
+        return;
+      }
+
+      serviceWorkerEnInstallation.addEventListener("statechange", () => {
+        if (
+          serviceWorkerEnInstallation.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          afficherInvitationMiseAJour(serviceWorkerEnInstallation);
+        }
+      });
+    });
+  }
+
+  async function enregistrerServiceWorker() {
+    if (!("serviceWorker" in navigator) || !window.isSecureContext) {
+      return;
+    }
+
+    try {
+      const serviceWorkerUrl = new URL("service-worker.js", document.baseURI);
+      const enregistrement = await navigator.serviceWorker.register(
+        serviceWorkerUrl
+      );
+
+      detecterMiseAJourServiceWorker(enregistrement);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le mode hors connexion n’a pas pu être activé.",
+        erreur
+      );
+    }
+  }
+
+  function appliquerMiseAJour() {
+    if (!serviceWorkerEnAttente) {
+      notificationMiseAJour.hidden = true;
+      return;
+    }
+
+    miseAJourPWAEnCours = true;
+    boutonAppliquerMiseAJour.disabled = true;
+    boutonReporterMiseAJour.disabled = true;
+    texteMiseAJour.textContent = "Mise à jour en cours…";
+    serviceWorkerEnAttente.postMessage({ type: "SKIP_WAITING" });
+  }
+
+  function initialiserPWA() {
+    boutonAppliquerMiseAJour.addEventListener("click", appliquerMiseAJour);
+    boutonReporterMiseAJour.addEventListener("click", () => {
+      notificationMiseAJour.hidden = true;
+    });
+
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!miseAJourPWAEnCours || rechargementPWAEffectue) {
+        return;
+      }
+
+      rechargementPWAEffectue = true;
+      window.location.reload();
+    });
+
+    if (document.readyState === "complete") {
+      enregistrerServiceWorker();
+    } else {
+      window.addEventListener("load", enregistrerServiceWorker, { once: true });
+    }
   }
 
   // Sauvegarde et restauration des données
@@ -7650,6 +7759,7 @@
   afficherCatalogueIngredients();
   afficherVue("vue-menu");
   afficherInvitationRepriseCuisineGuidee();
+  initialiserPWA();
 
   boutonsNavigation.forEach((bouton) => {
     bouton.addEventListener("click", () => {

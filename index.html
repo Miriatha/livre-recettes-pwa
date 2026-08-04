@@ -2,13 +2,34 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Organisez vos recettes, menus et listes de courses sur votre appareil.">
+    <meta name="theme-color" content="#8fa58a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Recettes">
     <title>Livre de recettes</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <script src="recipe-text-parser.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
+    <aside
+      id="notification-mise-a-jour"
+      class="notification-mise-a-jour"
+      aria-live="polite"
+      hidden
+    >
+      <p id="texte-mise-a-jour">Une nouvelle version de l’application est disponible.</p>
+      <div class="actions-mise-a-jour">
+        <button id="appliquer-mise-a-jour" type="button">Mettre à jour</button>
+        <button id="reporter-mise-a-jour" class="bouton-secondaire" type="button">Plus tard</button>
+      </div>
+    </aside>
+
     <div class="application">
       <nav class="navigation-principale navigation-bureau" aria-label="Navigation principale">
         <p class="titre-navigation">Mon livre de recettes</p>
@@ -259,6 +280,9 @@
           <p>
             Les recettes et menus sont actuellement enregistrés dans ce navigateur. Exportez régulièrement une sauvegarde pour pouvoir les restaurer ou les transférer sur un autre appareil.
           </p>
+          <p class="avertissement-stockage-local">
+            Les données sont enregistrées sur cet appareil et ne sont pas encore synchronisées automatiquement entre vos appareils.
+          </p>
           <p class="avertissement-sauvegarde">
             GitHub ne sauvegarde pas vos recettes. L’import d’une sauvegarde remplacera les données locales de cette application sur cet appareil.
           </p>
@@ -274,6 +298,12 @@
             aria-label="Sélectionner un fichier de sauvegarde JSON"
           >
           <p id="message-sauvegarde" class="message-sauvegarde" aria-live="polite"></p>
+        </section>
+        <section class="section-installation" aria-labelledby="titre-installation">
+          <h3 id="titre-installation">Installer l’application</h3>
+          <p>
+            Sur iPhone : ouvrez le menu Partager de Safari, puis choisissez Ajouter à l’écran d’accueil.
+          </p>
         </section>
         <section id="section-catalogue-ingredients" class="section-catalogue-ingredients" aria-labelledby="titre-catalogue-ingredients">
           <h3 id="titre-catalogue-ingredients">Catalogue d’ingrédients</h3>

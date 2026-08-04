@@ -701,7 +701,18 @@
     "cl",
     "l",
     "pièce",
+    "botte",
+    "filet",
+    "bouquet",
+    "poignée",
     "tranche",
+    "feuille",
+    "branche",
+    "tige",
+    "pousse",
+    "cm",
+    "zeste",
+    "jus",
     "gousse",
     "cuillère à café",
     "cuillère à soupe",
@@ -761,6 +772,8 @@
   let elementDeclencheurCuisineGuidee = null;
   let contexteFinCuisineGuidee = null;
   let contexteAudioCuisineGuidee = null;
+  let noeudsSignalFinMinuteurCuisineGuidee = [];
+  let versionSignalFinMinuteurCuisineGuidee = 0;
   let restaurerFocusCuisineGuideeALaFermeture = true;
   let sauvegardeEnAttenteImport = null;
   let importEnCours = false;
@@ -4352,6 +4365,7 @@
 
   function supprimerSessionCuisineGuidee() {
     arreterIntervalleMinuteurCuisineGuidee();
+    arreterSignalFinMinuteurCuisineGuidee();
     sessionCuisineGuidee = null;
     supprimerDonneesSessionCuisineGuidee();
     afficherInvitationRepriseCuisineGuidee();
@@ -4420,8 +4434,12 @@
     }
 
     try {
-      contexteAudioCuisineGuidee =
-        contexteAudioCuisineGuidee || new AudioContext();
+      if (
+        !contexteAudioCuisineGuidee ||
+        contexteAudioCuisineGuidee.state === "closed"
+      ) {
+        contexteAudioCuisineGuidee = new AudioContext();
+      }
       if (contexteAudioCuisineGuidee.state === "suspended") {
         contexteAudioCuisineGuidee.resume().catch(() => {});
       }
@@ -4430,10 +4448,46 @@
     }
   }
 
-  function produireSignalFinMinuteurCuisineGuidee() {
+  function arreterSignalFinMinuteurCuisineGuidee() {
+    versionSignalFinMinuteurCuisineGuidee += 1;
+    const noeuds = noeudsSignalFinMinuteurCuisineGuidee;
+
+    noeudsSignalFinMinuteurCuisineGuidee = [];
+    noeuds.forEach(({ oscillateur, volume }) => {
+      try {
+        oscillateur.onended = null;
+        oscillateur.stop();
+      } catch (erreur) {
+        // La tonalité peut être déjà terminée.
+      }
+      try {
+        oscillateur.disconnect();
+        volume.disconnect();
+      } catch (erreur) {
+        // Les nœuds peuvent être déjà déconnectés.
+      }
+    });
+
     try {
       if (typeof navigator.vibrate === "function") {
-        navigator.vibrate([180, 100, 180]);
+        navigator.vibrate(0);
+      }
+    } catch (erreur) {
+      // La vibration est facultative et peut être refusée par le navigateur.
+    }
+  }
+
+  function produireSignalFinMinuteurCuisineGuidee() {
+    arreterSignalFinMinuteurCuisineGuidee();
+    const versionSignal = versionSignalFinMinuteurCuisineGuidee;
+
+    try {
+      if (typeof navigator.vibrate === "function") {
+        navigator.vibrate([
+          140, 100, 140, 100, 140,
+          350,
+          140, 100, 140, 100, 140
+        ]);
       }
     } catch (erreur) {
       // La vibration est facultative et peut être refusée par le navigateur.
@@ -4445,29 +4499,50 @@
       return;
     }
 
-    const jouerTonalite = () => {
-      try {
-        const oscillateur = contexteAudioCuisineGuidee.createOscillator();
-        const volume = contexteAudioCuisineGuidee.createGain();
-        const debut = contexteAudioCuisineGuidee.currentTime;
+    const jouerSequence = () => {
+      if (versionSignal !== versionSignalFinMinuteurCuisineGuidee) {
+        return;
+      }
 
-        oscillateur.frequency.value = 880;
-        volume.gain.setValueAtTime(0.0001, debut);
-        volume.gain.exponentialRampToValueAtTime(0.18, debut + 0.03);
-        volume.gain.exponentialRampToValueAtTime(0.0001, debut + 0.7);
-        oscillateur.connect(volume);
-        volume.connect(contexteAudioCuisineGuidee.destination);
-        oscillateur.start(debut);
-        oscillateur.stop(debut + 0.72);
+      try {
+        const debutSequence = contexteAudioCuisineGuidee.currentTime + 0.03;
+        const debutsTonalites = [0, 0.24, 0.48, 1, 1.24, 1.48];
+
+        debutsTonalites.forEach((decalage) => {
+          const oscillateur = contexteAudioCuisineGuidee.createOscillator();
+          const volume = contexteAudioCuisineGuidee.createGain();
+          const debut = debutSequence + decalage;
+          const fin = debut + 0.16;
+          const noeud = { oscillateur, volume };
+
+          oscillateur.frequency.value = 880;
+          volume.gain.setValueAtTime(0.0001, debut);
+          volume.gain.exponentialRampToValueAtTime(0.16, debut + 0.015);
+          volume.gain.exponentialRampToValueAtTime(0.0001, fin);
+          oscillateur.connect(volume);
+          volume.connect(contexteAudioCuisineGuidee.destination);
+          oscillateur.onended = () => {
+            noeudsSignalFinMinuteurCuisineGuidee =
+              noeudsSignalFinMinuteurCuisineGuidee.filter(
+                (noeudActif) => noeudActif !== noeud
+              );
+            oscillateur.disconnect();
+            volume.disconnect();
+          };
+          noeudsSignalFinMinuteurCuisineGuidee.push(noeud);
+          oscillateur.start(debut);
+          oscillateur.stop(fin + 0.01);
+        });
       } catch (erreur) {
         // L’alerte visuelle reste disponible si l’audio est refusé.
+        arreterSignalFinMinuteurCuisineGuidee();
       }
     };
 
     if (contexteAudioCuisineGuidee.state === "suspended") {
-      contexteAudioCuisineGuidee.resume().then(jouerTonalite).catch(() => {});
+      contexteAudioCuisineGuidee.resume().then(jouerSequence).catch(() => {});
     } else {
-      jouerTonalite();
+      jouerSequence();
     }
   }
 
@@ -4779,6 +4854,8 @@
   }
 
   function arreterMinuteurCuisineGuidee() {
+    arreterSignalFinMinuteurCuisineGuidee();
+
     if (!sessionCuisineGuidee || !sessionCuisineGuidee.minuteur) {
       return;
     }
@@ -4888,6 +4965,7 @@
     const declencheur = elementDeclencheurCuisineGuidee;
 
     arreterIntervalleMinuteurCuisineGuidee();
+    arreterSignalFinMinuteurCuisineGuidee();
     libererVerrouEcranCuisineGuidee();
     document.body.classList.remove("cuisine-guidee-ouverte");
     panneauIngredientsCuisineGuidee.hidden = true;
@@ -7864,6 +7942,7 @@
 
   window.addEventListener("pagehide", () => {
     arreterIntervalleMinuteurCuisineGuidee();
+    arreterSignalFinMinuteurCuisineGuidee();
     libererVerrouEcranCuisineGuidee();
   });
 

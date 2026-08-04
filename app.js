@@ -59,6 +59,46 @@
   const messageApercuImport = document.getElementById("message-apercu-import");
   const boutonAnnulerImport = document.getElementById("annuler-import");
   const boutonConfirmerImport = document.getElementById("confirmer-import");
+  const importRecetteTexteDialogue = document.getElementById(
+    "import-recette-texte-dialogue"
+  );
+  const editeurImportRecetteTexte = document.getElementById(
+    "editeur-import-recette-texte"
+  );
+  const titreImportRecetteTexte = document.getElementById(
+    "import-recette-texte-titre"
+  );
+  const champTexteImportRecette = document.getElementById(
+    "texte-import-recette"
+  );
+  const compteurTexteImport = document.getElementById("compteur-texte-import");
+  const messageImportRecette = document.getElementById("message-import-recette");
+  const boutonAnalyserTexteRecette = document.getElementById(
+    "analyser-texte-recette"
+  );
+  const boutonAnnulerImportRecette = document.getElementById(
+    "annuler-import-recette"
+  );
+  const resultatImportRecette = document.getElementById("resultat-import-recette");
+  const titreResultatImportRecette = document.getElementById(
+    "resultat-import-recette-titre"
+  );
+  const titreDetecteImport = document.getElementById(
+    "resultat-import-titre-detecte"
+  );
+  const resumeImportRecette = document.getElementById("resume-import-recette");
+  const listeAvertissementsImportRecette = document.getElementById(
+    "liste-avertissements-import-recette"
+  );
+  const boutonOuvrirImportFormulaire = document.getElementById(
+    "ouvrir-import-formulaire"
+  );
+  const boutonModifierTexteRecette = document.getElementById(
+    "modifier-texte-recette"
+  );
+  const boutonAnnulerResultatImport = document.getElementById(
+    "annuler-resultat-import"
+  );
   const zoneImpression = document.getElementById("zone-impression");
   const ficheRecetteDialogue = document.getElementById(
     "fiche-recette-dialogue"
@@ -103,6 +143,9 @@
   const vueCourses = document.getElementById("vue-courses");
   const vuePlus = document.getElementById("vue-plus");
   const boutonNouvelleRecette = document.getElementById("nouvelle-recette");
+  const boutonImporterRecetteTexte = document.getElementById(
+    "importer-recette-texte"
+  );
   const boutonRetourAuxRecettes = document.getElementById(
     "retour-aux-recettes"
   );
@@ -288,6 +331,22 @@
     ["#message-apercu-import", messageApercuImport],
     ["#annuler-import", boutonAnnulerImport],
     ["#confirmer-import", boutonConfirmerImport],
+    ["#import-recette-texte-dialogue", importRecetteTexteDialogue],
+    ["#editeur-import-recette-texte", editeurImportRecetteTexte],
+    ["#import-recette-texte-titre", titreImportRecetteTexte],
+    ["#texte-import-recette", champTexteImportRecette],
+    ["#compteur-texte-import", compteurTexteImport],
+    ["#message-import-recette", messageImportRecette],
+    ["#analyser-texte-recette", boutonAnalyserTexteRecette],
+    ["#annuler-import-recette", boutonAnnulerImportRecette],
+    ["#resultat-import-recette", resultatImportRecette],
+    ["#resultat-import-recette-titre", titreResultatImportRecette],
+    ["#resultat-import-titre-detecte", titreDetecteImport],
+    ["#resume-import-recette", resumeImportRecette],
+    ["#liste-avertissements-import-recette", listeAvertissementsImportRecette],
+    ["#ouvrir-import-formulaire", boutonOuvrirImportFormulaire],
+    ["#modifier-texte-recette", boutonModifierTexteRecette],
+    ["#annuler-resultat-import", boutonAnnulerResultatImport],
     ["#zone-impression", zoneImpression],
     ["#fiche-recette-dialogue", ficheRecetteDialogue],
     ["#fiche-recette-panneau", ficheRecettePanneau],
@@ -308,6 +367,7 @@
     ["#vue-courses", vueCourses],
     ["#vue-plus", vuePlus],
     ["#nouvelle-recette", boutonNouvelleRecette],
+    ["#importer-recette-texte", boutonImporterRecetteTexte],
     ["#retour-aux-recettes", boutonRetourAuxRecettes],
     ["#navigation-formulaire", navigationFormulaire],
     ["#section-formulaire-informations", sectionFormulaireInformations],
@@ -382,6 +442,13 @@
       `Application de recettes : élément(s) introuvable(s) dans la page : ${elementsManquants.join(
         ", "
       )}.`
+    );
+    return;
+  }
+
+  if (!globalThis.RecipeTextParser) {
+    console.error(
+      "Application de recettes : le parseur d’import de texte n’a pas été chargé."
     );
     return;
   }
@@ -524,6 +591,9 @@
   const cleStockageCuisineGuidee = "livreRecettes.cuisineGuidee";
   const identifiantApplicationSauvegarde = "livre-recettes-pwa";
   const versionFormatSauvegarde = 1;
+  const versionImportRecetteTexte = 1;
+  const dureeConservationImportRecetteTexte = 7 * 24 * 60 * 60 * 1000;
+  const tailleMaximaleTexteImport = globalThis.RecipeTextParser.LIMITS.texte;
   const tailleMaximaleFichierSauvegarde = 20 * 1024 * 1024;
   const limitesSauvegarde = Object.freeze({
     profondeur: 24,
@@ -694,6 +764,11 @@
   let restaurerFocusCuisineGuideeALaFermeture = true;
   let sauvegardeEnAttenteImport = null;
   let importEnCours = false;
+  let texteImportRecetteEnCours = null;
+  let dateImportRecetteEnCours = null;
+  let resultatImportRecetteEnCours = null;
+  let elementDeclencheurImportRecette = null;
+  let importRecetteAppliqueAuFormulaire = false;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
@@ -1118,7 +1193,7 @@
   }
 
   function validerBrouillonSauvegarde(valeur) {
-    if (valeur !== null && !brouillonEstValide(valeur)) {
+    if (valeur !== null && !brouillonEstValide(valeur, false)) {
       throw creerErreurSauvegarde("donnees-manquantes");
     }
   }
@@ -6466,6 +6541,245 @@
     return { estValide: true, etapes };
   }
 
+  // Import d’une recette depuis un texte collé
+  function reinitialiserImportRecetteTexte() {
+    texteImportRecetteEnCours = null;
+    dateImportRecetteEnCours = null;
+    resultatImportRecetteEnCours = null;
+    importRecetteAppliqueAuFormulaire = false;
+  }
+
+  function afficherMessageImportRecette(texte, type = "") {
+    messageImportRecette.textContent = texte;
+    messageImportRecette.className = type ? `message ${type}` : "message";
+  }
+
+  function actualiserCompteurImportRecette() {
+    const longueur = champTexteImportRecette.value.length;
+    compteurTexteImport.textContent = `${longueur.toLocaleString("fr-FR")} / ${tailleMaximaleTexteImport.toLocaleString("fr-FR")} caractères`;
+    boutonAnalyserTexteRecette.disabled =
+      champTexteImportRecette.value.trim() === "" ||
+      longueur > tailleMaximaleTexteImport;
+
+    if (longueur > tailleMaximaleTexteImport) {
+      afficherMessageImportRecette(
+        "Le texte dépasse la limite de 100 000 caractères. Raccourcissez-le avant l’analyse.",
+        "erreur"
+      );
+    } else if (messageImportRecette.textContent.includes("100 000 caractères")) {
+      afficherMessageImportRecette("");
+    }
+  }
+
+  function afficherEditeurImportRecette() {
+    importRecetteTexteDialogue.setAttribute(
+      "aria-labelledby",
+      titreImportRecetteTexte.id
+    );
+    resultatImportRecette.hidden = true;
+    editeurImportRecetteTexte.hidden = false;
+    champTexteImportRecette.value = texteImportRecetteEnCours || "";
+    actualiserCompteurImportRecette();
+    afficherMessageImportRecette("");
+    champTexteImportRecette.focus();
+  }
+
+  function ajouterElementResumeImport(texte) {
+    const element = document.createElement("li");
+    element.textContent = texte;
+    resumeImportRecette.append(element);
+  }
+
+  function afficherResultatAnalyseImport(resultat) {
+    const nombreDurees = resultat.steps.filter(
+      (etape) => etape.dureeSecondes !== null
+    ).length;
+    const nouveauxIngredients = resultat.ingredients.filter(
+      (ingredient) => !ingredient.catalogMatch
+    ).length;
+
+    titreDetecteImport.textContent = resultat.title || "Non détecté";
+    resumeImportRecette.textContent = "";
+    if (resultat.portions !== null) {
+      ajouterElementResumeImport(`${resultat.portions} portion${resultat.portions > 1 ? "s" : ""}`);
+    }
+    if (resultat.preparationTimeMinutes !== null) {
+      ajouterElementResumeImport(`Préparation : ${resultat.preparationTimeMinutes} min`);
+    }
+    if (resultat.cookingTimeMinutes !== null) {
+      ajouterElementResumeImport(`Cuisson : ${resultat.cookingTimeMinutes} min`);
+    }
+    if (resultat.restTimeMinutes !== null) {
+      ajouterElementResumeImport(`Repos : ${resultat.restTimeMinutes} min`);
+    }
+    if (resultat.difficulty) {
+      ajouterElementResumeImport(`Difficulté : ${resultat.difficulty}`);
+    }
+    ajouterElementResumeImport(
+      `${resultat.ingredients.length} ingrédient${resultat.ingredients.length > 1 ? "s" : ""}`
+    );
+    ajouterElementResumeImport(
+      `${resultat.steps.length} étape${resultat.steps.length > 1 ? "s" : ""}`
+    );
+    ajouterElementResumeImport(
+      `${nombreDurees} durée${nombreDurees > 1 ? "s" : ""}`
+    );
+    ajouterElementResumeImport(
+      nouveauxIngredients === 1
+        ? "1 nouvel ingrédient"
+        : `${nouveauxIngredients} nouveaux ingrédients`
+    );
+
+    listeAvertissementsImportRecette.textContent = "";
+    const avertissements = resultat.warnings.length > 0
+      ? resultat.warnings
+      : ["Aucun point particulier détecté. Relisez tout de même la recette."];
+    avertissements.forEach((avertissement) => {
+      const element = document.createElement("li");
+      element.textContent = avertissement;
+      listeAvertissementsImportRecette.append(element);
+    });
+
+    importRecetteTexteDialogue.setAttribute(
+      "aria-labelledby",
+      titreResultatImportRecette.id
+    );
+    editeurImportRecetteTexte.hidden = true;
+    resultatImportRecette.hidden = false;
+    titreResultatImportRecette.focus();
+  }
+
+  function analyserTexteRecetteImporte() {
+    const texte = champTexteImportRecette.value;
+    if (!texte.trim()) {
+      afficherMessageImportRecette(
+        "Collez le texte d’une recette avant de lancer l’analyse.",
+        "erreur"
+      );
+      champTexteImportRecette.focus();
+      return;
+    }
+    if (texte.length > tailleMaximaleTexteImport) {
+      afficherMessageImportRecette(
+        "Le texte dépasse la limite de 100 000 caractères. Raccourcissez-le avant l’analyse.",
+        "erreur"
+      );
+      champTexteImportRecette.focus();
+      return;
+    }
+
+    let resultat;
+    try {
+      resultat = globalThis.RecipeTextParser.parseRecipeText(texte, {
+        availableUnits: unitesIngredient,
+        catalog: catalogueIngredients.ingredients,
+        normalizeIngredientName: normaliserNomIngredient
+      });
+    } catch (erreur) {
+      afficherMessageImportRecette(
+        erreur && erreur.message
+          ? erreur.message
+          : "Le texte n’a pas pu être analysé.",
+        "erreur"
+      );
+      return;
+    }
+
+    if (!resultat.usable) {
+      afficherMessageImportRecette(
+        "Aucune recette exploitable n’a été détectée. Vérifiez le texte, ses ingrédients et ses instructions.",
+        "erreur"
+      );
+      champTexteImportRecette.focus();
+      return;
+    }
+
+    texteImportRecetteEnCours = resultat.rawText;
+    dateImportRecetteEnCours = new Date().toISOString();
+    resultatImportRecetteEnCours = resultat;
+    afficherResultatAnalyseImport(resultat);
+  }
+
+  function ouvrirDialogueImportRecette() {
+    if (
+      (idRecetteEnModification !== null || !formulaireEstVide()) &&
+      !window.confirm(
+        "Le formulaire contient des données non enregistrées. Les remplacer par un import ?"
+      )
+    ) {
+      return;
+    }
+
+    elementDeclencheurImportRecette = document.activeElement;
+    if (!importRecetteAppliqueAuFormulaire) {
+      reinitialiserImportRecetteTexte();
+    }
+    afficherEditeurImportRecette();
+    importRecetteTexteDialogue.showModal();
+    champTexteImportRecette.focus();
+  }
+
+  function fermerDialogueImportRecette(annulerImport = false) {
+    if (annulerImport && !importRecetteAppliqueAuFormulaire) {
+      reinitialiserImportRecetteTexte();
+      champTexteImportRecette.value = "";
+    }
+    importRecetteTexteDialogue.close();
+  }
+
+  function convertirIngredientImportePourFormulaire(ingredient) {
+    const quantiteUtilisable =
+      Number.isFinite(ingredient.quantity) &&
+      ingredient.quantity > 0 &&
+      !ingredient.quantityIsRange &&
+      !ingredient.approximateQuantity;
+
+    return {
+      nom: ingredient.name,
+      quantite: quantiteUtilisable ? String(ingredient.quantity) : "",
+      unite: unitesIngredient.includes(ingredient.unit) ? ingredient.unit : "",
+      ingredientId: ingredient.ingredientId
+    };
+  }
+
+  function ouvrirImportDansFormulaire() {
+    const resultat = resultatImportRecetteEnCours;
+    if (!resultat) {
+      afficherEditeurImportRecette();
+      afficherMessageImportRecette(
+        "Analysez de nouveau le texte avant d’ouvrir le formulaire.",
+        "erreur"
+      );
+      return;
+    }
+
+    revenirAuModeAjout(true);
+    texteImportRecetteEnCours = resultat.rawText;
+    dateImportRecetteEnCours = dateImportRecetteEnCours || new Date().toISOString();
+    resultatImportRecetteEnCours = resultat;
+    importRecetteAppliqueAuFormulaire = true;
+    remplirChampsPrincipaux({
+      nom: resultat.title || "",
+      tempsPreparation: resultat.preparationTimeMinutes ?? "",
+      tempsCuisson: resultat.cookingTimeMinutes ?? "",
+      portions: resultat.portions ?? "",
+      difficulte: resultat.difficulty || ""
+    });
+    reinitialiserLignesIngredient(
+      resultat.ingredients.map(convertirIngredientImportePourFormulaire)
+    );
+    reinitialiserEtapesFormulaire(resultat.steps);
+    enregistrerBrouillon();
+    elementDeclencheurImportRecette = null;
+    importRecetteTexteDialogue.close();
+    afficherVue("vue-formulaire");
+    champNom.focus();
+    afficherMessage(
+      "Import préparé. Vérifiez et complétez tous les champs avant l’enregistrement.",
+      "succes"
+    );
+  }
+
   function formulaireEstVide() {
     const ingredients = collecterIngredientsBrouillon();
     const etapes = collecterEtapesBrouillon();
@@ -6508,7 +6822,16 @@
       ingredients: collecterIngredientsBrouillon(),
       etapes: collecterEtapesBrouillon(),
       notes: champNotes.value,
-      conseils: champConseils.value
+      conseils: champConseils.value,
+      ...(importRecetteAppliqueAuFormulaire && texteImportRecetteEnCours
+        ? {
+            importTexte: {
+              version: versionImportRecetteTexte,
+              rawText: texteImportRecetteEnCours,
+              createdAt: dateImportRecetteEnCours || new Date().toISOString()
+            }
+          }
+        : {})
     };
   }
 
@@ -6657,7 +6980,7 @@
     };
   }
 
-  function brouillonEstValide(brouillon) {
+  function brouillonEstValide(brouillon, verifierAgeImport = true) {
     if (
       !brouillon ||
       typeof brouillon !== "object" ||
@@ -6703,6 +7026,23 @@
               typeof etape.heures === "string" &&
               typeof etape.minutes === "string"
           );
+    const dateImport = brouillon.importTexte
+      ? Date.parse(brouillon.importTexte.createdAt)
+      : null;
+    const importTexteValide =
+      brouillon.importTexte === undefined ||
+      (brouillon.mode === "ajout" &&
+        brouillon.importTexte &&
+        typeof brouillon.importTexte === "object" &&
+        !Array.isArray(brouillon.importTexte) &&
+        brouillon.importTexte.version === versionImportRecetteTexte &&
+        typeof brouillon.importTexte.rawText === "string" &&
+        brouillon.importTexte.rawText.length <= tailleMaximaleTexteImport &&
+        brouillon.importTexte.rawText.trim() !== "" &&
+        Number.isFinite(dateImport) &&
+        (!verifierAgeImport ||
+          (dateImport <= Date.now() + 5 * 60 * 1000 &&
+            Date.now() - dateImport <= dureeConservationImportRecetteTexte)));
 
     return (
       (brouillon.version === 1 || brouillon.version === 2) &&
@@ -6713,7 +7053,8 @@
           brouillon.recetteId.trim() !== "")) &&
       champsTexte.every((champ) => typeof brouillon[champ] === "string") &&
       ingredientsValides &&
-      etapesValides
+      etapesValides &&
+      importTexteValide
     );
   }
 
@@ -6763,6 +7104,7 @@
       console.warn(
         "Application de recettes : le brouillon enregistré est invalide. Le formulaire démarre vide."
       );
+      supprimerBrouillon();
       return null;
     }
 
@@ -6994,6 +7336,7 @@
   }
 
   function revenirAuModeAjout(supprimerLeBrouillon = false) {
+    reinitialiserImportRecetteTexte();
     activerModeAjout();
     viderChampsPrincipaux();
     reinitialiserLignesIngredient();
@@ -7005,6 +7348,24 @@
   }
 
   function restaurerBrouillon(brouillon) {
+    reinitialiserImportRecetteTexte();
+    if (brouillon.importTexte) {
+      texteImportRecetteEnCours = brouillon.importTexte.rawText;
+      dateImportRecetteEnCours = brouillon.importTexte.createdAt;
+      importRecetteAppliqueAuFormulaire = true;
+      try {
+        resultatImportRecetteEnCours = globalThis.RecipeTextParser.parseRecipeText(
+          texteImportRecetteEnCours,
+          {
+            availableUnits: unitesIngredient,
+            catalog: catalogueIngredients.ingredients,
+            normalizeIngredientName: normaliserNomIngredient
+          }
+        );
+      } catch (erreur) {
+        resultatImportRecetteEnCours = null;
+      }
+    }
     remplirChampsPrincipaux(brouillon);
     reinitialiserLignesIngredient(brouillon.ingredients);
     reinitialiserEtapesFormulaire(brouillon.etapes);
@@ -7031,7 +7392,12 @@
     }
 
     activerModeAjout();
-    afficherMessage("Brouillon restauré automatiquement.", "succes");
+    afficherMessage(
+      brouillon.importTexte
+        ? "Brouillon d’import restauré automatiquement. Vérifiez les champs avant l’enregistrement."
+        : "Brouillon restauré automatiquement.",
+      "succes"
+    );
   }
 
   function commencerModification(idRecette) {
@@ -7055,6 +7421,18 @@
       return;
     }
 
+    if (
+      importRecetteAppliqueAuFormulaire &&
+      !window.confirm(
+        "Modifier cette recette abandonnera le brouillon importé. Continuer ?"
+      )
+    ) {
+      return;
+    }
+    if (importRecetteAppliqueAuFormulaire) {
+      supprimerBrouillon();
+    }
+    reinitialiserImportRecetteTexte();
     idRecetteEnModification = recette.id;
     remplirChampsPrincipaux({
       ...recette,
@@ -7208,7 +7586,50 @@
   });
 
   boutonNouvelleRecette.addEventListener("click", () => {
+    if (
+      importRecetteAppliqueAuFormulaire &&
+      !window.confirm(
+        "Créer manuellement abandonnera le brouillon importé. Continuer ?"
+      )
+    ) {
+      return;
+    }
+    if (importRecetteAppliqueAuFormulaire) {
+      revenirAuModeAjout(true);
+    }
     afficherVue("vue-formulaire", true);
+  });
+
+  boutonImporterRecetteTexte.addEventListener("click", ouvrirDialogueImportRecette);
+  champTexteImportRecette.addEventListener("input", actualiserCompteurImportRecette);
+  boutonAnalyserTexteRecette.addEventListener("click", analyserTexteRecetteImporte);
+  boutonModifierTexteRecette.addEventListener("click", afficherEditeurImportRecette);
+  boutonOuvrirImportFormulaire.addEventListener("click", ouvrirImportDansFormulaire);
+  boutonAnnulerImportRecette.addEventListener("click", () => {
+    fermerDialogueImportRecette(true);
+  });
+  boutonAnnulerResultatImport.addEventListener("click", () => {
+    fermerDialogueImportRecette(true);
+  });
+
+  importRecetteTexteDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    fermerDialogueImportRecette(true);
+  });
+  importRecetteTexteDialogue.addEventListener("click", (evenement) => {
+    if (evenement.target === importRecetteTexteDialogue) {
+      fermerDialogueImportRecette(true);
+    }
+  });
+  importRecetteTexteDialogue.addEventListener("close", () => {
+    if (
+      elementDeclencheurImportRecette &&
+      document.contains(elementDeclencheurImportRecette) &&
+      typeof elementDeclencheurImportRecette.focus === "function"
+    ) {
+      elementDeclencheurImportRecette.focus();
+    }
+    elementDeclencheurImportRecette = null;
   });
 
   boutonRetourAuxRecettes.addEventListener("click", () => {

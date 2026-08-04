@@ -85,6 +85,13 @@ body {
   margin-bottom: 0;
 }
 
+.actions-creation-recette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
 .bouton-retour {
   background: #e2d4bb;
   color: #4a4034;
@@ -1194,6 +1201,105 @@ button:focus-visible {
   margin-top: 1.25rem;
 }
 
+#import-recette-texte-dialogue {
+  position: fixed;
+  z-index: 46;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 1.5rem;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+}
+
+#import-recette-texte-dialogue:not([open]) {
+  display: none;
+}
+
+#import-recette-texte-dialogue[open] {
+  display: grid;
+  place-items: center;
+}
+
+#import-recette-texte-dialogue::backdrop {
+  background: rgba(56, 66, 55, 0.55);
+}
+
+#import-recette-texte-panneau {
+  width: min(100%, 48rem);
+  max-height: 100%;
+  padding: 1.5rem;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  border: 1px solid #dfd3bb;
+  border-radius: 0.75rem;
+  background: #fffdf7;
+  box-shadow: 0 0.35rem 1rem rgba(56, 66, 55, 0.2);
+}
+
+#import-recette-texte-panneau h2 {
+  margin-top: 0;
+}
+
+#texte-import-recette {
+  min-height: 20rem;
+  line-height: 1.45;
+}
+
+.aide-import-recette,
+.compteur-import-recette {
+  margin: 0;
+  color: #5c6758;
+  font-size: 0.9rem;
+}
+
+.compteur-import-recette {
+  text-align: right;
+}
+
+.actions-import-recette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.resume-import-recette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.5rem 1.5rem;
+  padding-left: 1.25rem;
+}
+
+.titre-detecte-import {
+  padding: 0.75rem;
+  border-left: 0.3rem solid #8fa58a;
+  background: #faf6ed;
+}
+
+.avertissements-import-recette {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d5b77b;
+  border-radius: 0.5rem;
+  background: #fff8e8;
+}
+
+.avertissements-import-recette h3 {
+  margin-top: 0;
+}
+
+#liste-avertissements-import-recette {
+  margin-bottom: 0;
+  padding-left: 1.25rem;
+}
+
 .carte-recette {
   display: flex;
   flex-direction: column;
@@ -1867,6 +1973,26 @@ body.selecteur-recette-menu-ouvert {
     padding: 0;
   }
 
+  #import-recette-texte-dialogue {
+    padding: 0;
+  }
+
+  #import-recette-texte-dialogue[open] {
+    display: block;
+  }
+
+  #import-recette-texte-panneau {
+    width: 100%;
+    min-height: 100%;
+    min-height: 100dvh;
+    max-height: none;
+    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem
+      calc(1.25rem + env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   #selecteur-recette-menu-dialogue[open] {
     display: block;
   }
@@ -1908,7 +2034,10 @@ body.selecteur-recette-menu-ouvert {
   }
 
   .actions-sauvegarde button,
-  .actions-apercu-import button {
+  .actions-apercu-import button,
+  .actions-import-recette button,
+  .actions-creation-recette,
+  .actions-creation-recette button {
     width: 100%;
   }
 

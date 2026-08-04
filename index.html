@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Livre de recettes</title>
     <link rel="stylesheet" href="style.css">
+    <script src="recipe-text-parser.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -193,7 +194,12 @@
       <section id="vue-recettes" class="section vue" aria-labelledby="titre-recettes" hidden>
         <div class="entete-vue">
           <h2 id="titre-recettes" tabindex="-1">Mes recettes</h2>
-          <button id="nouvelle-recette" type="button">Nouvelle recette</button>
+          <div class="actions-creation-recette">
+            <button id="nouvelle-recette" type="button">Créer manuellement</button>
+            <button id="importer-recette-texte" class="bouton-secondaire" type="button">
+              Importer depuis du texte
+            </button>
+          </div>
         </div>
         <div class="filtre-categorie">
           <label for="filtre-categorie">Filtrer par catégorie</label>
@@ -419,6 +425,57 @@
           <button id="annuler-import" class="bouton-secondaire" type="button">Annuler</button>
           <button id="confirmer-import" class="bouton-danger" type="button">Importer et remplacer</button>
         </div>
+      </article>
+    </dialog>
+
+    <dialog id="import-recette-texte-dialogue" aria-labelledby="import-recette-texte-titre">
+      <article id="import-recette-texte-panneau">
+        <section id="editeur-import-recette-texte">
+          <h2 id="import-recette-texte-titre" tabindex="-1">Importer une recette depuis du texte</h2>
+          <p>
+            Copiez puis collez le contenu d’une recette. L’application essaiera de préremplir le
+            formulaire. Vous devrez vérifier les informations avant l’enregistrement.
+          </p>
+          <div class="champ-formulaire">
+            <label for="texte-import-recette">Texte de la recette</label>
+            <textarea
+              id="texte-import-recette"
+              rows="14"
+              aria-describedby="aide-texte-import compteur-texte-import message-import-recette"
+              placeholder="Collez ici le titre, les ingrédients et les instructions de la recette…"
+            ></textarea>
+            <p id="aide-texte-import" class="aide-import-recette">
+              Les titres « Ingrédients » et « Préparation » améliorent la détection.
+            </p>
+            <p id="compteur-texte-import" class="compteur-import-recette">0 / 100 000 caractères</p>
+          </div>
+          <p id="message-import-recette" class="message" aria-live="polite"></p>
+          <div class="actions-import-recette">
+            <button id="analyser-texte-recette" type="button" disabled>Analyser le texte</button>
+            <button id="annuler-import-recette" class="bouton-secondaire" type="button">Annuler</button>
+          </div>
+        </section>
+
+        <section id="resultat-import-recette" aria-labelledby="resultat-import-recette-titre" hidden>
+          <h2 id="resultat-import-recette-titre" tabindex="-1">Résultat de l’analyse</h2>
+          <p class="titre-detecte-import">
+            Titre détecté : <strong id="resultat-import-titre-detecte"></strong>
+          </p>
+          <ul id="resume-import-recette" class="resume-import-recette"></ul>
+          <div class="avertissements-import-recette">
+            <h3>Points à vérifier</h3>
+            <ul id="liste-avertissements-import-recette"></ul>
+          </div>
+          <p class="aide-import-recette">
+            Ouvrir dans le formulaire ne crée pas encore la recette. Vous pourrez tout relire et
+            compléter avant de l’enregistrer.
+          </p>
+          <div class="actions-import-recette">
+            <button id="ouvrir-import-formulaire" type="button">Ouvrir dans le formulaire</button>
+            <button id="modifier-texte-recette" class="bouton-secondaire" type="button">Modifier le texte</button>
+            <button id="annuler-resultat-import" class="bouton-secondaire" type="button">Annuler</button>
+          </div>
+        </section>
       </article>
     </dialog>
 

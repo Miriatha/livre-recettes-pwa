@@ -48,6 +48,17 @@
   const champRechercheCatalogueIngredients = document.getElementById("recherche-catalogue-ingredients");
   const filtreCategorieCatalogue = document.getElementById("filtre-categorie-catalogue");
   const zoneListeCatalogueIngredients = document.getElementById("liste-catalogue-ingredients");
+  const boutonExporterSauvegarde = document.getElementById("exporter-sauvegarde");
+  const boutonImporterSauvegarde = document.getElementById("importer-sauvegarde");
+  const champFichierSauvegarde = document.getElementById("fichier-sauvegarde");
+  const messageSauvegarde = document.getElementById("message-sauvegarde");
+  const apercuImportDialogue = document.getElementById("apercu-import-dialogue");
+  const apercuImportTitre = document.getElementById("apercu-import-titre");
+  const apercuImportDate = document.getElementById("apercu-import-date");
+  const apercuImportContenu = document.getElementById("apercu-import-contenu");
+  const messageApercuImport = document.getElementById("message-apercu-import");
+  const boutonAnnulerImport = document.getElementById("annuler-import");
+  const boutonConfirmerImport = document.getElementById("confirmer-import");
   const zoneImpression = document.getElementById("zone-impression");
   const ficheRecetteDialogue = document.getElementById(
     "fiche-recette-dialogue"
@@ -266,6 +277,17 @@
     ["#recherche-catalogue-ingredients", champRechercheCatalogueIngredients],
     ["#filtre-categorie-catalogue", filtreCategorieCatalogue],
     ["#liste-catalogue-ingredients", zoneListeCatalogueIngredients],
+    ["#exporter-sauvegarde", boutonExporterSauvegarde],
+    ["#importer-sauvegarde", boutonImporterSauvegarde],
+    ["#fichier-sauvegarde", champFichierSauvegarde],
+    ["#message-sauvegarde", messageSauvegarde],
+    ["#apercu-import-dialogue", apercuImportDialogue],
+    ["#apercu-import-titre", apercuImportTitre],
+    ["#apercu-import-date", apercuImportDate],
+    ["#apercu-import-contenu", apercuImportContenu],
+    ["#message-apercu-import", messageApercuImport],
+    ["#annuler-import", boutonAnnulerImport],
+    ["#confirmer-import", boutonConfirmerImport],
     ["#zone-impression", zoneImpression],
     ["#fiche-recette-dialogue", ficheRecetteDialogue],
     ["#fiche-recette-panneau", ficheRecettePanneau],
@@ -500,6 +522,28 @@
   const cleStockageCatalogueIngredients =
     "livreRecettes.catalogueIngredients";
   const cleStockageCuisineGuidee = "livreRecettes.cuisineGuidee";
+  const identifiantApplicationSauvegarde = "livre-recettes-pwa";
+  const versionFormatSauvegarde = 1;
+  const tailleMaximaleFichierSauvegarde = 20 * 1024 * 1024;
+  const limitesSauvegarde = Object.freeze({
+    profondeur: 24,
+    elements: 150000,
+    texte: 200000,
+    recettes: 10000,
+    ingredientsParRecette: 500,
+    etapesParRecette: 500,
+    ingredientsCatalogue: 20000,
+    semainesMenu: 5200,
+    historique: 20000
+  });
+  const donneesSauvegardables = Object.freeze([
+    { nom: "recipes", cle: cleStockage },
+    { nom: "draft", cle: cleStockageBrouillon },
+    { nom: "menuWeeks", cle: cleStockageMenuSemaine },
+    { nom: "history", cle: cleStockageHistorique },
+    { nom: "ingredientCatalog", cle: cleStockageCatalogueIngredients },
+    { nom: "guidedCookingSession", cle: cleStockageCuisineGuidee }
+  ]);
   const categoriesIngredients = Object.freeze([
     { id: "fruits-legumes", libelle: "Fruits et légumes" },
     { id: "viandes-charcuteries", libelle: "Viandes et charcuteries" },
@@ -648,11 +692,728 @@
   let contexteFinCuisineGuidee = null;
   let contexteAudioCuisineGuidee = null;
   let restaurerFocusCuisineGuideeALaFermeture = true;
+  let sauvegardeEnAttenteImport = null;
+  let importEnCours = false;
 
   // Fonctions génériques
   function afficherMessage(texte, type) {
     zoneMessage.textContent = texte;
     zoneMessage.className = `message ${type}`;
+  }
+
+  // Sauvegarde et restauration des données
+  function afficherMessageSauvegarde(texte, type, cible = messageSauvegarde) {
+    cible.textContent = texte;
+    cible.className = type
+      ? `message-sauvegarde ${type}`
+      : "message-sauvegarde";
+  }
+
+  function creerErreurSauvegarde(code) {
+    const erreur = new Error(code);
+    erreur.codeSauvegarde = code;
+    return erreur;
+  }
+
+  function obtenirMessageErreurSauvegarde(erreur) {
+    const messages = {
+      "json-invalide": "Le fichier ne contient pas un JSON valide.",
+      "fichier-non-reconnu": "Ce fichier de sauvegarde n’est pas reconnu.",
+      "version-incompatible": "La version de cette sauvegarde n’est pas compatible avec cette application.",
+      "donnees-manquantes": "Les données principales de la sauvegarde sont manquantes ou incohérentes.",
+      "fichier-trop-volumineux": "Le fichier sélectionné est trop volumineux (20 Mo maximum).",
+      "lecture-impossible": "Le fichier sélectionné n’a pas pu être lu."
+    };
+
+    return messages[erreur && erreur.codeSauvegarde] ||
+      "La sauvegarde n’a pas pu être traitée.";
+  }
+
+  function objetSimple(valeur) {
+    if (!valeur || typeof valeur !== "object" || Array.isArray(valeur)) {
+      return false;
+    }
+
+    const prototype = Object.getPrototypeOf(valeur);
+    return prototype === Object.prototype || prototype === null;
+  }
+
+  function analyserJSONSecurise(texte) {
+    try {
+      return JSON.parse(texte, (cle, valeur) => {
+        if (["__proto__", "constructor", "prototype"].includes(cle)) {
+          throw creerErreurSauvegarde("fichier-non-reconnu");
+        }
+        return valeur;
+      });
+    } catch (erreur) {
+      if (erreur && erreur.codeSauvegarde) {
+        throw erreur;
+      }
+      throw creerErreurSauvegarde("json-invalide");
+    }
+  }
+
+  function verifierLimitesStructure(valeur) {
+    const aVerifier = [{ valeur, profondeur: 0 }];
+    let nombreElements = 0;
+
+    while (aVerifier.length > 0) {
+      const element = aVerifier.pop();
+      nombreElements += 1;
+
+      if (
+        nombreElements > limitesSauvegarde.elements ||
+        element.profondeur > limitesSauvegarde.profondeur
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      if (
+        typeof element.valeur === "string" &&
+        element.valeur.length > limitesSauvegarde.texte
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      if (Array.isArray(element.valeur)) {
+        element.valeur.forEach((enfant) => {
+          aVerifier.push({
+            valeur: enfant,
+            profondeur: element.profondeur + 1
+          });
+        });
+      } else if (objetSimple(element.valeur)) {
+        Object.entries(element.valeur).forEach(([cle, enfant]) => {
+          if (["__proto__", "constructor", "prototype"].includes(cle)) {
+            throw creerErreurSauvegarde("fichier-non-reconnu");
+          }
+          aVerifier.push({
+            valeur: enfant,
+            profondeur: element.profondeur + 1
+          });
+        });
+      } else if (
+        element.valeur !== null &&
+        !["string", "number", "boolean"].includes(typeof element.valeur)
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      if (
+        typeof element.valeur === "number" &&
+        !Number.isFinite(element.valeur)
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+    }
+  }
+
+  function inventorierDonneesExportables() {
+    const brouillonEnregistre = localStorage.getItem(cleStockageBrouillon);
+    const donnees = analyserJSONSecurise(JSON.stringify({
+      recipes: recettes,
+      draft: brouillonEnregistre === null
+        ? null
+        : analyserJSONSecurise(brouillonEnregistre),
+      menuWeeks: menusHebdomadaires,
+      history: historique,
+      ingredientCatalog: catalogueIngredients,
+      guidedCookingSession: sessionCuisineGuidee
+    }));
+
+    verifierLimitesStructure(donnees);
+    validerDonneesPrincipales(donnees);
+    return donnees;
+  }
+
+  function obtenirVersionDonnee(valeur, typeSansVersion) {
+    if (valeur === null) {
+      return null;
+    }
+
+    return objetSimple(valeur) && Number.isInteger(valeur.version)
+      ? valeur.version
+      : typeSansVersion;
+  }
+
+  function calculerResumeSauvegarde(donnees) {
+    const recettesSauvegardees = Array.isArray(donnees.recipes)
+      ? donnees.recipes
+      : [];
+    const catalogue = objetSimple(donnees.ingredientCatalog) &&
+      Array.isArray(donnees.ingredientCatalog.ingredients)
+      ? donnees.ingredientCatalog.ingredients
+      : [];
+    const semaines = objetSimple(donnees.menuWeeks) &&
+      objetSimple(donnees.menuWeeks.semaines)
+      ? Object.keys(donnees.menuWeeks.semaines)
+      : donnees.menuWeeks === null
+        ? []
+        : ["ancienne-version"];
+    const historiqueSauvegarde = Array.isArray(donnees.history)
+      ? donnees.history
+      : [];
+
+    return {
+      recipes: recettesSauvegardees.length,
+      ingredients: catalogue.length,
+      menuWeeks: semaines.length,
+      favorites: recettesSauvegardees.filter(
+        (recette) => recette && recette.favori === true
+      ).length,
+      historyEntries: historiqueSauvegarde.length,
+      hasDraft: donnees.draft !== null,
+      hasGuidedCookingSession: donnees.guidedCookingSession !== null
+    };
+  }
+
+  function construireSauvegarde() {
+    const donnees = inventorierDonneesExportables();
+
+    return {
+      application: identifiantApplicationSauvegarde,
+      formatVersion: versionFormatSauvegarde,
+      exportedAt: new Date().toISOString(),
+      appDataVersion: {
+        recipes: obtenirVersionDonnee(donnees.recipes, "unversioned-array"),
+        draft: obtenirVersionDonnee(donnees.draft, "unversioned"),
+        menuWeeks: obtenirVersionDonnee(donnees.menuWeeks, "unversioned"),
+        history: obtenirVersionDonnee(donnees.history, "unversioned-array"),
+        ingredientCatalog: obtenirVersionDonnee(
+          donnees.ingredientCatalog,
+          "unversioned"
+        ),
+        guidedCookingSession: obtenirVersionDonnee(
+          donnees.guidedCookingSession,
+          "unversioned"
+        )
+      },
+      summary: calculerResumeSauvegarde(donnees),
+      data: donnees
+    };
+  }
+
+  function formaterDateNomFichier(date = new Date()) {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-") + "-" + [
+      String(date.getHours()).padStart(2, "0"),
+      String(date.getMinutes()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function telechargerFichierJSON(sauvegarde, prefixe) {
+    const texte = JSON.stringify(sauvegarde, null, 2);
+    const fichier = new Blob([texte], {
+      type: "application/json;charset=utf-8"
+    });
+    const url = URL.createObjectURL(fichier);
+    const lien = document.createElement("a");
+
+    try {
+      lien.href = url;
+      lien.download = `${prefixe}-${formaterDateNomFichier()}.json`;
+      lien.hidden = true;
+      document.body.append(lien);
+      lien.click();
+    } finally {
+      lien.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+  }
+
+  function exporterSauvegarde() {
+    try {
+      const sauvegarde = construireSauvegarde();
+      telechargerFichierJSON(sauvegarde, "livre-recettes-sauvegarde");
+      afficherMessageSauvegarde(
+        "Sauvegarde exportée. Conservez le fichier dans un emplacement sûr.",
+        "succes"
+      );
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : l’export de la sauvegarde a échoué.",
+        erreur && erreur.message
+      );
+      afficherMessageSauvegarde(
+        "Impossible de créer la sauvegarde. Aucune donnée n’a été modifiée.",
+        "erreur"
+      );
+    }
+  }
+
+  function validerRecettesSauvegarde(valeur) {
+    if (valeur === null) {
+      return;
+    }
+
+    if (!Array.isArray(valeur) || valeur.length > limitesSauvegarde.recettes) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+
+    valeur.forEach((recette) => {
+      if (!objetSimple(recette) || !recetteEstValide(recette)) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      if (
+        recette.ingredients !== undefined &&
+        (!Array.isArray(recette.ingredients) ||
+          recette.ingredients.length > limitesSauvegarde.ingredientsParRecette ||
+          !recette.ingredients.every(ingredientEstValide))
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      if (
+        recette.etapes !== undefined &&
+        (!Array.isArray(recette.etapes) ||
+          recette.etapes.length > limitesSauvegarde.etapesParRecette ||
+          !recette.etapes.every(
+            (etape) => objetSimple(etape) &&
+              typeof etape.instruction === "string" &&
+              etape.instruction.trim() !== ""
+          ))
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+    });
+  }
+
+  function emplacementMenuSauvegardeEstCompatible(emplacement) {
+    if (emplacement === null || typeof emplacement === "string") {
+      return true;
+    }
+
+    if (!objetSimple(emplacement)) {
+      return false;
+    }
+
+    const identifiant = emplacement.recetteId || emplacement.id ||
+      emplacement.recipeId || null;
+    const portions = emplacement.portions;
+
+    return (
+      (identifiant === null || identifiantRecetteEstValide(identifiant)) &&
+      (portions === undefined || portions === null ||
+        convertirNombreEntier(portions, 1) !== null)
+    );
+  }
+
+  function validerMenusSauvegarde(valeur) {
+    if (valeur === null) {
+      return;
+    }
+
+    if (!objetSimple(valeur)) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+
+    if (valeur.version === 2) {
+      if (!objetSimple(valeur.semaines)) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      const semaines = Object.entries(valeur.semaines);
+      if (semaines.length > limitesSauvegarde.semainesMenu) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+
+      semaines.forEach(([debut, semaine]) => {
+        if (
+          obtenirDebutSemaine(debut) !== debut ||
+          !objetSimple(semaine) ||
+          !Array.isArray(semaine.jours) ||
+          semaine.jours.length > 7
+        ) {
+          throw creerErreurSauvegarde("donnees-manquantes");
+        }
+
+        semaine.jours.forEach((jour) => {
+          if (!objetSimple(jour)) {
+            throw creerErreurSauvegarde("donnees-manquantes");
+          }
+
+          emplacementsMenu.forEach((definition) => {
+            if (!emplacementMenuSauvegardeEstCompatible(
+              obtenirEmplacementMenu(jour, definition.cle)
+            )) {
+              throw creerErreurSauvegarde("donnees-manquantes");
+            }
+          });
+        });
+      });
+      return;
+    }
+
+    if (
+      valeur.version !== 1 &&
+      !joursSemaine.some((jour) => Object.prototype.hasOwnProperty.call(
+        valeur,
+        jour.cle
+      ))
+    ) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+
+    joursSemaine.forEach((jour) => {
+      const menuJour = valeur[jour.cle];
+      if (menuJour !== undefined && !objetSimple(menuJour)) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+      if (
+        menuJour &&
+        (!emplacementMenuSauvegardeEstCompatible(menuJour.midi) ||
+          !emplacementMenuSauvegardeEstCompatible(menuJour.soir))
+      ) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+    });
+  }
+
+  function validerHistoriqueSauvegarde(valeur) {
+    if (valeur === null) {
+      return;
+    }
+
+    if (
+      !Array.isArray(valeur) ||
+      valeur.length > limitesSauvegarde.historique ||
+      !valeur.every((entree) =>
+        objetSimple(entree) &&
+        entreeHistoriqueEstExploitable(entree) &&
+        (entree.recetteSnapshot === null ||
+          entree.recetteSnapshot === undefined ||
+          recetteEstValide(entree.recetteSnapshot))
+      )
+    ) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+  }
+
+  function validerCatalogueSauvegarde(valeur) {
+    if (valeur === null) {
+      return;
+    }
+
+    if (
+      !objetSimple(valeur) ||
+      valeur.version !== 1 ||
+      !Array.isArray(valeur.ingredients) ||
+      valeur.ingredients.length > limitesSauvegarde.ingredientsCatalogue ||
+      !valeur.ingredients.every((ingredient) =>
+        objetSimple(ingredient) &&
+        typeof ingredient.id === "string" &&
+        ingredient.id.trim() !== "" &&
+        typeof ingredient.nom === "string" &&
+        ingredient.nom.trim() !== "" &&
+        categorieIngredientEstValide(ingredient.categorie)
+      )
+    ) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+  }
+
+  function validerBrouillonSauvegarde(valeur) {
+    if (valeur !== null && !brouillonEstValide(valeur)) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+  }
+
+  function validerSessionCuisineGuideeSauvegarde(valeur) {
+    if (valeur === null) {
+      return;
+    }
+
+    const minuteur = valeur && valeur.minuteur;
+    const minuteurCompatible = minuteur === null || minuteur === undefined ||
+      (objetSimple(minuteur) &&
+        identifiantRecetteEstValide(minuteur.etapeId) &&
+        normaliserDureeEtape(minuteur.dureeInitialeSecondes) !== null &&
+        ["en_cours", "pause", "termine"].includes(minuteur.etat) &&
+        (minuteur.etat === "en_cours"
+          ? Number.isFinite(Number(minuteur.finPrevue)) &&
+            Number(minuteur.finPrevue) > 0
+          : convertirNombreEntier(minuteur.secondesRestantes, 0) !== null));
+
+    if (
+      !objetSimple(valeur) ||
+      valeur.version !== 1 ||
+      !identifiantRecetteEstValide(valeur.recetteId) ||
+      !identifiantRecetteEstValide(valeur.etapeId) ||
+      convertirNombreEntier(valeur.etapeIndex, 0) === null ||
+      convertirNombreEntier(valeur.portions, 1) === null ||
+      !sourceCuisineGuideeEstValide(valeur.source) ||
+      (valeur.demarreeLe !== undefined &&
+        !dateHeureHistoriqueEstValide(valeur.demarreeLe)) ||
+      (valeur.miseAJourLe !== undefined &&
+        !dateHeureHistoriqueEstValide(valeur.miseAJourLe)) ||
+      !minuteurCompatible
+    ) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+  }
+
+  function validerDonneesPrincipales(donnees) {
+    if (!objetSimple(donnees)) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+
+    donneesSauvegardables.forEach((definition) => {
+      if (!Object.prototype.hasOwnProperty.call(donnees, definition.nom)) {
+        throw creerErreurSauvegarde("donnees-manquantes");
+      }
+    });
+
+    validerRecettesSauvegarde(donnees.recipes);
+    validerBrouillonSauvegarde(donnees.draft);
+    validerMenusSauvegarde(donnees.menuWeeks);
+    validerHistoriqueSauvegarde(donnees.history);
+    validerCatalogueSauvegarde(donnees.ingredientCatalog);
+    validerSessionCuisineGuideeSauvegarde(donnees.guidedCookingSession);
+  }
+
+  function validerSauvegarde(sauvegarde) {
+    verifierLimitesStructure(sauvegarde);
+
+    if (
+      !objetSimple(sauvegarde) ||
+      sauvegarde.application !== identifiantApplicationSauvegarde
+    ) {
+      throw creerErreurSauvegarde("fichier-non-reconnu");
+    }
+
+    if (
+      !Number.isInteger(sauvegarde.formatVersion) ||
+      sauvegarde.formatVersion !== versionFormatSauvegarde
+    ) {
+      throw creerErreurSauvegarde("version-incompatible");
+    }
+
+    if (
+      typeof sauvegarde.exportedAt !== "string" ||
+      !Number.isFinite(Date.parse(sauvegarde.exportedAt))
+    ) {
+      throw creerErreurSauvegarde("fichier-non-reconnu");
+    }
+
+    validerDonneesPrincipales(sauvegarde.data);
+
+    try {
+      JSON.stringify(sauvegarde.data);
+    } catch (erreur) {
+      throw creerErreurSauvegarde("donnees-manquantes");
+    }
+
+    return {
+      ...sauvegarde,
+      summary: calculerResumeSauvegarde(sauvegarde.data)
+    };
+  }
+
+  async function lireFichierSauvegarde(fichier) {
+    if (fichier.size > tailleMaximaleFichierSauvegarde) {
+      throw creerErreurSauvegarde("fichier-trop-volumineux");
+    }
+
+    let texte;
+    try {
+      texte = await fichier.text();
+    } catch (erreur) {
+      throw creerErreurSauvegarde("lecture-impossible");
+    }
+
+    return validerSauvegarde(analyserJSONSecurise(texte));
+  }
+
+  function ajouterLigneApercu(texte) {
+    const ligne = document.createElement("li");
+    ligne.textContent = texte;
+    apercuImportContenu.append(ligne);
+  }
+
+  function afficherApercuImport(sauvegarde) {
+    sauvegardeEnAttenteImport = sauvegarde;
+    const resume = sauvegarde.summary;
+    const date = new Date(sauvegarde.exportedAt);
+
+    apercuImportDate.textContent = `Sauvegarde du ${date.toLocaleString("fr-FR", {
+      dateStyle: "long",
+      timeStyle: "short"
+    })}`;
+    apercuImportContenu.textContent = "";
+    ajouterLigneApercu(`${resume.recipes} recette${resume.recipes === 1 ? "" : "s"}`);
+    ajouterLigneApercu(`${resume.ingredients} ingrédient${resume.ingredients === 1 ? "" : "s"}`);
+    ajouterLigneApercu(`${resume.menuWeeks} semaine${resume.menuWeeks === 1 ? "" : "s"} de menus`);
+    ajouterLigneApercu(`${resume.favorites} favori${resume.favorites === 1 ? "" : "s"}`);
+    ajouterLigneApercu(`Historique : ${resume.historyEntries} entrée${resume.historyEntries === 1 ? "" : "s"}`);
+    ajouterLigneApercu(`Brouillon : ${resume.hasDraft ? "oui" : "non"}`);
+    ajouterLigneApercu(`Recette en cours : ${resume.hasGuidedCookingSession ? "oui" : "non"}`);
+    afficherMessageSauvegarde("", "", messageApercuImport);
+    boutonConfirmerImport.disabled = false;
+    boutonAnnulerImport.disabled = false;
+    apercuImportDialogue.showModal();
+    boutonAnnulerImport.focus();
+  }
+
+  function fermerApercuImport() {
+    sauvegardeEnAttenteImport = null;
+    if (apercuImportDialogue.open) {
+      apercuImportDialogue.close();
+    }
+    setTimeout(() => boutonImporterSauvegarde.focus(), 0);
+  }
+
+  function preparerDonneesRestauration(sauvegarde) {
+    const donnees = analyserJSONSecurise(JSON.stringify(sauvegarde.data));
+    const recettesImportees = Array.isArray(donnees.recipes)
+      ? donnees.recipes
+      : [];
+
+    if (
+      donnees.guidedCookingSession !== null &&
+      !recettesImportees.some(
+        (recette) => recette.id === donnees.guidedCookingSession.recetteId
+      )
+    ) {
+      donnees.guidedCookingSession = null;
+    }
+
+    validerDonneesPrincipales(donnees);
+
+    const valeursPreparees = new Map();
+    donneesSauvegardables.forEach((definition) => {
+      valeursPreparees.set(
+        definition.cle,
+        donnees[definition.nom] === null
+          ? null
+          : JSON.stringify(donnees[definition.nom])
+      );
+    });
+    return valeursPreparees;
+  }
+
+  function appliquerRestauration(sauvegarde) {
+    const valeursPreparees = preparerDonneesRestauration(sauvegarde);
+    const valeursPrecedentes = new Map();
+
+    donneesSauvegardables.forEach((definition) => {
+      valeursPrecedentes.set(definition.cle, localStorage.getItem(definition.cle));
+    });
+
+    try {
+      donneesSauvegardables.forEach((definition) => {
+        const valeur = valeursPreparees.get(definition.cle);
+        if (valeur === null) {
+          localStorage.removeItem(definition.cle);
+        } else {
+          localStorage.setItem(definition.cle, valeur);
+        }
+      });
+    } catch (erreur) {
+      let retourArriereReussi = true;
+
+      donneesSauvegardables.forEach((definition) => {
+        try {
+          const valeurPrecedente = valeursPrecedentes.get(definition.cle);
+          if (valeurPrecedente === null) {
+            localStorage.removeItem(definition.cle);
+          } else {
+            localStorage.setItem(definition.cle, valeurPrecedente);
+          }
+        } catch (erreurRetourArriere) {
+          retourArriereReussi = false;
+        }
+      });
+
+      const erreurRestauration = new Error("restauration-impossible");
+      erreurRestauration.retourArriereReussi = retourArriereReussi;
+      throw erreurRestauration;
+    }
+  }
+
+  function creerSauvegardeSecurite() {
+    const sauvegarde = construireSauvegarde();
+    telechargerFichierJSON(sauvegarde, "livre-recettes-avant-import");
+  }
+
+  function confirmerRestauration() {
+    if (!sauvegardeEnAttenteImport || importEnCours) {
+      return;
+    }
+
+    importEnCours = true;
+    boutonConfirmerImport.disabled = true;
+    boutonAnnulerImport.disabled = true;
+    afficherMessageSauvegarde(
+      "Création de la sauvegarde de sécurité…",
+      "",
+      messageApercuImport
+    );
+
+    let sauvegardeSecuriteCreee = false;
+    try {
+      creerSauvegardeSecurite();
+      sauvegardeSecuriteCreee = true;
+      afficherMessageSauvegarde(
+        "Sauvegarde de sécurité créée avant le remplacement.",
+        "succes",
+        messageApercuImport
+      );
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : la sauvegarde de sécurité avant import a échoué.",
+        erreur && erreur.message
+      );
+    }
+
+    if (
+      !sauvegardeSecuriteCreee &&
+      !window.confirm(
+        "La sauvegarde de sécurité n’a pas pu être créée. Il est recommandé d’annuler. Voulez-vous malgré tout continuer et remplacer les données ?"
+      )
+    ) {
+      importEnCours = false;
+      boutonConfirmerImport.disabled = false;
+      boutonAnnulerImport.disabled = false;
+      afficherMessageSauvegarde(
+        "Import annulé : aucune donnée n’a été remplacée.",
+        "erreur",
+        messageApercuImport
+      );
+      return;
+    }
+
+    try {
+      appliquerRestauration(sauvegardeEnAttenteImport);
+      sauvegardeEnAttenteImport = null;
+      apercuImportDialogue.close();
+      afficherMessageSauvegarde(
+        sauvegardeSecuriteCreee
+          ? "Import réussi. La sauvegarde de sécurité a été téléchargée. L’application va se recharger."
+          : "Import réussi. L’application va se recharger.",
+        "succes"
+      );
+      setTimeout(() => window.location.reload(), 900);
+    } catch (erreur) {
+      console.error(
+        "Application de recettes : la restauration a échoué.",
+        erreur && erreur.message
+      );
+      importEnCours = false;
+      boutonConfirmerImport.disabled = false;
+      boutonAnnulerImport.disabled = false;
+      afficherMessageSauvegarde(
+        erreur && erreur.retourArriereReussi === false
+          ? "L’import a échoué et le retour à l’état précédent est incomplet. Rechargez la page avant toute autre action."
+          : "L’import a échoué. Les données précédentes ont été conservées.",
+        "erreur",
+        messageApercuImport
+      );
+    }
   }
 
   function afficherVue(nomVue, deplacerFocus = false) {
@@ -6490,6 +7251,54 @@
 
   champRechercheCatalogueIngredients.addEventListener("input", afficherCatalogueIngredients);
   filtreCategorieCatalogue.addEventListener("change", afficherCatalogueIngredients);
+
+  boutonExporterSauvegarde.addEventListener("click", exporterSauvegarde);
+
+  boutonImporterSauvegarde.addEventListener("click", () => {
+    afficherMessageSauvegarde("", "");
+    champFichierSauvegarde.value = "";
+    champFichierSauvegarde.click();
+  });
+
+  champFichierSauvegarde.addEventListener("change", async () => {
+    const fichier = champFichierSauvegarde.files &&
+      champFichierSauvegarde.files[0];
+
+    if (!fichier) {
+      return;
+    }
+
+    boutonImporterSauvegarde.disabled = true;
+    afficherMessageSauvegarde("Vérification de la sauvegarde…", "");
+
+    try {
+      const sauvegarde = await lireFichierSauvegarde(fichier);
+      afficherMessageSauvegarde("Sauvegarde valide. Vérifiez son contenu avant de continuer.", "succes");
+      afficherApercuImport(sauvegarde);
+    } catch (erreur) {
+      console.warn(
+        "Application de recettes : le fichier de sauvegarde a été refusé.",
+        erreur && erreur.codeSauvegarde
+      );
+      afficherMessageSauvegarde(
+        obtenirMessageErreurSauvegarde(erreur),
+        "erreur"
+      );
+    } finally {
+      boutonImporterSauvegarde.disabled = false;
+      champFichierSauvegarde.value = "";
+    }
+  });
+
+  boutonAnnulerImport.addEventListener("click", fermerApercuImport);
+  boutonConfirmerImport.addEventListener("click", confirmerRestauration);
+
+  apercuImportDialogue.addEventListener("cancel", (evenement) => {
+    evenement.preventDefault();
+    if (!importEnCours) {
+      fermerApercuImport();
+    }
+  });
 
   document.addEventListener("click", (evenement) => {
     document.querySelectorAll(".ligne-ingredient").forEach((ligne) => {

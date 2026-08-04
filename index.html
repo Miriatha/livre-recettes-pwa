@@ -253,6 +253,27 @@
 
       <section id="vue-plus" class="section vue" aria-labelledby="titre-plus" hidden>
         <h2 id="titre-plus" tabindex="-1">Plus</h2>
+        <section class="section-sauvegarde" aria-labelledby="titre-sauvegarde">
+          <h3 id="titre-sauvegarde">Sauvegarde des données</h3>
+          <p>
+            Les recettes et menus sont actuellement enregistrés dans ce navigateur. Exportez régulièrement une sauvegarde pour pouvoir les restaurer ou les transférer sur un autre appareil.
+          </p>
+          <p class="avertissement-sauvegarde">
+            GitHub ne sauvegarde pas vos recettes. L’import d’une sauvegarde remplacera les données locales de cette application sur cet appareil.
+          </p>
+          <div class="actions-sauvegarde">
+            <button id="exporter-sauvegarde" type="button">Exporter mes données</button>
+            <button id="importer-sauvegarde" class="bouton-secondaire" type="button">Importer une sauvegarde</button>
+          </div>
+          <input
+            id="fichier-sauvegarde"
+            class="champ-fichier-sauvegarde"
+            type="file"
+            accept=".json,application/json"
+            aria-label="Sélectionner un fichier de sauvegarde JSON"
+          >
+          <p id="message-sauvegarde" class="message-sauvegarde" aria-live="polite"></p>
+        </section>
         <section id="section-catalogue-ingredients" class="section-catalogue-ingredients" aria-labelledby="titre-catalogue-ingredients">
           <h3 id="titre-catalogue-ingredients">Catalogue d’ingrédients</h3>
           <p>Les catégories du catalogue organisent automatiquement votre liste de courses.</p>
@@ -385,6 +406,23 @@
             </label>
           </div>
           <div id="resultats-recettes-menu" aria-live="polite"></div>
+        </div>
+      </article>
+    </dialog>
+
+    <dialog id="apercu-import-dialogue" aria-labelledby="apercu-import-titre">
+      <article id="apercu-import-panneau">
+        <h2 id="apercu-import-titre" tabindex="-1">Vérifier la sauvegarde</h2>
+        <p id="apercu-import-date"></p>
+        <p>Contenu :</p>
+        <ul id="apercu-import-contenu"></ul>
+        <p class="avertissement-import">
+          Cette sauvegarde remplacera les données actuellement présentes sur cet appareil.
+        </p>
+        <p id="message-apercu-import" class="message-sauvegarde" aria-live="polite"></p>
+        <div class="actions-apercu-import">
+          <button id="annuler-import" class="bouton-secondaire" type="button">Annuler</button>
+          <button id="confirmer-import" class="bouton-danger" type="button">Importer et remplacer</button>
         </div>
       </article>
     </dialog>

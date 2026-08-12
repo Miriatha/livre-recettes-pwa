@@ -1,11 +1,12 @@
 const CACHE_PREFIX = "livre-recettes-static-";
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
 
 const REQUIRED_FILES = [
   "./",
   "./index.html",
   "./style.css",
+  "./assets/images/fond-oliviers.webp",
   "./recipe-text-parser.js",
   "./app.js"
 ];

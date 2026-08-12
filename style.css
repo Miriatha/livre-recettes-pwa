@@ -12,6 +12,12 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 2rem 1.5rem;
+  overflow-x: hidden;
+  background-color: #f5efe2;
+  background-image: url("./assets/images/fond-oliviers.webp");
+  background-repeat: repeat;
+  background-position: top center;
+  background-size: 680px auto;
 }
 
 .conteneur {
@@ -133,6 +139,10 @@ body {
 }
 
 @media (max-width: 900px) {
+  body {
+    background-size: 440px auto;
+  }
+
   .notification-mise-a-jour {
     right: 0.75rem;
     bottom: calc(5.75rem + env(safe-area-inset-bottom));

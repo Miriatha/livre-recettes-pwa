@@ -1,5 +1,5 @@
 # Feuille de route officielle de cadrage
-30 étapes principales, 8 compléments juridiques/conformité et un jalon de naming (02 bis ajouté) ; 8 validations utilisateur. Numéros conservés pour la traçabilité. État au 26/11/2026 : accès GitHub/Supabase vérifiés, environnement Codex publié selon retour utilisateur, URL PWA identifiée, aucune recette à sauvegarder selon propriétaire ; audit de fonctionnement à faire. Documentation initiale en cours de revue.
+30 étapes principales, 8 compléments juridiques/conformité et un jalon de naming (02 bis ajouté) ; 8 validations utilisateur. Numéros conservés pour la traçabilité. État au 26/11/2026 : phases 1 et 2 clôturées, V1 approuvé (D15/D16). Audit historique partiel ; tests restants replanifiés explicitement. Prochaine étape 09, UX.
 
 | Phase | Étapes | Livrables |
 |---|---|---|
@@ -21,4 +21,4 @@ V8 commercialisation : preuves d'usage, économie, juridique et décision.
 Le lancement bêta nécessite également accord explicite sur protocole, accès et dépenses. Les décisions de marque définitive précèdent toute diffusion publique sous ce nom.
 
 ## Prochain travail
-Études 04–07 documentées, D14 modèle IA initial sous conditions, étape 08 périmètre approuvé (D15, 26/11/2026). Prochaine action : complément d'audit historique ciblé avant clôture V1, puis 09 UX (V2). Pas de développement cible avant clôture V1. Les réserves de conformité, tests IA et coûts restent aux jalons prévus. Les dépendances et la priorité des tâches pourront être affinées, sans supprimer les jalons.
+Études 04–07 documentées, D14 modèle IA initial sous conditions, étape 08 périmètre approuvé (D15). V1 clôturé par D16 (26/11/2026) après revue PR #3 et accord sur report explicite des tests historiques : 13/18 sauvegarde/restauration, 14 menus/historique/minuteur/règles métier, 15 photos, 18–19 recette complète. Tests de référence avant reprise des modules. Prochaine étape 09 UX (V2), puis 10–12 ; réalisation cible à partir de 13 après les jalons de conception. Les réserves de conformité, tests IA et coûts restent aux jalons prévus. Les dépendances et la priorité des tâches pourront être affinées, sans supprimer les jalons.

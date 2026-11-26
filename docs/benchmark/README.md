@@ -6,3 +6,8 @@
 06 : benchmark IA sur corpus proposé de 100 recettes autorisées/synthétiques, dont imprimés, manuscrits de difficultés variées, captures, multipages et photos médiocres ; références annotées et jeu de test séparé. Comparer fournisseurs vision/OCR et options locales (OpenAI, Gemini, Mistral OCR, Tesseract/PaddleOCR ou équivalent selon disponibilité). Évaluer ingrédients 20%, quantités/unités 20%, instructions 15%, absence d'invention 15%, durées/températures 10%, titre/portions 5%, coût par succès 10%, vitesse 5% (pondération indicative). Mesurer séparément manuscrit et erreurs critiques ; confidentialité/licence éliminatoires. Ne pas envoyer de documents sans droits/accord, retirer EXIF. Benchmark payant uniquement après accord de budget. Comparer chaîne locale/économique et escalade si utile, sans promettre de précision ni coût avant mesure.
 
 Livrables : protocole, sources, matrice, résultats, limites et recommandation. Les détails fournisseurs et coûts confidentiels restent privés.
+
+## Rapports réalisés
+- [04 — Benchmark concurrentiel](04-benchmark-concurrentiel.md) : étude documentaire, recommandations candidates.
+- [05 — Standards et bonnes pratiques](05-standards-bonnes-pratiques.md) : critères UX, accessibilité, PWA, performance, sécurité et tests ; aucun audit de conformité.
+Prochaine étude : 05 bis, audit juridique. Étapes 06–07 à conduire avant V1.

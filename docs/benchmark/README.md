@@ -16,4 +16,4 @@ Prochaine étude : 05 bis, audit juridique. Étapes 06–07 à conduire avant V1
 
 - [07 — Faisabilité commerciale](07-faisabilite-commerciale.md) : synthèse publique, structure des coûts et modèle de calcul ; aucune prévision de ventes ni validation commerciale. Détails financiers hors dépôt public. Prochaine étape : 08 et validation V1.
 
-- [08 — Proposition de périmètre fonctionnel V1](08-proposition-perimetre-V1.md) : exigences, priorités et critères d'acceptation ; périmètre approuvé (D15), réserve de tests historiques à traiter avant clôture V1. Aucun développement cible lancé.
+- [08 — Proposition de périmètre fonctionnel V1](08-proposition-perimetre-V1.md) : exigences, priorités et critères d'acceptation ; périmètre approuvé (D15), V1 clôturé (D16) avec report explicite et obligatoire des tests historiques vers 13–15 et 18–19. Aucun développement cible lancé. Prochaine étape 09 UX.

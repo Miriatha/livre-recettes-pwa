@@ -11,3 +11,5 @@ Livrables : protocole, sources, matrice, résultats, limites et recommandation. 
 - [04 — Benchmark concurrentiel](04-benchmark-concurrentiel.md) : étude documentaire, recommandations candidates.
 - [05 — Standards et bonnes pratiques](05-standards-bonnes-pratiques.md) : critères UX, accessibilité, PWA, performance, sécurité et tests ; aucun audit de conformité.
 Prochaine étude : 05 bis, audit juridique. Étapes 06–07 à conduire avant V1.
+
+- [06 — Sélection IA et protocole expérimental](06-benchmark-ia-protocole.md) : tarifs, conditions, corpus et grille d'évaluation. Aucun essai API exécuté ; budget et accès à approuver avant benchmark réel. Étude 07 possible sur scénarios explicitement hypothétiques.

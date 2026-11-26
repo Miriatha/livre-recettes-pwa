@@ -1,5 +1,5 @@
 # Étape 08 — Proposition de périmètre fonctionnel au jalon V1
-26/11/2026 — Statut : PROPOSÉ, en attente de validation explicite du propriétaire. Ne vaut ni autorisation de développer, ni budget, ni choix définitif de framework, ni autorisation de déploiement. V1 désigne ici le premier jalon de validation, non une version livrée.
+26/11/2026 — Statut : PÉRIMÈTRE APPROUVÉ par le propriétaire le 26/11/2026 (D15), clôture V1 sous réserve des compléments historiques. Ne vaut ni autorisation de développer, ni budget, ni choix définitif de framework, ni autorisation de déploiement. V1 désigne ici le premier jalon de validation, non une version livrée.
 ## Sources internes et traçabilité
 - [Vision](../01-vision.md), [cahier des charges F01–F13](../02-cahier-des-charges.md), [qualité](../06-qualite.md), [sécurité](../07-securite.md), [registre décisions](../10-registre-decisions.md), [feuille de route](../03-feuille-de-route.md).
 - [Audit statique](../audits/03-audit-statique-existant.md), [dynamique](../audits/03-complement-audit-dynamique.md), [limites](../audits/README.md).
@@ -44,3 +44,6 @@ Réserves avant bêta : DPA/accès régional OpenAI/conditions, test IA minimal,
 ## 6. Budget et validation
 Objectif fixe supplémentaire familial 0 si faisable ; coût IA variable non mesuré, quotas/plafond bloquant obligatoires. Aucun nouveau compte facturé, migration, marque, abonnement, suppression, paiement, déploiement ou fusion main autorisé. Budgets privés hors Git public. Choix de modèle et volumes à valider séparément en cas de coût. 
 Accord demandé au propriétaire : (1) nouveau socle modulaire avec reprise sélective et référence historique ; (2) périmètre P0/P1 et P2 reporté ; (3) identités individuelles dans foyers comme orientation à vérifier à 12 ; (4) fonctionnement offline des modifications et conflits explicites ; (5) GPT-6 Luna D14, test minimal avant bêta et statistiques facultatives ; (6) aucune suppression volontaire et aucune mise en production sans accord ; (7) traitement de la réserve historique avant clôture V1 ou report explicite. Inscrire ensuite décision datée au registre. L'étude 08 seule ne ferme pas V1.
+
+## 7. Validation propriétaire — D15
+Accord explicite du 26/11/2026 sur les propositions du jalon, y compris les compléments d'audit historique avant clôture définitive. Les critères, priorités et exclusions ci-dessus constituent le périmètre approuvé ; les choix techniques et visuels demeurent soumis aux jalons suivants. Aucun test complémentaire n'a été exécuté lors de cet enregistrement. Pas de développement cible avant levée de la réserve ; aucun coût, fusion main ou déploiement autorisé.

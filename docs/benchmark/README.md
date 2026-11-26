@@ -13,3 +13,5 @@ Livrables : protocole, sources, matrice, résultats, limites et recommandation. 
 Prochaine étude : 05 bis, audit juridique. Étapes 06–07 à conduire avant V1.
 
 - [06 — Sélection IA et protocole expérimental](06-benchmark-ia-protocole.md) : tarifs, conditions, corpus et grille d'évaluation. Aucun essai API exécuté ; budget et accès à approuver avant benchmark réel. Étude 07 possible sur scénarios explicitement hypothétiques.
+
+- [07 — Faisabilité commerciale](07-faisabilite-commerciale.md) : synthèse publique, structure des coûts et modèle de calcul ; aucune prévision de ventes ni validation commerciale. Détails financiers hors dépôt public. Prochaine étape : 08 et validation V1.

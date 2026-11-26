@@ -19,3 +19,9 @@ Planifier les vérifications de référence utiles avant V1 et les tests de rece
 
 ## Audits suivants
 Juridique, qualité, sécurité/conformité avant bêta, bilan. Méthode : préciser commit, environnement, commandes, preuves et limites, classer les risques et alternatives. Constats exploitables sensibles en espace privé. Aucun test destructif sur production.
+
+## Complément ciblé avant V1 — PR #3
+- [Règles métier historiques](03-validation-regles-metier-V1.md), commit 33cf9e2, intégré uniquement dans la branche documentaire. Revue du rapport et du diff, sans réexécution des essais. Catalogue 384/13, 26 unités, calculs de portions, agrégation et échéance minuteur testés isolément selon Codex. L'écart historique n'est pas reproduit à horloge contrôlée ; intégration navigateur encore à tester.
+- Revue statique supplémentaire : dans app.js lignes 5931–6008, regroupement par nom normalisé et famille/unité, identifiant utilisé pour catégorie. Dans index.html lignes 289–307, le champ fichier est réservé aux sauvegardes JSON ; aucune fonctionnalité photo de recette confirmée. Ne pas présenter photo et coches persistantes de courses comme acquises historiques.
+- Propositions à valider : conserver les ingrédients sans quantité dans les courses avec mention explicite « quantité à préciser », sans total fictif ; grouper par ID valide puis nom exact pour entrées non résolues, sans fusion entre identités différentes, et unités compatibles ; affichage de fractions/arrondis lisibles sans perte de précision de calcul. Ces propositions ne sont pas des décisions nouvelles.
+- Réserve D15 maintenue : parcours intégrés menu/historique, sauvegarde/restauration/rollback, minuteur et photos non validés. Recommandation de report explicite vers tests de référence avant reprise des modules (13–16) puis recette 18–19, avec critères obligatoires et aucun retrait tacite. Accord propriétaire requis avant clôture V1. Aucune modification du code ni dépense.

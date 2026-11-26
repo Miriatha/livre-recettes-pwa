@@ -12,8 +12,9 @@ Date de consolidation 26/11/2026 ; historique des décisions synthétisé, non p
 | D08 | Validé | Bêta familiale privée, métriques et tableau admin à cadrer ; pas de publicité ni paiement initial |
 | D09 | Validé | Offre gratuite privilégiée ; dépenses explicites uniquement |
 | D10 | Déclaré par propriétaire | Pas de recette existante à exporter ; autres données à vérifier |
-| D11 | À décider | Architecture, hébergement, modèle foyers et fournisseur IA |
+| D11 | À décider | Architecture, hébergement, modèle foyers ; fournisseur IA initial : voir D14 |
 | D12 | Proposé | Cibles qualité et métriques, cohorte/durée bêta, internationalisation, relecture distincte |
 | D13 | À décider | Nom définitif, licence, visibilité du dépôt, stratégie commerciale |
+| D14 | Validé sous conditions | 26/11/2026 : choix propriétaire de GPT-6 Luna comme fournisseur initial, sous réserve de conformité UE et vérification de compte. Comparatif multi-fournisseurs reporté ; validation minimale sur données fictives/autorisé avant bêta, puis mesure d'usage et réévaluation selon résultats. Aucun engagement financier autorisé. Voir protocole 06 et bêta. |
 
 Ajouter date, auteur/rôle, preuves, alternatives, conséquence et référence de validation pour toute nouvelle décision. Éviter les renseignements personnels et arbitrages commerciaux confidentiels dans le dépôt public.

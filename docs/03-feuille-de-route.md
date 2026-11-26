@@ -21,4 +21,4 @@ V8 commercialisation : preuves d'usage, économie, juridique et décision.
 Le lancement bêta nécessite également accord explicite sur protocole, accès et dépenses. Les décisions de marque définitive précèdent toute diffusion publique sous ce nom.
 
 ## Prochain travail
-Étape 03 lecture seule ; 04–07 recherches et études sans dépense non autorisée ; 08 synthèse de validation. Pas de développement cible avant V1. Les dépendances et la priorité des tâches pourront être affinées, sans supprimer les jalons.
+Études 04–07 documentées, D14 modèle IA initial sous conditions, étape 08 périmètre approuvé (D15, 26/11/2026). Prochaine action : complément d'audit historique ciblé avant clôture V1, puis 09 UX (V2). Pas de développement cible avant clôture V1. Les réserves de conformité, tests IA et coûts restent aux jalons prévus. Les dépendances et la priorité des tâches pourront être affinées, sans supprimer les jalons.

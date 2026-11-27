@@ -1,5 +1,5 @@
 # Feuille de route officielle de cadrage
-30 étapes principales, 8 compléments juridiques/conformité et un jalon de naming (02 bis ajouté) ; 8 validations utilisateur. Numéros conservés pour la traçabilité. État au 26/11/2026 : phases 1 et 2 clôturées, V1 approuvé (D15/D16). Audit historique partiel ; tests restants replanifiés explicitement. Étape 09 UX consolidée approuvée le 27/11/2026 ; voir D17 et la proposition consolidée.
+30 étapes principales, 8 compléments juridiques/conformité et un jalon de naming (02 bis ajouté) ; 8 validations utilisateur. Numéros conservés pour la traçabilité. État au 27/11/2026 : phases 1 et 2 clôturées, V1 approuvé (D15/D16). Audit historique partiel ; tests restants replanifiés explicitement. Étape 09 UX consolidée approuvée le 27/11/2026 ; voir D17 et la proposition consolidée.
 
 | Phase | Étapes | Livrables |
 |---|---|---|
@@ -24,4 +24,4 @@ Le lancement bêta nécessite également accord explicite sur protocole, accès 
 Études 04–07 documentées, D14 modèle IA initial sous conditions, étape 08 périmètre approuvé (D15). V1 clôturé par D16 (26/11/2026) après revue PR #3 et accord sur report explicite des tests historiques : 13/18 sauvegarde/restauration, 14 menus/historique/minuteur/règles métier, 15 photos, 18–19 recette complète. Tests de référence avant reprise des modules. [Étape 09 UX consolidée](ux/09-architecture-ux-consolidee.md), V2 approuvée, prochaine étape 10 (V3), puis 11–12 ; réalisation cible à partir de 13 après les jalons de conception. Les réserves de conformité, tests IA et coûts restent aux jalons prévus. Les dépendances et la priorité des tâches pourront être affinées, sans supprimer les jalons.
 
 ## Consolidation des apprentissages
-27/11/2026 : cinq missions documentaires terminées, S01–S04 consolidés, audit ciblé V1 sans changement de périmètre recommandé, V2 approuvée. S05 organise l'index permanent et les règles de consultation ; l'intégration de cette documentation est soumise à revue de PR. Les preuves techniques et applicatives restent à produire aux jalons existants. Voir [index](connaissances/README.md).
+27/11/2026 : cinq missions documentaires terminées, S01–S04 consolidés, audit ciblé V1 sans changement de périmètre recommandé, V2 approuvée. S05 organise l'index permanent et les règles de consultation ; l'intégration de cette documentation est suivie dans la PR #4 ; son état effectif est celui de GitHub. Les preuves techniques et applicatives restent à produire aux jalons existants. Voir [index](connaissances/README.md).

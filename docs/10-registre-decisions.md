@@ -1,5 +1,5 @@
 # Registre des décisions — initial
-Date de consolidation 26/11/2026 ; historique des décisions synthétisé, non procès-verbal exhaustif.
+Date de consolidation 27/11/2026 ; historique des décisions synthétisé, non procès-verbal exhaustif.
 | ID | Statut | Décision |
 |---|---|---|
 | D01 | Validé | Application familiale privée d'abord, commercialisation optionnelle |

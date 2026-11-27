@@ -1,4 +1,6 @@
-# Étape 09 — Architecture de l'expérience utilisateur (proposition V2)
+# Étape 09 — Architecture de l'expérience utilisateur (proposition V2 historique)
+**Note du 27/11/2026 :** document historique conservé. La [proposition V2 consolidée approuvée](09-architecture-ux-consolidee.md) prévaut ; D17 enregistre la validation. Les mentions d'attente ci-dessous décrivent l'état historique.
+
 26/11/2026 — Soumise à validation du propriétaire. V1 clôturé (D15/D16). Cette étape définit structure et comportements, pas charte, prototype fonctionnel, framework ou implémentation. Sources : [V1](../benchmark/08-proposition-perimetre-V1.md), [standards](../benchmark/05-standards-bonnes-pratiques.md), [décisions](../10-registre-decisions.md), [bêta](../beta-test/README.md), [juridique](../juridique/05bis-audit-juridique-reglementaire.md). Les fonctionnalités P1 restent conditionnelles sauf exigences bêta ; P2 non inclus. Aucun résultat de test UX à ce stade.
 
 ## 1. Principes et navigation
